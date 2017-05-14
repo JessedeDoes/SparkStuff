@@ -111,7 +111,8 @@ class Concordancer(s: Searcher) {
 	def createRow(kwic:Kwic): Row = 
 		{
 				val c  = kwic.getProperties().asScala.toList.map(
-						s => (kwic.getLeft(s).asScala.toList ++ kwic.getMatch(s).asScala.toList ++ kwic.getRight(s).asScala.toList).toArray);
+						s => (kwic.getLeft(s).asScala.toList ++ kwic.getMatch(s).asScala.toList 
+						    ++ kwic.getRight(s).asScala.toList).toArray);
 
 				
 				Row.fromSeq(kwic.getHitStart :: kwic.getHitEnd :: c)
@@ -139,3 +140,13 @@ object Conc
 				  .filter("pos[hitStart-1]='ADV()'") } println(conc)
 	}
 }
+
+
+/*
+* Problemen als je wil paralleliseren: lucene query is niet puur of doet iedere keer nieuwe initialisatie
+* 
+* Oplossing ?! initialisatie een keer per node zie
+* Zie http://stackoverflow.com/questions/40435741/object-cache-on-spark-executors?rq=1 (tweede manier)
+* Maar dan wil je de grotere corpora maar op 1 node laden, dus
+* zou je expliciet willen mappen welke deelvraag waarheen gaat, wat niet echt in de geest van het hele gespark is (?)  
+*/
