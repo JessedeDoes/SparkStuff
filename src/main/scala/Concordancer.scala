@@ -147,18 +147,34 @@ object Conc
 	val sc = sparkSession.sparkContext
 	
 	
+	def testBlacklabQuery(searcher: Searcher) =
+	{
+	  	val c = new Concordancer(searcher)
+	  	val df = c.collectConcordances(searcher, "[pos='AA.*'][lemma='feit']", sparkSession)
+	  	for { conc <- 
+				  df.filter("pos[hitStart-1]='ADV()' and pos[hitEnd]='ADV()'").sort(desc("date")).selectExpr("date", "word", "lemma[hitStart] as lemma")   } 
+		  {
+		      println(conc.getAs[String]("date") + " <"  + conc.getAs[String]("lemma") + "> " + conc.getAs[Array[_]]("word"))
+		  }
+		  df
+	}
+	
+	def lemmaJoin(concordances:DataFrame, lemmaSet:DataFrame): DataFrame =
+	{
+	  val joinedDF = concordances.join(lemmaSet, concordances("lemma") === lemmaSet("modern_lemma"), "inner")
+	  joinedDF
+	}
 	
 	def main(args: Array[String])
 	{
 	  //Log.set(Log.LEVEL_ERROR)
 		val searcher = Searcher.open(new java.io.File("/media/jesse/Data/Diamant/StatenGeneraal/"))
 				println("searcher open...")
-				val c = new Concordancer(searcher)
-				for { conc <- c.collectConcordances(searcher, "[pos='AA.*'][lemma='feit']", sparkSession)
-				  .filter("pos[hitStart-1]='ADV()' and pos[hitEnd]='ADV()'").sort(desc("date"))   } 
-		    {
-		      println(conc.getAs[String]("date") + " "  + conc.getAs[Array[_]]("word"))
-		    }
+		val concordances = testBlacklabQuery(searcher).selectExpr("date", "word", "lemma[hitStart] as lemma") 
+		val lemmata = TestSpark.lemmataDataFrame(sc).filter("not (lemma_gigpos rlike 'AA')")
+		val joined = lemmaJoin(concordances, lemmata)
+		for (x <- joined)
+		  println(x)
 	}
 }
 
