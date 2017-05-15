@@ -19,6 +19,7 @@ import org.apache.spark.SparkContext._
 import org.apache.spark.rdd.JdbcRDD
 import org.apache.spark.sql._
 import org.apache.spark.sql.types._
+import org.apache.spark.sql.functions._
 
 import java.sql.{DriverManager,Connection,ResultSet}
 
@@ -149,12 +150,15 @@ object Conc
 	
 	def main(args: Array[String])
 	{
-	  Log.set(Log.LEVEL_ERROR)
+	  //Log.set(Log.LEVEL_ERROR)
 		val searcher = Searcher.open(new java.io.File("/media/jesse/Data/Diamant/StatenGeneraal/"))
 				println("searcher open...")
 				val c = new Concordancer(searcher)
 				for { conc <- c.collectConcordances(searcher, "[pos='AA.*'][lemma='feit']", sparkSession)
-				  .filter("pos[hitStart-1]='ADV()'") } println(conc)
+				  .filter("pos[hitStart-1]='ADV()' and pos[hitEnd]='ADV()'").sort(desc("date"))   } 
+		    {
+		      println(conc.getAs[String]("date") + " "  + conc.getAs[Array[_]]("word"))
+		    }
 	}
 }
 
