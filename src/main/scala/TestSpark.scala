@@ -47,15 +47,25 @@ object TestSpark
 
 	def lemmataDataFrame(sc: SparkContext):DataFrame = 
 		{
+			dataFrameFromQuery(sc, "(select lemma_id, modern_lemma, lemma_gigpos from data.lemmata) as lemz" )
+		}
+	
+	val JO = """
+	  (select distinct lemma_id, modern_lemma, lemma_gigpos from data.lemmata_en_paradigma_view where
+	  wordform_gigpos ~ 'AA.*infl=e' and wordform ~ 'e$'  and not (modern_lemma ~ 'e$')) as flectable" 
+	   """ 
+              
+	def dataFrameFromQuery(sc: SparkContext, query: String):DataFrame = 
+		{
 				val sqlContext = new org.apache.spark.sql.SQLContext(sc)
 				import sqlContext.implicits._
 				val url = "jdbc:postgresql://localhost/gig_pro_dev?user=postgres&password=inl"
 				val df = sqlContext.load("jdbc", Map(
 								"url" -> url,
-								"dbtable" -> "(select lemma_id, modern_lemma, lemma_gigpos from data.lemmata) as lemz"))
+								"dbtable" -> query))
 				df
 		}
-		
+	
 	def makeDataframe(sc: SparkSession):DataFrame = lemmataDataFrame(sc.sparkContext)
 		
 	def wordCount(inputFile: String) =
