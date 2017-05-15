@@ -50,7 +50,9 @@ object TestSpark
 			dataFrameFromQuery(sc, "(select lemma_id, modern_lemma, lemma_gigpos from data.lemmata) as lemz" )
 		}
 	
-	val JO = """
+	def flectableAA(sc: SparkContext):DataFrame = dataFrameFromQuery(sc,flectable_query)
+	
+	val flectable_query = """
 	  (select distinct lemma_id, modern_lemma, lemma_gigpos from data.lemmata_en_paradigma_view where
 	  wordform_gigpos ~ 'AA.*infl=e' and wordform ~ 'e$'  and not (modern_lemma ~ 'e$')) as flectable" 
 	   """ 
