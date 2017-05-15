@@ -170,7 +170,7 @@ object Conc
 	  //Log.set(Log.LEVEL_ERROR)
 		val searcher = Searcher.open(new java.io.File("/media/jesse/Data/Diamant/StatenGeneraal/"))
 				println("searcher open...")
-		val concordances = testBlacklabQuery(searcher).selectExpr("date", "word", "lemma[hitStart] as lemma") 
+		val concordances = testBlacklabQuery(searcher).selectExpr("date", "word", "lemma[hitStart] as lemma", "pos[hitStart] as pos") 
 		val lemmata = TestSpark.lemmataDataFrame(sc).filter("not (lemma_gigpos rlike 'AA')")
 		val joined = lemmaJoin(concordances, lemmata)
 		for (x <- joined)
