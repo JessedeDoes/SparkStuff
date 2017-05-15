@@ -1,4 +1,5 @@
 import nl.inl.blacklab.search.{Concordance,Kwic,Hit,Hits,Searcher,Span}
+import nl.inl.blacklab.search.grouping._
 import nl.inl.blacklab.queryParser.corpusql.CorpusQueryLanguageParser
 
 import org.apache.lucene.search.{Query,QueryWrapperFilter}
@@ -10,7 +11,7 @@ import org.apache.lucene.analysis.Analyzer
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.queryparser.classic.ParseException
 
-
+import scala.collection.immutable.{Map,HashMap}
 
 import org.apache.spark.{SparkConf,SparkContext}
 
@@ -28,29 +29,26 @@ class Concordancer(s: Searcher) {
 
 	val searcher = s
 
-			def parseLuceneQuery(s: String, m: String): Query =
-		{
-				val a: Analyzer = new StandardAnalyzer();
-	try
-	return LuceneUtil.parseLuceneQuery(s, a, m)
-			catch {
-			case e: Exception =>
-			// TODO Auto-generated catch block
-			e.printStackTrace
-			}
-	null
-		}
+  def parseLuceneQuery(s: String, m: String): Query = 
+  {
+    val a: Analyzer = new StandardAnalyzer();
+    try
+      return LuceneUtil.parseLuceneQuery(s, a, m)
+    catch {
+      case e: Exception =>
+        // TODO Auto-generated catch block
+        e.printStackTrace
+    }
+    null
+  }
 
 	@throws[ParseException]
 	@throws[nl.inl.blacklab.queryParser.corpusql.ParseException]
 	def filteredSearch(searcher: Searcher, corpusQlQuery: String, filterQueryString: String): Hits =
-				{
-						
-								// Execute the TextPattern
-								val hits = searcher.find(createSpanQuery(searcher, corpusQlQuery, filterQueryString)) // dit is niet optimaal...
-
+	{
+		val hits = searcher.find(createSpanQuery(searcher, corpusQlQuery, filterQueryString)) // dit is niet optimaal...
 								hits
-				}
+	}
 
 	def createSpanQuery(searcher: Searcher, corpusQlQuery: String, filterQueryString: String): SpanQuery = 
 	{
@@ -68,36 +66,51 @@ class Concordancer(s: Searcher) {
 
 	// type Concordance = List[(String,List[String])]
 
+	def getMetadata(fields:List[HitPropertyDocumentStoredField], i:Int) : Map[String,String] =
+	{
+	    fields.map(f => f.getName ->  f.get(i).toString()).toMap
+	}   
+	
 	def collectConcordances(searcher: Searcher, corpusQlQuery: String, session: SparkSession):  DataFrame = 
 		{
+	      println()
 				val hits = filteredSearch(searcher, corpusQlQuery, null)
-						hits.setContextSize(2)
+						hits.setContextSize(4)
 						hits.setMaxHitsToRetrieve(100000)
 						println("hits created!");
-
+	      
+	      val metaFields = searcher.getIndexStructure.getMetadataFields.asScala.toList.sorted
+	      val StoredFields = metaFields.map(
+	          s => new HitPropertyDocumentStoredField(hits,s, s))
 			
-				val schema = createSchema(hits)
-
-				val i = for { h <- hits.iterator().asScala; conc = hits.getKwic(h) }
-				yield  createRow(conc)
-
-				createDataFrame(i,session,schema)
-
+				val schema = createSchema(hits, metaFields)
+				//var i:Int = 0 // lelijk, 
+				var horriebelTellertje = 0 // nodig omdat de metadata op nummer wordt opgehaald (Jan, kan dat anders?)
+				val iterator:Iterator[Row] = for { h <- hits.iterator().asScala;   kwic = hits.getKwic(h) }
+				yield 
+				{
+				   val meta = getMetadata(StoredFields, horriebelTellertje)
+				   horriebelTellertje += 1
+				   createRow(kwic, meta)
+				}
+				createDataFrame(iterator,session,schema)
 		}
 
 
 
-	def createSchema(hits:Hits):StructType = 
+	def createSchema(hits:Hits, metaFields: List[String]):StructType = 
 		{
 	    val kwic = hits.getKwic(hits.get(0))
-		  
+	    //kwic.toConcordance().
+		  //println("Document properties:" + kwic.getDocContents.getProperties().asScala.toList)
 			val fields = kwic.getProperties().asScala.toList
 
-			val fieldDefs = fields.map(fieldName => StructField(fieldName, new ArrayType(StringType,false), nullable = true))
+			val tokenFields = fields.map(fieldName => StructField(fieldName, new ArrayType(StringType,false), nullable = true))
+			val metaFieldz = metaFields.map(fieldName => StructField(fieldName, StringType, nullable = true))
 			val extraFields = List(
 								StructField("hitStart", IntegerType, nullable=false),
 								StructField("hitEnd", IntegerType, nullable=false))
-			val schema = StructType(extraFields ++ fieldDefs)
+			val schema = StructType(extraFields ++ tokenFields ++ metaFieldz)
 			println(schema)
 			schema
 		}
@@ -109,14 +122,15 @@ class Concordancer(s: Searcher) {
 						spark.createDataFrame(rowz, schema)
 		} 
 
-	def createRow(kwic:Kwic): Row = 
+	def createRow(kwic:Kwic, meta:Map[String,String]): Row = 
 		{
-				val c  = kwic.getProperties().asScala.toList.map(
+				val tokenValues  = kwic.getProperties().asScala.toList.map(
 						s => (kwic.getLeft(s).asScala.toList ++ kwic.getMatch(s).asScala.toList 
 						    ++ kwic.getRight(s).asScala.toList).toArray);
 
-				
-				Row.fromSeq(kwic.getHitStart :: kwic.getHitEnd :: c)
+				val metaKeys = (meta.keys.toList.sorted)
+				val metaValues = metaKeys.map(s => meta(s))
+				Row.fromSeq(kwic.getHitStart :: kwic.getHitEnd :: tokenValues ++ metaValues)
 		} 
 }
 
