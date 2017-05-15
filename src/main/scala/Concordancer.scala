@@ -22,6 +22,7 @@ import org.apache.spark.sql.types._
 import java.sql.{DriverManager,Connection,ResultSet}
 
 import scala.collection.JavaConverters._
+import com.esotericsoftware.minlog._
 
 class Concordancer(s: Searcher) {
 
@@ -131,12 +132,14 @@ object Conc
 	val sc = sparkSession.sparkContext
 	
 	
+	
 	def main(args: Array[String])
 	{
+	  Log.set(Log.LEVEL_ERROR)
 		val searcher = Searcher.open(new java.io.File("/media/jesse/Data/Diamant/StatenGeneraal/"))
 				println("searcher open...")
 				val c = new Concordancer(searcher)
-				for { conc <- c.collectConcordances(searcher, "[pos='AA.*'][lemma='eigenaardigheid']", sparkSession)
+				for { conc <- c.collectConcordances(searcher, "[pos='AA.*'][lemma='feit']", sparkSession)
 				  .filter("pos[hitStart-1]='ADV()'") } println(conc)
 	}
 }

@@ -18,6 +18,16 @@ libraryDependencies += "org.apache.spark" % "spark-sql_2.11" % sparkVersion
 // https://mvnrepository.com/artifact/nl.inl.blacklab/blacklab
 libraryDependencies += "nl.inl.blacklab" % "blacklab" % "1.5.0"
 
+resolvers += "Local Maven Repository" at "file://"+Path.userHome.absolutePath+"/.m2/repository"
+resolvers += "my provate repository" at "http://dedoes.home.xs4all.nl/maven"
+
+libraryDependencies += "org.ivdnt.wordvectors"  % "WordVectors" % "0.0.1-SNAPSHOT"
+
+
+// or, for convenience:
+
+// resolvers += Resolver.mavenLocal
+
 //val myMergeStrategy: String => MergeStrategy = { 
 assemblyMergeStrategy in assembly := {
     case x if Assembly.isConfigFile(x) =>
