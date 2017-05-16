@@ -64,7 +64,7 @@ object TestSpark
 				val sqlContext = new org.apache.spark.sql.SQLContext(sc)
 				import sqlContext.implicits._
 				val url = if (atHome) "jdbc:postgresql://localhost/gig_pro_dev?user=postgres&password=inl"
-				    else "jdbc:postgresql://svowdb06/gig_pro?user=fannee&Cric0topus"
+				    else "jdbc:postgresql://svowdb06/gig_pro?user=fannee&password=Cric0topus"
 				  
 				val df = sqlContext.load("jdbc", Map(
 								"url" -> url,

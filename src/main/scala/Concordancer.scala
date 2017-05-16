@@ -3,7 +3,7 @@ import nl.inl.blacklab.search.grouping._
 import nl.inl.blacklab.queryParser.corpusql.CorpusQueryLanguageParser
 
 import org.apache.lucene.search.{Query,QueryWrapperFilter}
-
+import org.apache.lucene.document.Document
 import org.apache.lucene.search.spans.SpanQuery;
 
 import nl.inl.util.LuceneUtil
@@ -68,10 +68,23 @@ class Concordancer(s: Searcher) {
 	// type Concordance = List[(String,List[String])]
 
 	def getMetadata(fields:List[HitPropertyDocumentStoredField], i:Int) : Map[String,String] =
-	{
 	    fields.map(f => f.getName ->  f.get(i).toString()).toMap
-	}   
+	   
 	
+	def getFieldValue(doc:Document, s:String):String =
+	  try
+	    doc.getField(s).stringValue()
+	  catch
+	  {
+	    case e:Exception => ""
+	  }
+	
+	
+	def getMetadata(doc:Document, fields: List[String]): Map[String,String] =
+	  fields.map(s => s -> getFieldValue(doc,s)).toMap
+	
+	
+
 	def collectConcordances(searcher: Searcher, corpusQlQuery: String, session: SparkSession):  DataFrame = 
 		{
 	      println()
@@ -81,17 +94,14 @@ class Concordancer(s: Searcher) {
 						println("hits created!");
 	      
 	      val metaFields = searcher.getIndexStructure.getMetadataFields.asScala.toList.sorted
-	      val StoredFields = metaFields.map(
-	          s => new HitPropertyDocumentStoredField(hits,s, s))
+	      //val StoredFields = metaFields.map(s => new HitPropertyDocumentStoredField(hits,s, s))
 			
 				val schema = createSchema(hits, metaFields)
-				//var i:Int = 0 // lelijk, 
-				var horriebelTellertje = 0 // nodig omdat de metadata op nummer wordt opgehaald (Jan, kan dat anders?)
+				
 				val iterator:Iterator[Row] = for { h <- hits.iterator().asScala;   kwic = hits.getKwic(h) }
 				yield 
 				{
-				   val meta = getMetadata(StoredFields, horriebelTellertje)
-				   horriebelTellertje += 1
+				   val meta = getMetadata(searcher.document(h.doc), metaFields)
 				   createRow(kwic, meta)
 				}
 				createDataFrame(iterator,session,schema)
