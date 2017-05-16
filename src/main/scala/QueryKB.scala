@@ -11,7 +11,7 @@ trait TextQuery
 			case Term(s) => s
 			case And(t1,t2) => "(" + t1.toString + "+AND+" + t2.toString + ")"
 			case Or(t1,t2) => "(" + t1.toString + "+OR+" + t2.toString + ")"
-			case Phrase(l @ _*) => "%22" + List(l).map(_.toString).mkString("+")  + "%22"
+			case Phrase(l @ _*) => "%22" + l.map(_.toString).mkString("+")  + "%22"
 			}
 }
 
