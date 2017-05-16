@@ -90,21 +90,26 @@ object Download
   }
   
   
-  def getMatchingDocumentIdentifiersForBatch(q:SRUQuery, start:Int, maximum:Int):Stream[(String,xml.Node)] =
-  {
-    Console.err.println("Start batch at " + start)
-    val q1 = q.copy(startRecord=start, maximumRecords=maximum)
-    val xml = XML.load(q1.mkURL)
-    for  { 
-      r <- (xml \\ "recordData").toStream; 
-      id <- r \\ "identifier"}
-      yield
-        (id.text, r)
-  }
+
   
+  /*
+   * There might be millions, so we do not want to keep the metadata record XML nodes in memory all at once,
+   * so we to return need a stream instead of a List
+   */
   def matchingDocumentIdentifiers(q:SRUQuery):Stream[(String,Node)] =
   {
-    //val url = 
+		  def getMatchingDocumentIdentifiersForBatch(q:SRUQuery, start:Int, maximum:Int):Stream[(String,xml.Node)] =
+			  {
+					  Console.err.println("Start batch at " + start)
+					  val q1 = q.copy(startRecord=start, maximumRecords=maximum)
+					  val xml = XML.load(q1.mkURL)
+					  for  { 
+						  r <- (xml \\ "recordData").toStream; 
+						  id <- r \\ "identifier"}
+					  yield
+					  (id.text, r)
+			  }
+    
     val n = math.min(getNumberOfResults(q),maxDocuments)
     
     val x = (0 to n by batchSize).toStream.flatMap(start => getMatchingDocumentIdentifiersForBatch(q,start,batchSize))
