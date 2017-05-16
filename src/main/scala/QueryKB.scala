@@ -3,6 +3,7 @@
  * 
  */
 import scala.xml._
+import java.io.PrintWriter;
 
 trait TextQuery
 {
@@ -47,14 +48,27 @@ case class ContentQuery(startDate:String,
 case class SRUQuery(server:String, 
     operation:String, collection:String, 
     startRecord:Int, maximumRecords:Int, query:ContentQuery) extends SRUQueryT
-    
+
+object Store
+{
+  val dir = "./Store"
+  def store(id:String, metadata:Node, text:String) = 
+  {
+    val fileName = id.replaceAll(".*urn=","").replaceAll(":","_") + ".xml"
+    val xml = XML.loadString(text)
+    val doc = <doc>{metadata}{xml}</doc>
+   
+    new PrintWriter(dir + "/" + fileName) { write(doc.toString()); close }
+  }
+}
+
 object Download
 {
   val base = "http://jsru.kb.nl/sru/sru?operation=searchRetrieve&x-collection=DDD_krantnr"
 
   
   val batchSize = 100
-  val maxDocuments = 1000
+  val maxDocuments = Int.MaxValue
   val defaultStartDate = "01-01-1800"
   val defaultEndDate = "31-01-1939"
   val defaultCollection = "DDD_artikel"
@@ -64,7 +78,8 @@ object Download
       "Dennensnuitkever", "Fret", "Hermelijn", "Huismuis", "Konijn", "Lynx", "Muskusrat", 
       "Otter", "Raaf", "Spreeuw", "Vos", "Wezel", "Wolf")
   
-  def wrapTextQuery(t:TextQuery) = SRUQuery(defaultServer, "searchRetrieve", 
+  def wrapTextQuery(t:TextQuery) = 
+          SRUQuery(defaultServer, "searchRetrieve", 
              defaultCollection, 0, maxDocuments, 
              ContentQuery(defaultStartDate, defaultEndDate, t))
              
@@ -92,7 +107,8 @@ object Download
   
 
   
-  /*
+  /**
+   * Return a list of pairs: first is article id (actually resolver URI), second is recordData containing metadata for the article
    * There might be millions, so we do not want to keep the metadata record XML nodes in memory all at once,
    * so we to return need a stream instead of a List
    */
@@ -128,18 +144,20 @@ object Download
     
     val n = this.getNumberOfResults(wrapTextQuery(Phrase("de", "kool", "en", "de", "geit")))
     
-    for ((id,metadataRecord) <- matchingDocumentIdentifiers(singleWordQuery("Bunzing")))
+    for ((id,metadataRecord) <- matchingDocumentIdentifiers(singleWordQuery("Konijn")))
     {
       val basicMeta = (List("date", "papertitle", "title").map(x => (metadataRecord \\ x).text)).mkString("\t")
    
-      println(id + "\t" + basicMeta)
+      //println(id + "\t" + basicMeta)
       
       try 
       {
+        val txt = get(id);
+        Store.store(id,metadataRecord,txt)
         println("document length:" + get(id).length())
       } catch   
       {
-        case e:Exception => Console.err.println(s"nou hoor..., kan $id niet afhalen")
+        case e:Exception => Console.err.println(s"nou hoor..., kan $id niet afhalen: " + e)
       }
     }
   }
