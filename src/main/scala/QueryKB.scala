@@ -49,7 +49,7 @@ object Download
   
   def getNumberOfResults(url:String):Int =
   {
-    val xml = XML.load(url.replaceAll("maximumRecords=[0-9]+","maximumRecords=1"))
+    val xml = XML.load(url)
     val n = (xml \\ "numberOfRecords").text.toInt
     Console.err.println("number of documents:" + n)
     n
