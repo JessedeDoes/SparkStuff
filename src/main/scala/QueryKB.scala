@@ -1,56 +1,105 @@
 import scala.xml._
 
-// http://jsru.kb.nl/sru/sru?operation=searchRetrieve&x-collection=ANP&query=date+within+%2201-01-1960+01-01-1961%22+AND+Zeitung
+case class ContentQuery(startDate:String, 
+    endDate:String, textQuery:String)
+    
+case class SRUQuery(server:String, 
+    operation:String, collection:String, 
+    startRecord:Int, maximumRecords:Int, query:ContentQuery)
+
+
 
 object Download
 {
   val base = "http://jsru.kb.nl/sru/sru?operation=searchRetrieve&x-collection=DDD_krantnr"
-  def get(url: String) = scala.io.Source.fromURL(url).mkString
+
   
-  val p = 100
-  
-   
+  val batchSize = 100
+  val maxDocuments = 1000
+  val defaultStartDate = "01-01-1800"
+  val defaultEndDate = "31-01-1939"
+  val defaultCollection = "DDD_artikel"
+       
   val SRU_base = "http://jsru.kb.nl/sru/sru" + "?version=1.2&operation=searchRetrieve" + 
   "&x-collection=DDD_artikel&recordSchema=ddd" + 
-  "&startRecord=0&maximumRecords=" + p + "&query=date+within+%22"
+  "&startRecord=0&maximumRecords=" + batchSize + "&query=date+within+%22"
   
-  def getIdentifiers(base: String, startDate:String, endDate:String, term:String):Seq[String] =
+  val beesten = List("Adder", "Bever", "Beverrat", "Boommarter", "Bunzing", "Das", 
+      "Dennensnuitkever", "Fret", "Hermelijn", "Huismuis", "Konijn", "Lynx", "Muskusrat", 
+      "Otter", "Raaf", "Spreeuw", "Vos", "Wezel", "Wolf")
+  
+  def mkString(q: ContentQuery) ="date+within+%22" + q.startDate + "+" + q.endDate + "%22+AND+" + q.textQuery
+  
+  def mkURL(q: SRUQuery): String =
+  q.server + "&operation=" + q.operation + "&x-collection=" + q.collection + "&startRecord=" + 
+  q.startRecord + "&maximumRecords=" + q.maximumRecords + "&query=" + mkString(q.query)
+  
+  def query(term:String):SRUQuery = SRUQuery("http://jsru.kb.nl/sru/sru?version=1.2", "searchRetrieve", 
+      defaultCollection, 0, maxDocuments, ContentQuery(defaultStartDate, defaultEndDate, term))
+      
+  def get(url: String) = scala.io.Source.fromURL(url).mkString
+  
+  def getNumberOfResults(q:SRUQuery):Int = 
   {
-    val url = s"$base$startDate+$endDate%22+AND+$term"
-    val n = math.min(getNumberOfResults(url),300)
-    
-    (0 to n by p).flatMap(k => getIdentifiers(url,k))
+    val q0 = q.copy(startRecord=0,maximumRecords=1)
+    val url = mkURL(q0)
+    Console.err.println(url)
+    getNumberOfResults(url)
   }
   
   def getNumberOfResults(url:String):Int =
   {
     val xml = XML.load(url.replaceAll("maximumRecords=[0-9]+","maximumRecords=1"))
-    (xml \\ "numberOfRecords").text.toInt
+    val n = (xml \\ "numberOfRecords").text.toInt
+    Console.err.println("number of documents:" + n)
+    n
   }
   
-  def getIdentifiers(url: String, start:Int):Seq[String] =
+  
+  
+  def matchingDocumentIdentifiers(q:SRUQuery):Seq[(String,Node)] =
   {
-    val u1 = url.replaceAll("startRecord=0","startRecord="+start)
-    Console.err.println("loading:" + u1)
-    val xml = XML.load(u1)
-   
-    (xml \\ "identifier").map(x => x.text)
+    //val url = 
+    val n = math.min(getNumberOfResults(q),maxDocuments)
+    
+    (0 to n by batchSize).flatMap(k => getMatchingDocumentIdentifiersForBatch(q,k,batchSize))
   }
   
+
+  def getMatchingDocumentIdentifiersForBatch(q:SRUQuery, start:Int, maximum:Int):Seq[(String,xml.Node)] =
+  {
+    val q1 = q.copy(startRecord=start, maximumRecords=maximum)
+    val xml = XML.load(mkURL(q1))
+    for  { 
+      r <- xml \\ "recordData"; 
+      id <- r \\ "identifier"}
+      yield
+        (id.text, r)
+  }
+   
   def main(args: Array[String]) =
   {  
+    val aantallen = beesten.map(b => (b,getNumberOfResults(query(b)))) 
     
-    for (id <- getIdentifiers(SRU_base, "20-01-1820","30-01-1820","Napoleon"))
+    println(aantallen)
+    
+    
+    for ((id,meta) <- matchingDocumentIdentifiers(query("Bunzing")))
     {
-      println(id)
+      val metadata = (List("date", "papertitle", "title").map(x => (meta \\ x).text)).mkString("\t")
+   
+      println(id + "\t" + metadata)
+      
       try 
       {
-        println(get(id))
+        println("document length:" + get(id).length())
       } catch   
       {
-        case e:Exception => Console.err.println("nou hoor...")
+        case e:Exception => Console.err.println(s"nou hoor..., kan $id niet afhalen")
       }
     }
+   
+    
   }
   
   val exampleRecord = <srw:record>

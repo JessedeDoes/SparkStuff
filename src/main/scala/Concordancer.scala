@@ -122,7 +122,7 @@ class Concordancer(s: Searcher) {
 								StructField("hitStart", IntegerType, nullable=false),
 								StructField("hitEnd", IntegerType, nullable=false))
 			val schema = StructType(extraFields ++ tokenFields ++ metaFieldz)
-			println(schema)
+			println("Schema:" + schema)
 			schema
 		}
 
