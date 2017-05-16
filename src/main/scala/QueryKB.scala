@@ -154,7 +154,7 @@ object Download
       {
         val txt = get(id);
         Store.store(id,metadataRecord,txt)
-        println("document length:" + get(id).length())
+        println(s"document length for $id:" + txt.length())
       } catch   
       {
         case e:Exception => Console.err.println(s"nou hoor..., kan $id niet afhalen: " + e)
