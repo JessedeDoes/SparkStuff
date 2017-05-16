@@ -118,14 +118,15 @@ object Download
   
 
 
-   
+  implicit def StringToTerm(s:String):Term = Term(s)
+  
   def main(args: Array[String]) =
   {  
     val aantallen = beesten.map(b => (b,getNumberOfResults(singleWordQuery(b)))) 
     
     println(aantallen)
     
-    val n = this.getNumberOfResults(wrapTextQuery(And(Term("vos"), Term("wolf"))))
+    val n = this.getNumberOfResults(wrapTextQuery(Phrase("de", "kool", "en", "de", "geit")))
     
     for ((id,metadataRecord) <- matchingDocumentIdentifiers(singleWordQuery("Bunzing")))
     {
