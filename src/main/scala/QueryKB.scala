@@ -64,10 +64,6 @@ object Download
       "Dennensnuitkever", "Fret", "Hermelijn", "Huismuis", "Konijn", "Lynx", "Muskusrat", 
       "Otter", "Raaf", "Spreeuw", "Vos", "Wezel", "Wolf")
   
-  //def mkString(q: ContentQuery) = q.toParameterValue()
-  
-  //def mkURL(q: SRUQuery): String = q.mkURL()
- 
   def wrapTextQuery(t:TextQuery) = SRUQuery(defaultServer, "searchRetrieve", 
              defaultCollection, 0, maxDocuments, 
              ContentQuery(defaultStartDate, defaultEndDate, t))
@@ -126,11 +122,11 @@ object Download
     
     val n = this.getNumberOfResults(wrapTextQuery(And(Term("vos"), Term("wolf"))))
     
-    for ((id,meta) <- matchingDocumentIdentifiers(singleWordQuery("Bunzing")))
+    for ((id,metadataRecord) <- matchingDocumentIdentifiers(singleWordQuery("Bunzing")))
     {
-      val metadata = (List("date", "papertitle", "title").map(x => (meta \\ x).text)).mkString("\t")
+      val basicMeta = (List("date", "papertitle", "title").map(x => (metadataRecord \\ x).text)).mkString("\t")
    
-      println(id + "\t" + metadata)
+      println(id + "\t" + basicMeta)
       
       try 
       {
