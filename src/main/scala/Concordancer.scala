@@ -168,7 +168,9 @@ object Conc
 	def main(args: Array[String])
 	{
 	  //Log.set(Log.LEVEL_ERROR)
-		val searcher = Searcher.open(new java.io.File("/media/jesse/Data/Diamant/StatenGeneraal/"))
+	
+	  val indexDirectory = if (TestSpark.atHome) "/media/jesse/Data/Diamant/StatenGeneraal/" else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
+		val searcher = Searcher.open(new java.io.File(indexDirectory))
 				println("searcher open...")
 		val concordances = testBlacklabQuery(searcher).selectExpr("date", "word", "lemma[hitStart] as lemma", "pos[hitStart] as pos") 
 		val lemmata = TestSpark.lemmataDataFrame(sc).filter("not (lemma_gigpos rlike 'AA')")

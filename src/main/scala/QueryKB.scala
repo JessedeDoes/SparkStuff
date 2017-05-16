@@ -16,7 +16,7 @@ object Download
   
   def getIdentifiers(base: String, startDate:String, endDate:String, term:String):Seq[String] =
   {
-    val url = s"$base$startDate+$endDate+AND+$term"
+    val url = s"$base$startDate+$endDate%22+AND+$term"
     val n = math.min(getNumberOfResults(url),300)
     
     (0 to n by p).flatMap(k => getIdentifiers(url,k))
