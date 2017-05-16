@@ -1,14 +1,53 @@
+/*
+ * Stuff for querying KB newspapers
+ * 
+ */
 import scala.xml._
 
+trait TextQuery
+{
+	override def toString() = this match
+			{
+			case Term(s) => s
+			case And(t1,t2) => "(" + t1.toString + "+AND+" + t2.toString + ")"
+			case Or(t1,t2) => "(" + t1.toString + "+OR+" + t2.toString + ")"
+			case Phrase(l @ _*) => "%22" + List(l).map(_.toString).mkString("+")  + "%22"
+			}
+}
+
+case class Term(term:String) extends TextQuery
+case class And(t1:TextQuery, t2:TextQuery) extends TextQuery
+case class Or(t1:TextQuery, t2:TextQuery) extends TextQuery
+case class Phrase(l: TextQuery*) extends TextQuery
+
+trait ContentQueryT
+{
+	def startDate:String
+	val endDate:String
+	val textQuery:TextQuery
+	def toParameterValue():String ="date+within+%22" + startDate + "+" + endDate + "%22+AND+" + textQuery
+}
+
+trait SRUQueryT
+{
+	def server:String 
+	def operation:String
+	def collection:String 
+	def startRecord:Int 
+	def maximumRecords:Int
+	def query:ContentQuery
+	def mkURL(): String =
+	server + "&operation=" + operation + "&x-collection=" + collection + "&startRecord=" + 
+			startRecord + "&maximumRecords=" + maximumRecords + "&query=" + query.toParameterValue()
+}
+
 case class ContentQuery(startDate:String, 
-    endDate:String, textQuery:String)
+    endDate:String, textQuery:TextQuery) extends ContentQueryT
     
 case class SRUQuery(server:String, 
     operation:String, collection:String, 
-    startRecord:Int, maximumRecords:Int, query:ContentQuery)
-
-
-
+    startRecord:Int, maximumRecords:Int, query:ContentQuery) extends SRUQueryT
+    
 object Download
 {
   val base = "http://jsru.kb.nl/sru/sru?operation=searchRetrieve&x-collection=DDD_krantnr"
@@ -19,72 +58,75 @@ object Download
   val defaultStartDate = "01-01-1800"
   val defaultEndDate = "31-01-1939"
   val defaultCollection = "DDD_artikel"
-       
-  val SRU_base = "http://jsru.kb.nl/sru/sru" + "?version=1.2&operation=searchRetrieve" + 
-  "&x-collection=DDD_artikel&recordSchema=ddd" + 
-  "&startRecord=0&maximumRecords=" + batchSize + "&query=date+within+%22"
-  
+  val defaultServer = "http://jsru.kb.nl/sru/sru?version=1.2"
+         
   val beesten = List("Adder", "Bever", "Beverrat", "Boommarter", "Bunzing", "Das", 
       "Dennensnuitkever", "Fret", "Hermelijn", "Huismuis", "Konijn", "Lynx", "Muskusrat", 
       "Otter", "Raaf", "Spreeuw", "Vos", "Wezel", "Wolf")
   
-  def mkString(q: ContentQuery) ="date+within+%22" + q.startDate + "+" + q.endDate + "%22+AND+" + q.textQuery
+  //def mkString(q: ContentQuery) = q.toParameterValue()
   
-  def mkURL(q: SRUQuery): String =
-  q.server + "&operation=" + q.operation + "&x-collection=" + q.collection + "&startRecord=" + 
-  q.startRecord + "&maximumRecords=" + q.maximumRecords + "&query=" + mkString(q.query)
+  //def mkURL(q: SRUQuery): String = q.mkURL()
+ 
+  def wrapTextQuery(t:TextQuery) = SRUQuery(defaultServer, "searchRetrieve", 
+             defaultCollection, 0, maxDocuments, 
+             ContentQuery(defaultStartDate, defaultEndDate, t))
+             
+  def singleWordQuery(term:String):SRUQuery = wrapTextQuery(Term(term))
   
-  def query(term:String):SRUQuery = SRUQuery("http://jsru.kb.nl/sru/sru?version=1.2", "searchRetrieve", 
-      defaultCollection, 0, maxDocuments, ContentQuery(defaultStartDate, defaultEndDate, term))
-      
   def get(url: String) = scala.io.Source.fromURL(url).mkString
   
   def getNumberOfResults(q:SRUQuery):Int = 
   {
     val q0 = q.copy(startRecord=0,maximumRecords=1)
-    val url = mkURL(q0)
+    val url = q0.mkURL()
     Console.err.println(url)
-    getNumberOfResults(url)
+    val n = getNumberOfResults(url)
+    Console.err.println("number of matching documents:" + n + " for " + q.query)
+    n
   }
   
   def getNumberOfResults(url:String):Int =
   {
     val xml = XML.load(url)
     val n = (xml \\ "numberOfRecords").text.toInt
-    Console.err.println("number of documents:" + n)
     n
   }
   
   
-  
-  def matchingDocumentIdentifiers(q:SRUQuery):Seq[(String,Node)] =
+  def getMatchingDocumentIdentifiersForBatch(q:SRUQuery, start:Int, maximum:Int):Stream[(String,xml.Node)] =
   {
-    //val url = 
-    val n = math.min(getNumberOfResults(q),maxDocuments)
-    
-    (0 to n by batchSize).flatMap(k => getMatchingDocumentIdentifiersForBatch(q,k,batchSize))
-  }
-  
-
-  def getMatchingDocumentIdentifiersForBatch(q:SRUQuery, start:Int, maximum:Int):Seq[(String,xml.Node)] =
-  {
+    Console.err.println("Start batch at " + start)
     val q1 = q.copy(startRecord=start, maximumRecords=maximum)
-    val xml = XML.load(mkURL(q1))
+    val xml = XML.load(q1.mkURL)
     for  { 
-      r <- xml \\ "recordData"; 
+      r <- (xml \\ "recordData").toStream; 
       id <- r \\ "identifier"}
       yield
         (id.text, r)
   }
+  
+  def matchingDocumentIdentifiers(q:SRUQuery):Stream[(String,Node)] =
+  {
+    //val url = 
+    val n = math.min(getNumberOfResults(q),maxDocuments)
+    
+    val x = (0 to n by batchSize).toStream.flatMap(start => getMatchingDocumentIdentifiersForBatch(q,start,batchSize))
+    x
+  }
+  
+
+
    
   def main(args: Array[String]) =
   {  
-    val aantallen = beesten.map(b => (b,getNumberOfResults(query(b)))) 
+    val aantallen = beesten.map(b => (b,getNumberOfResults(singleWordQuery(b)))) 
     
     println(aantallen)
     
+    val n = this.getNumberOfResults(wrapTextQuery(And(Term("vos"), Term("wolf"))))
     
-    for ((id,meta) <- matchingDocumentIdentifiers(query("Bunzing")))
+    for ((id,meta) <- matchingDocumentIdentifiers(singleWordQuery("Bunzing")))
     {
       val metadata = (List("date", "papertitle", "title").map(x => (meta \\ x).text)).mkString("\t")
    
@@ -98,8 +140,6 @@ object Download
         case e:Exception => Console.err.println(s"nou hoor..., kan $id niet afhalen")
       }
     }
-   
-    
   }
   
   val exampleRecord = <srw:record>
