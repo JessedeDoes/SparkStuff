@@ -22,8 +22,8 @@ resolvers += "Local Maven Repository" at "file://"+Path.userHome.absolutePath+"/
 resolvers += "my private repository at xs4all" at "http://dedoes.home.xs4all.nl/maven"
 
 libraryDependencies += "org.ivdnt.wordvectors"  % "WordVectors" % "0.0.1-SNAPSHOT"
-libraryDependencies += "org.ivdnt.diamant" % "DiamantCore" % "0.0.1-SNAPSHOT" 
-
+libraryDependencies += "org.ivdnt.wsd" % "JustWSD" % "0.0.1-SNAPSHOT" 
+libraryDependencies += "org.ivdnt.tagging" % "DutchTagger" % "0.0.1-SNAPSHOT"
 
 // or, for convenience:
 

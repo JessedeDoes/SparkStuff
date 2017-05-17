@@ -118,7 +118,7 @@ object Download
   {
 		  def getMatchingDocumentIdentifiersForBatch(q:SRUQuery, start:Int, maximum:Int):Stream[(String,xml.Node)] =
 			  {
-					  Console.err.println("Start batch at " + start)
+					  Console.err.println("Get metadata for batch starting at " + start)
 					  val q1 = q.copy(startRecord=start, maximumRecords=maximum)
 					  val xml = XML.load(q1.mkURL)
 					  for  { 
@@ -162,20 +162,19 @@ object Download
   {
 		  val aantallen = beesten.map(b => (b,getNumberOfResults(singleWordQuery(b)))) 
 
-				  println(aantallen)
+			println(aantallen)
 
-				  val n = this.getNumberOfResults(wrapTextQuery(Phrase("de", "kool", "en", "de", "geit")))
+			val n = this.getNumberOfResults(wrapTextQuery(Phrase("de", "kool", "en", "de", "geit")))
 
-				  for ((id,metadataRecord) <- matchingDocumentIdentifiers(singleWordQuery("Konijn")))
-				  {
+			for ((id,metadataRecord) <- matchingDocumentIdentifiers(singleWordQuery("Konijn")))
+				{
 					  val basicMeta = (List("date", "papertitle", "title").map(x => (metadataRecord \\ x).text)).mkString("\t")
-					  download(id,metadataRecord, "Test")
-							 
-				  }
+						download(id,metadataRecord, "Test")
+				}
   }
   def main(args: Array[String]):Unit =
   {
-    downloadForTermList(beesten.filter(s => {val x:Int = getNumberOfResults(s); (x >  50000 && x < 300000) }))
+    downloadForTermList(beesten.filter(s => {val x:Int = getNumberOfResults(s); (x >  35000 && x < 200000) }))
   } 
   
   
