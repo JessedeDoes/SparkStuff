@@ -94,12 +94,12 @@ object Download
     val q0 = q.copy(startRecord=0,maximumRecords=1)
     val url = q0.mkURL()
     Console.err.println(url)
-    val n = getNumberOfResults(url)
+    val n = getNumberOfResultsFromURL(url)
     Console.err.println("number of matching documents:" + n + " for " + q.query)
     n
   }
   
-  def getNumberOfResults(url:String):Int =
+  def getNumberOfResultsFromURL(url:String):Int =
   {
     val xml = XML.load(url)
     val n = (xml \\ "numberOfRecords").text.toInt
@@ -139,7 +139,8 @@ object Download
   implicit def StringToTerm(s:String):Term = Term(s)
   implicit def StringToQuery(s:String):SRUQuery = singleWordQuery(s)
   
-  def download(id:String,metadataRecord:Node, subdir:String) =     try 
+  def download(id:String,metadataRecord:Node, subdir:String) =     
+  try 
       {
         val txt = get(id);
         Store.store(subdir,id, metadataRecord,txt)
@@ -149,8 +150,14 @@ object Download
         case e:Exception => Console.err.println(s"nou hoor..., kan $id niet afhalen: " + e)
       }
     
-  def downloadForTermList(l:List[String])  = l.par.map(b => matchingDocumentIdentifiers(singleWordQuery(b)).map({ case (i,m) => download(b,m,i) }))
-  
+  def downloadForTermList(l:List[String])  = l.par.map(downloadQueryResults)
+   
+         //b => matchingDocumentIdentifiers(singleWordQuery(b)).map({ case (i,m) => download(i,m,b) })
+         
+  def downloadQueryResults(s:String) =
+    for ((id,metadataRecord) <- matchingDocumentIdentifiers(s))
+      download(id,metadataRecord,s)
+      
   def test = 
   {
 		  val aantallen = beesten.map(b => (b,getNumberOfResults(singleWordQuery(b)))) 
@@ -162,24 +169,15 @@ object Download
 				  for ((id,metadataRecord) <- matchingDocumentIdentifiers(singleWordQuery("Konijn")))
 				  {
 					  val basicMeta = (List("date", "papertitle", "title").map(x => (metadataRecord \\ x).text)).mkString("\t")
-							  download(id,metadataRecord, "Test")
-							  //println(id + "\t" + basicMeta)
-
-							  try 
-					  {
-								  val txt = get(id);
-								  Store.store("Test",id, metadataRecord,txt)
-								  println(s"document length for $id:" + txt.length())
-					  } catch   
-					  {
-					  case e:Exception => Console.err.println(s"nou hoor..., kan $id niet afhalen: " + e)
-					  }
+					  download(id,metadataRecord, "Test")
+							 
 				  }
   }
-  def main(args: Array[String]) =
+  def main(args: Array[String]):Unit =
   {  
-    // alleBeesten
+    
     downloadForTermList(beesten.filter(getNumberOfResults(_) < 10000))
+    
   }
   
   val exampleRecord = <srw:record>
