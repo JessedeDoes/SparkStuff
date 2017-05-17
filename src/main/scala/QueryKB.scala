@@ -4,6 +4,7 @@
  */
 import scala.xml._
 import java.io.PrintWriter;
+import java.io.File
 
 trait TextQuery
 {
@@ -52,13 +53,14 @@ case class SRUQuery(server:String,
 object Store
 {
   val dir = "./Store"
-  def store(id:String, metadata:Node, text:String) = 
+  def store(subdir: String, id:String, metadata:Node, text:String) = 
   {
     val fileName = id.replaceAll(".*urn=","").replaceAll(":","_") + ".xml"
     val xml = XML.loadString(text)
     val doc = <doc>{metadata}{xml}</doc>
-   
-    new PrintWriter(dir + "/" + fileName) { write(doc.toString()); close }
+    val f = new File(dir + "/" + subdir)
+    if (!f.isDirectory()) f.mkdir()
+    new PrintWriter(dir + "/" + subdir + '/' + fileName) { write(doc.toString()); close }
   }
 }
 
@@ -135,31 +137,49 @@ object Download
 
 
   implicit def StringToTerm(s:String):Term = Term(s)
+  implicit def StringToQuery(s:String):SRUQuery = singleWordQuery(s)
   
-  def main(args: Array[String]) =
-  {  
-    val aantallen = beesten.map(b => (b,getNumberOfResults(singleWordQuery(b)))) 
-    
-    println(aantallen)
-    
-    val n = this.getNumberOfResults(wrapTextQuery(Phrase("de", "kool", "en", "de", "geit")))
-    
-    for ((id,metadataRecord) <- matchingDocumentIdentifiers(singleWordQuery("Konijn")))
-    {
-      val basicMeta = (List("date", "papertitle", "title").map(x => (metadataRecord \\ x).text)).mkString("\t")
-   
-      //println(id + "\t" + basicMeta)
-      
-      try 
+  def download(id:String,metadataRecord:Node, subdir:String) =     try 
       {
         val txt = get(id);
-        Store.store(id,metadataRecord,txt)
+        Store.store(subdir,id, metadataRecord,txt)
         println(s"document length for $id:" + txt.length())
       } catch   
       {
         case e:Exception => Console.err.println(s"nou hoor..., kan $id niet afhalen: " + e)
       }
-    }
+    
+  def downloadForTermList(l:List[String])  = l.par.map(b => matchingDocumentIdentifiers(singleWordQuery(b)).map({ case (i,m) => download(b,m,i) }))
+  
+  def test = 
+  {
+		  val aantallen = beesten.map(b => (b,getNumberOfResults(singleWordQuery(b)))) 
+
+				  println(aantallen)
+
+				  val n = this.getNumberOfResults(wrapTextQuery(Phrase("de", "kool", "en", "de", "geit")))
+
+				  for ((id,metadataRecord) <- matchingDocumentIdentifiers(singleWordQuery("Konijn")))
+				  {
+					  val basicMeta = (List("date", "papertitle", "title").map(x => (metadataRecord \\ x).text)).mkString("\t")
+							  download(id,metadataRecord, "Test")
+							  //println(id + "\t" + basicMeta)
+
+							  try 
+					  {
+								  val txt = get(id);
+								  Store.store("Test",id, metadataRecord,txt)
+								  println(s"document length for $id:" + txt.length())
+					  } catch   
+					  {
+					  case e:Exception => Console.err.println(s"nou hoor..., kan $id niet afhalen: " + e)
+					  }
+				  }
+  }
+  def main(args: Array[String]) =
+  {  
+    // alleBeesten
+    downloadForTermList(beesten.filter(getNumberOfResults(_) < 10000))
   }
   
   val exampleRecord = <srw:record>

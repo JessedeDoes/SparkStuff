@@ -1,4 +1,4 @@
-import nl.inl.blacklab.search.{Concordance,Kwic,Hit,Hits,Searcher,Span}
+import nl.inl.blacklab.search.{Kwic,Hit,Hits,Searcher,Span}
 import nl.inl.blacklab.search.grouping._
 import nl.inl.blacklab.queryParser.corpusql.CorpusQueryLanguageParser
 
@@ -25,6 +25,11 @@ import java.sql.{DriverManager,Connection,ResultSet}
 
 import scala.collection.JavaConverters._
 import com.esotericsoftware.minlog._
+
+class Concordance
+{
+  
+}
 
 class Concordancer(s: Searcher) {
 
@@ -87,14 +92,14 @@ class Concordancer(s: Searcher) {
 
 	def collectConcordances(searcher: Searcher, corpusQlQuery: String, session: SparkSession):  DataFrame = 
 		{
-	      println()
 				val hits = filteredSearch(searcher, corpusQlQuery, null)
-						hits.setContextSize(4)
-						hits.setMaxHitsToRetrieve(100000)
-						println("hits created!");
+				
+				println("hits created!");
+	      hits.settings.setContextSize(4); 
+	      hits.settings.setMaxHitsToRetrieve(100000) 
 	      
 	      val metaFields = searcher.getIndexStructure.getMetadataFields.asScala.toList.sorted
-	      //val StoredFields = metaFields.map(s => new HitPropertyDocumentStoredField(hits,s, s))
+	      
 			
 				val schema = createSchema(hits, metaFields)
 				
@@ -112,8 +117,7 @@ class Concordancer(s: Searcher) {
 	def createSchema(hits:Hits, metaFields: List[String]):StructType = 
 		{
 	    val kwic = hits.getKwic(hits.get(0))
-	    //kwic.toConcordance().
-		  //println("Document properties:" + kwic.getDocContents.getProperties().asScala.toList)
+	   
 			val fields = kwic.getProperties().asScala.toList
 
 			val tokenFields = fields.map(fieldName => StructField(fieldName, new ArrayType(StringType,false), nullable = true))
