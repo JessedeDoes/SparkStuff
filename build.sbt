@@ -19,9 +19,10 @@ libraryDependencies += "org.apache.spark" % "spark-sql_2.11" % sparkVersion
 libraryDependencies += "nl.inl.blacklab" % "blacklab" % "1.5.0"
 
 resolvers += "Local Maven Repository" at "file://"+Path.userHome.absolutePath+"/.m2/repository"
-resolvers += "my provate repository" at "http://dedoes.home.xs4all.nl/maven"
+resolvers += "my private repository at xs4all" at "http://dedoes.home.xs4all.nl/maven"
 
 libraryDependencies += "org.ivdnt.wordvectors"  % "WordVectors" % "0.0.1-SNAPSHOT"
+libraryDependencies += "org.ivdnt.diamant" % "DiamantCore" % "0.0.1-SNAPSHOT" 
 
 
 // or, for convenience:

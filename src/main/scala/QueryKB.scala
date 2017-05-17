@@ -174,11 +174,10 @@ object Download
 				  }
   }
   def main(args: Array[String]):Unit =
-  {  
-    
-    downloadForTermList(beesten.filter(getNumberOfResults(_) < 10000))
-    
-  }
+  {
+    downloadForTermList(beesten.filter(s => {val x:Int = getNumberOfResults(s); (x >  50000 && x < 300000) }))
+  } 
+  
   
   val exampleRecord = <srw:record>
 <srw:recordPacking>xml</srw:recordPacking>
