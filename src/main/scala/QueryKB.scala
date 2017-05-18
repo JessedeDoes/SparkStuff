@@ -13,14 +13,19 @@ trait TextQuery
 			case Term(s) => s
 			case And(t1,t2) => "(" + t1.toString + "+AND+" + t2.toString + ")"
 			case Or(t1,t2) => "(" + t1.toString + "+OR+" + t2.toString + ")"
+			case Disjunction(l @ _*) => "(" + l.map(_.toString).mkString("+OR+")  + ")"
 			case Phrase(l @ _*) => "%22" + l.map(_.toString).mkString("+")  + "%22"
 			}
 }
 
 case class Term(term:String) extends TextQuery
+case class ExpandTerm(term:String) extends TextQuery
 case class And(t1:TextQuery, t2:TextQuery) extends TextQuery
 case class Or(t1:TextQuery, t2:TextQuery) extends TextQuery
 case class Phrase(l: TextQuery*) extends TextQuery
+case class Disjunction(l: TextQuery*) extends TextQuery
+
+// http://sk.taalbanknederlands.inl.nl/LexiconService/lexicon/get_wordforms?database=lexicon_service_db&lemma=bunzing
 
 trait ContentQueryT
 {
