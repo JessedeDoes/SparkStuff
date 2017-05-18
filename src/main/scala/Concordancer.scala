@@ -164,7 +164,7 @@ object Conc
 	def testBlacklabQuery(searcher: Searcher) =
 	{
 	  	val c = new Concordancer(searcher)
-	  	val df = c.collectConcordances(searcher, "[pos='AA.*'][lemma='feit']", sparkSession)
+	  	val df = c.collectConcordances(searcher, "[pos='AA.*'][lemma='gezindheid']", sparkSession)
 	  	for { conc <- 
 				  df.filter("pos[hitStart-1]='ADV()' and pos[hitEnd]='ADV()'").sort(desc("date")).selectExpr("date", "word", "lemma[hitStart] as lemma")   } 
 		  {
