@@ -30,6 +30,12 @@ object Nederlab
 			schema
 		}
   
+  def schemaHas(schema:StructType, f:String) =
+    schema match 
+    { 
+       case StructType(l) => l.exists( { case StructField(f, _, _, _) => true; case _ => false } 
+    )}
+  
   def createRow(hit:Hit, schema:StructType): (Row,StructType) = 
 		{
         val tokenFields = hit.knownPrefixes.asScala.toList
@@ -42,6 +48,11 @@ object Nederlab
 				
 				val meta = hit.document.getMetadata.asScala		    
 				val metaKeys = (meta.keys.toList.sorted)
+				if (schema != null && tokenFields.map(s => schemaHas(schema,s)).contains(false))
+				{
+				  println("HHHHHHHHHHHHHHHHOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOELP")
+				  System.exit(1)
+				}
 				val metaValues = metaKeys.map(s => meta(s))
 				(
 				    Row.fromSeq(hit.startPosition :: hit.endPosition :: tokenValues ++ metaValues),

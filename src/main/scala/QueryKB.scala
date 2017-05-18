@@ -14,6 +14,7 @@ trait TextQuery
 			case And(t1,t2) => "(" + t1.toString + "+AND+" + t2.toString + ")"
 			case Or(t1,t2) => "(" + t1.toString + "+OR+" + t2.toString + ")"
 			case Disjunction(l @ _*) => "(" + l.map(_.toString).mkString("+OR+")  + ")"
+			case ListDisjunction(l) => "(" + l.map(_.toString).mkString("+OR+")  + ")"
 			case Phrase(l @ _*) => "%22" + l.map(_.toString).mkString("+")  + "%22"
 			}
 }
@@ -24,8 +25,23 @@ case class And(t1:TextQuery, t2:TextQuery) extends TextQuery
 case class Or(t1:TextQuery, t2:TextQuery) extends TextQuery
 case class Phrase(l: TextQuery*) extends TextQuery
 case class Disjunction(l: TextQuery*) extends TextQuery
+case class ListDisjunction(l: List[TextQuery]) extends TextQuery
 
 // http://sk.taalbanknederlands.inl.nl/LexiconService/lexicon/get_wordforms?database=lexicon_service_db&lemma=bunzing
+object LexiconService
+{
+   def getWordforms(lemma: String):List[String] =
+   {
+     (XML.load("http://sk.taalbanknederlands.inl.nl/LexiconService/lexicon/get_wordforms?database=lexicon_service_db&lemma=" + lemma.toLowerCase)
+     \\ "found_wordforms").toList.map(_.text.toLowerCase)
+   }
+   def getLemmata(wordform: String):List[String] =
+   {
+     (XML.load("http://sk.taalbanknederlands.inl.nl/LexiconService/lexicon/get_lemmata?database=lexicon_service_db&wordform=" + wordform.toLowerCase)
+     \\ "found_lemmata").toList.map(_.text.toLowerCase)
+   }
+   
+}
 
 trait ContentQueryT
 {
@@ -92,6 +108,14 @@ object Download
              
   def singleWordQuery(term:String):SRUQuery = wrapTextQuery(Term(term))
   
+  def expandedQuery(term:String):SRUQuery = 
+  {
+    val l = LexiconService.getWordforms(term)
+    val l1 = if (l.contains(term.toLowerCase)) l else term.toLowerCase :: l
+    wrapTextQuery(ListDisjunction(l1.map( x => Term(x))))
+  }
+  
+ 
   def get(url: String) = scala.io.Source.fromURL(url).mkString
   
   def getNumberOfResults(q:SRUQuery):Int = 
@@ -166,9 +190,13 @@ object Download
   def test = 
   {
 		  val aantallen = beesten.map(b => (b,getNumberOfResults(singleWordQuery(b)))) 
-
+		  
 			println(aantallen)
 
+			val aantallen1 = beesten.map(b => (b,getNumberOfResults(expandedQuery(b)))) 
+			println(aantallen1)
+			
+			System.exit(0)
 			val n = this.getNumberOfResults(wrapTextQuery(Phrase("de", "kool", "en", "de", "geit")))
 
 			for ((id,metadataRecord) <- matchingDocumentIdentifiers(singleWordQuery("Konijn")))
@@ -179,7 +207,8 @@ object Download
   }
   def main(args: Array[String]):Unit =
   {
-    downloadForTermList(beesten.filter(s => {val x:Int = getNumberOfResults(s); (x >  35000 && x < 200000) }))
+    //downloadForTermList(beesten.filter(s => {val x:Int = getNumberOfResults(s); (x >  35000 && x < 200000) }))
+    test
   } 
   
   
