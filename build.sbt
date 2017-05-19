@@ -22,11 +22,13 @@ libraryDependencies += "nl.inl.blacklab" % "blacklab" % "1.5.0"
 
 resolvers += "Local Maven Repository" at "file://"+Path.userHome.absolutePath+"/.m2/repository"
 resolvers += "my private repository at xs4all" at "http://dedoes.home.xs4all.nl/maven"
+resolvers += "mavenrepo" at "https://mvnrepository.com"
 
 libraryDependencies += "org.ivdnt.wordvectors"  % "WordVectors" % "0.0.1-SNAPSHOT"
 libraryDependencies += "org.ivdnt.wsd" % "JustWSD" % "0.0.1-SNAPSHOT" 
 libraryDependencies += "org.ivdnt.tagging" % "DutchTagger" % "0.0.1-SNAPSHOT"
 libraryDependencies += "org.ivdnt.clariah" % "QueryNederlab" % "0.0.1-SNAPSHOT"
+// libraryDependencies += "graphframes" % "graphframes" % "0.4.0-spark2.1-s_2.11"
 
 // or, for convenience:
 
