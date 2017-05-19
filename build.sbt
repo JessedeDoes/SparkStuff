@@ -14,6 +14,8 @@ libraryDependencies ++= Seq(
 // https://mvnrepository.com/artifact/postgresql/postgresql
 libraryDependencies += "org.postgresql" % "postgresql" % "42.1.1"
 libraryDependencies += "org.apache.spark" % "spark-sql_2.11" % sparkVersion
+libraryDependencies += "org.apache.jena"  % "jena-core"  % "3.3.0"
+libraryDependencies += "org.apache.jena" % "jena-arq" % "3.3.0"
 
 // https://mvnrepository.com/artifact/nl.inl.blacklab/blacklab
 libraryDependencies += "nl.inl.blacklab" % "blacklab" % "1.5.0"
