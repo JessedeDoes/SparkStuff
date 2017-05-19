@@ -22,7 +22,7 @@ libraryDependencies += "nl.inl.blacklab" % "blacklab" % "1.5.0"
 
 resolvers += "Local Maven Repository" at "file://"+Path.userHome.absolutePath+"/.m2/repository"
 resolvers += "my private repository at xs4all" at "http://dedoes.home.xs4all.nl/maven"
-resolvers += "mavenrepo" at "https://mvnrepository.com"
+// resolvers += "mavenrepo" at "https://mvnrepository.com"
 
 libraryDependencies += "org.ivdnt.wordvectors"  % "WordVectors" % "0.0.1-SNAPSHOT"
 libraryDependencies += "org.ivdnt.wsd" % "JustWSD" % "0.0.1-SNAPSHOT" 
