@@ -15,6 +15,7 @@ trait TextQuery
 			case Or(t1,t2) => "(" + t1.toString + "+OR+" + t2.toString + ")"
 			case Disjunction(l @ _*) => "(" + l.map(_.toString).mkString("+OR+")  + ")"
 			case ListDisjunction(l) => "(" + l.map(_.toString).mkString("+OR+")  + ")"
+			case ListConjunction(l) => "(" + l.map(_.toString).mkString("+AND+")  + ")"
 			case Phrase(l @ _*) => "%22" + l.map(_.toString).mkString("+")  + "%22"
 			}
 }
@@ -26,6 +27,7 @@ case class Or(t1:TextQuery, t2:TextQuery) extends TextQuery
 case class Phrase(l: TextQuery*) extends TextQuery
 case class Disjunction(l: TextQuery*) extends TextQuery
 case class ListDisjunction(l: List[TextQuery]) extends TextQuery
+case class ListConjunction(l: List[TextQuery]) extends TextQuery
 
 // http://sk.taalbanknederlands.inl.nl/LexiconService/lexicon/get_wordforms?database=lexicon_service_db&lemma=bunzing
 object LexiconService
