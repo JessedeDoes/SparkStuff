@@ -73,6 +73,28 @@ case class SRUQuery(server:String,
     operation:String, collection:String, 
     startRecord:Int, maximumRecords:Int, query:ContentQuery) extends SRUQueryT
 
+    
+
+
+object KBKwic
+{
+  import Tokenizer._
+  def window=4
+  case class Kwic(left:String, hit:String, right:String)
+  def concordance(query:String,document:Node):List[Kwic] = 
+  {
+    val tokens = tokenize(document.text)
+    // println(tokens.toList)
+    val matchPositions = (0 to tokens.length-1).toList.filter(i => tokens(i).token.toLowerCase == query.toLowerCase())
+    //println(matchPositions)
+    def slice = (a:Int,b:Int) => tokens.slice(Math.max(0,a),Math.min(b,tokens.length-1)).toList.map(t => t.leading + t.token + t.trailing).mkString(" ")
+    def getMatch(p:Int) = Kwic(slice(p-window,p), tokens(p).token, slice(p+1,p+window))
+    matchPositions.map(getMatch)
+  }
+  
+  def concordance(query:String, url:String):List[Kwic] = concordance(query,XML.load(url))
+}
+    
 object Store
 {
   val dir = "./Store"
@@ -189,6 +211,10 @@ object Download
     for ((id,metadataRecord) <- matchingDocumentIdentifiers(s))
       download(id,metadataRecord,s)
       
+  def kwicResults(s:String) =
+    for ((id,metadataRecord) <- matchingDocumentIdentifiers(s))
+      println(KBKwic.concordance(s, id))
+      
   def test = 
   {
 		  val aantallen = beesten.map(b => (b,getNumberOfResults(singleWordQuery(b)))) 
@@ -210,7 +236,8 @@ object Download
   def main(args: Array[String]):Unit =
   {
     //downloadForTermList(beesten.filter(s => {val x:Int = getNumberOfResults(s); (x >  35000 && x < 200000) }))
-    test
+    //test
+    kwicResults("krokodilletje")
   } 
   
   
