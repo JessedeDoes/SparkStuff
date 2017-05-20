@@ -79,7 +79,7 @@ case class SRUQuery(server:String,
 object KBKwic
 {
   import Tokenizer._
-  def window=4
+  def window=8
   case class Kwic(left:String, hit:String, right:String)
   def concordance(query:String,document:Node):List[Kwic] = 
   {
@@ -215,6 +215,17 @@ object Download
     for ((id,metadataRecord) <- matchingDocumentIdentifiers(s))
       println(KBKwic.concordance(s, id))
       
+  def kwicResultsPar(s:String)
+  {
+      val s0 = matchingDocumentIdentifiers(s)
+      val split = splitStream(s0,3)
+      split.par.foreach(
+           x =>  
+             for ((id,metadataRecord) <- x)
+             { println(KBKwic.concordance(s, id)) }
+           
+      )
+  }
   def test = 
   {
 		  val aantallen = beesten.map(b => (b,getNumberOfResults(singleWordQuery(b)))) 
@@ -233,13 +244,23 @@ object Download
 						download(id,metadataRecord, "Test")
 				}
   }
+  
   def main(args: Array[String]):Unit =
   {
     //downloadForTermList(beesten.filter(s => {val x:Int = getNumberOfResults(s); (x >  35000 && x < 200000) }))
     //test
-    kwicResults("krokodilletje")
+    val start = System.currentTimeMillis
+    kwicResultsPar("konijn")
+    val laps = System.currentTimeMillis - start
+    Console.err.println("This took " + laps + " millis ")
   } 
   
+  def splitStream[A](seq: Iterable[A], n: Int) = 
+  {
+    (0 until n).map(i => seq.drop(i).sliding(1, n).flatten)
+  }
+  
+  // round(Stream.from(1),3).foreach(i => println(i.take(3).toList))
   
   val exampleRecord = <srw:record>
 <srw:recordPacking>xml</srw:recordPacking>
