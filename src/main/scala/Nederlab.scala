@@ -20,11 +20,9 @@ object Nederlab
   
   def createSchema(fields:List[String], metaFields: List[String]):StructType = 
 		{
-			val tokenFields = fields.map(fieldName => StructField(fieldName, new ArrayType(StringType,false), nullable = true))
-			val metaFieldz = metaFields.map(fieldName => StructField(fieldName, StringType, nullable = true))
-			val extraFields = List(
-								StructField("hitStart", IntegerType, nullable=false),
-								StructField("hitEnd", IntegerType, nullable=false))
+			val tokenFields = fields.map(StructField(_, new ArrayType(StringType,false), nullable = true))
+			val metaFieldz = metaFields.map(StructField(_, StringType, nullable = true))
+			val extraFields = List("hitStart","hitEnd").map(StructField(_, IntegerType, nullable=false))
 			val schema = StructType(extraFields ++ tokenFields ++ metaFieldz)
 			println("Schema:" + schema)
 			schema

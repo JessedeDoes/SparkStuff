@@ -1,4 +1,4 @@
-package impact.ee.tagger.features;
+package wsd.features;
 
 import java.io.Serializable;
 

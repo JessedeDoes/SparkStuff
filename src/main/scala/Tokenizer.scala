@@ -15,6 +15,6 @@ object Tokenizer
    
   def main(args:Array[String]):Unit = 
   {
-    println(tokenize("The dog, i think, is 'hardly' interesting??!").toList);
+    println(tokenize("The dog, i think, is 'hardly-' interesting??!").toList);
   }
 }
