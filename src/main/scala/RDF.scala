@@ -86,7 +86,7 @@ class RDF
 				val i =	qexec.execConstructTriples()
 				val i1 = i.asScala.map(convertTriple).toStream
 			
-				for (statement <- i1.take(100))
+				for (statement <- i1.take(10))
 				  println(statement)
 				
 			}
