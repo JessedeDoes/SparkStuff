@@ -36,15 +36,21 @@ object tester
   var totalItems = 0
 	var	totalErrors = 0
 	var totalFailures = 0
-  def leaveOneOut(wsd:Swsd, ib: DataFrame):Unit = 
+  def leaveOneOut(wsd:Swsd, df: DataFrame):Unit = 
 	{
-    val ks = ib.select("lempos").distinct()
+    Console.err.println("starting...")
+    val ks = df.select("lempos").distinct.collect
+    Console.err.println("############### " + ks.length)
 		for (key <- ks)
 		{
 		  val lp = key.getAs[String]("lempos")
 			if (lp.endsWith(":n")) //  && key.startsWith("bank:n"))
 			{
-				val V = ib.filter(_.getAs[String]("lempos") == key)
+			  Console.err.println("It is a noun...:" + key)
+				val V = df.filter(
+				    r => 
+				      {val x = r.getAs[String]("lempos") 
+				      x!= null && x == key})
 				if (V.select("senseId").distinct().count > 1)	
 				   leaveOneOut(V, lp, wsd);
 			}
@@ -61,7 +67,7 @@ object tester
 		var total = 0;
 		var failures = 0;
 		
-		System.err.println("starting on: " + key);
+		System.err.println("starting work on: " + key);
 		
 		for (w <- instances)
 		{
@@ -85,30 +91,17 @@ object tester
 		//String distribution = c.values().toString();
 		//System.err.println(key + "  |senses|: " + ib.nSenses(key) + "  "  + errors + " errors of " + total + " failures: "  + failures  + " score: " + accuracy + " distribution: " + distribution + "  mfs: " + mfsProportion);
 		
+		System.err.println("Accuracy: " + accuracy);
+		
 		totalItems += total;
 		totalErrors += errors;
 		totalFailures += failures;
 	}  
 }
 
-class Swsd
+object featureStuff
 {
-  	var features = new FeatureSet;
-  	var classifier = new LibSVMClassifier;
-  	val (sqlContext: SQLContext) = null
-  	class aap extends Feature
-  	{
-  	  
-  	   override def getValue(o:Any):String = "aap"
-  	   
-  	   def this(k:Int) =
-  	   {
-  	     this()
-  	     this.name = "aap"  + k
-  	   }
-  	}
-  	
-  	class MyFeature(n: String, f: Row=>String) extends Feature
+     class MyFeature(n: String, f: Row=>String) extends Feature with Serializable
   	{
   	  this.name = n
   	  val fun = f
@@ -116,7 +109,7 @@ class Swsd
   	  override def getValue(o:Any) = o match { case r:Row => fun(r) }
   	}
   	
-  	class MyStochasticFeature(n:String, f:Row=>Distribution) extends StochasticFeature
+  	class MyStochasticFeature(n:String, f:Row=>Distribution) extends StochasticFeature with Serializable
   	{
   	  this.name = n
   	  val fun = f
@@ -144,6 +137,13 @@ class Swsd
   	  d.computeProbabilities
   	  d
   	}
+}
+
+class Swsd extends Serializable
+{
+    import featureStuff._
+  	var features = new FeatureSet
+  	var classifier = new LibSVMClassifier
   	
   	def makeFeatures() = 
   	{

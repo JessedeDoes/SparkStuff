@@ -65,7 +65,8 @@ object ConvertOldInstanceBase
 			    .appName("My App")
 			    .getOrCreate()
      val frames = convert(args(0), sparkSession)
-     frames.write.format("parquet").save("Data/wsdInstanceBase.parquet") // SaveMode.Overwrite
+     tester.leaveOneOut(new Swsd, frames)
+     //frames.write.format("parquet").save("Data/wsdInstanceBase.parquet") // SaveMode.Overwrite
      //frames.rdd.saveAsTextFile("Data/aapje.framez")
    }
 }
