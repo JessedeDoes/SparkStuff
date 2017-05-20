@@ -250,7 +250,7 @@ object Download
     //downloadForTermList(beesten.filter(s => {val x:Int = getNumberOfResults(s); (x >  35000 && x < 200000) }))
     //test
     val start = System.currentTimeMillis
-    kwicResultsPar("konijn")
+    kwicResultsPar("potloodhouder")
     val laps = System.currentTimeMillis - start
     Console.err.println("This took " + laps + " millis ")
   } 
