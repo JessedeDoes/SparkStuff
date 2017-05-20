@@ -14,8 +14,10 @@ libraryDependencies ++= Seq(
 // https://mvnrepository.com/artifact/postgresql/postgresql
 libraryDependencies += "org.postgresql" % "postgresql" % "42.1.1"
 libraryDependencies += "org.apache.spark" % "spark-sql_2.11" % sparkVersion
-libraryDependencies += "org.apache.jena"  % "jena-core"  % "3.3.0"
-libraryDependencies += "org.apache.jena" % "jena-arq" % "3.3.0"
+libraryDependencies += "org.apache.jena"  % "jena-core"  % "3.3.0"  exclude("com.fasterxml.jackson.core", "jackson-databind")
+libraryDependencies += "org.apache.jena" % "jena-arq" % "3.3.0" exclude("com.fasterxml.jackson.core", "jackson-databind")
+libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.6.5" 
+libraryDependencies += "com.fasterxml.jackson.core" % "jackson-databind" % "2.6.5" 
 
 // https://mvnrepository.com/artifact/nl.inl.blacklab/blacklab
 libraryDependencies += "nl.inl.blacklab" % "blacklab" % "1.5.0"
