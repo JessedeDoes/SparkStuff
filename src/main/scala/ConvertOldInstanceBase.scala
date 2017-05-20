@@ -19,17 +19,17 @@ object ConvertOldInstanceBase
 	 val sc = sparkSession.sparkContext
    val tokenFields = List("word", "lemma" , "pos")
    
+   
+   def uuid = java.util.UUID.randomUUID.toString
+   
    def makeSchema(fields:List[String]):StructType = 
    {
-     	val tokenFields = fields.map(fieldName => StructField(fieldName, new ArrayType(StringType,false), nullable = true))
-		
-			val extraFields = List(
-								StructField("hitStart", IntegerType, nullable=false),
-								StructField("hitEnd", IntegerType, nullable=false))
-			val metaFields = List(
-			   StructField("sensId", StringType, nullable=false),
-			    StructField("lempos", StringType, nullable=false))
-			val schema = StructType(extraFields ++ (tokenFields ++ metaFields))
+      val metaFields = List("senseId","lempos","id")
+     	val tokenFields = fields.map(StructField(_, new ArrayType(StringType,false), nullable = true))
+			val metaFieldz = metaFields.map(StructField(_, StringType, nullable = true))
+			val extraFields = List("hitStart","hitEnd").map(StructField(_, IntegerType, nullable=false))
+     
+			val schema = StructType(extraFields ++ (tokenFields ++ metaFieldz))
 			schema
    }
    
@@ -45,7 +45,7 @@ object ConvertOldInstanceBase
      	session.createDataFrame(session.sparkContext.parallelize(rows.toList, 1), schema)
    }
    
-   def convertInstance(i:WSDInstance, groupId:String):Row =
+   def convertInstance(i:WSDInstance, lempos:String):Row =
    {
      val t = i.tokens.asScala
      
@@ -55,7 +55,7 @@ object ConvertOldInstanceBase
      
      val tokenFieldMap = List((lemmata,"lemma"), (words,"word"), (pos,"pos") ).map({ case (x,y) => y->x }).toMap
      val tokenValues = tokenFields.map(x => tokenFieldMap(x))
-     Row.fromSeq(i.targetPosition :: i.targetPosition+1 :: tokenValues ++List(i.senseId, groupId))
+     Row.fromSeq(i.targetPosition :: i.targetPosition+1 :: tokenValues ++List(i.senseId, lempos, uuid))
    }
    
    def main(args: Array[String]) = 
