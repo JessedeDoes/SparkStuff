@@ -80,15 +80,20 @@ object KBKwic
 {
   import Tokenizer._
   def window=8
+  
   case class Kwic(left:String, hit:String, right:String)
+  {
+    override def toString():String = (f"${left}%80s") + "\t"  + hit + "\t" + right
+  }
   def concordance(query:String,document:Node):List[Kwic] = 
   {
     val tokens = tokenize(document.text)
     // println(tokens.toList)
     val matchPositions = (0 to tokens.length-1).toList.filter(i => tokens(i).token.toLowerCase == query.toLowerCase())
     //println(matchPositions)
-    def slice = (a:Int,b:Int) => tokens.slice(Math.max(0,a),Math.min(b,tokens.length-1)).toList.map(t => t.leading + t.token + t.trailing).mkString(" ")
-    def getMatch(p:Int) = Kwic(slice(p-window,p), tokens(p).token, slice(p+1,p+window))
+    def slice = (a:Int,b:Int) => tokens.slice(Math.max(0,a),Math.min(b,tokens.length-1)).toList.map(
+        t => t.leading + t.token + t.trailing).mkString(" ")
+    def getMatch(p:Int) = Kwic(slice(p-window,p), tokens(p).token, slice(p+1,p+window+1))
     matchPositions.map(getMatch)
   }
   
@@ -250,7 +255,7 @@ object Download
     //downloadForTermList(beesten.filter(s => {val x:Int = getNumberOfResults(s); (x >  35000 && x < 200000) }))
     //test
     val start = System.currentTimeMillis
-    kwicResultsPar("potloodhouder")
+    kwicResultsPar("obsidiaan")
     val laps = System.currentTimeMillis - start
     Console.err.println("This took " + laps + " millis ")
   } 
