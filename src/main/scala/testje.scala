@@ -125,7 +125,7 @@ object tester
 
 object featureStuff
 {
-    
+    @volatile var vectorz = Vectors.readFromFile("/home/jesse/workspace/Diamant/Vectors/dbnl.vectors.bin")
     class MyFeature(n: String, f: Row=>String) extends Feature with Serializable
   	{
   	  this.name = n
@@ -182,7 +182,7 @@ class Swsd extends Serializable
 {
     import featureStuff._
   
-  	val addVectors = false
+  	val addVectors = true
   	
   	def makeFeatures():FeatureSet = 
   	{
@@ -203,7 +203,7 @@ class Swsd extends Serializable
   	  features.addStochasticFeature(new MyStochasticFeature("bow3", bowFeature(3)))
   	  if (addVectors)
   	  {
-  	    @volatile var vectorz = Vectors.readFromFile("/home/jesse/workspace/Diamant/Vectors/dbnl.vectors.bin")
+  	    Console.err.println("Adding vectors!")
   	    println(vectorz.vectorSize)
   	    features.addStochasticFeature(new MyStochasticFeature("contextVector", vectorFeature(vectorz)))
   	  }
