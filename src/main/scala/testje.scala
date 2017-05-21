@@ -44,7 +44,10 @@ object tester
     Console.err.println("############### " + ks.length)
     // df.groupBy("lempos")
     
-    val df1 = df.repartition(df.col("lempos"))
+    val df1 = df.repartition(1000, df.col("lempos"))
+    var c = 0;
+    df1.foreachPartition(i => c += 1)
+    Console.err.println("Aantal partities: " + c)
     df1.foreachPartition(r => leaveOneOut(wsd,r))
 		
 		val totalAccuracy = (totalItems - totalErrors -totalFailures) / totalItems.asInstanceOf[Double];
@@ -55,18 +58,33 @@ object tester
   
   def leaveOneOut(wsd:Swsd,instanceIterator:Iterator[Row]):Unit = 
 	{
-		var errors = 0;
+    val instances = instanceIterator.toList // Hm niet leuk, maar ja
+    val grouped = instances.groupBy(_.getAs[String]("lempos"))
+    grouped.foreach( { case (lp,group) => leaveOneOut(wsd,group) })
+	}
+  
+  def leaveOneOut(wsd:Swsd,instances: List[Row]):Unit = 
+	{  
+    var errors = 0;
 		var total = 0;
 		var failures = 0;
 		
-    val instances = instanceIterator.toList // Hm niet leuk, maar ja
-    val lempos = instances.head.getAs[String]("lempos")
     val senses = instances.map(_.getAs[String]("senseId")).distinct
+    val lempossen = instances.map(_.getAs[String]("lempos")).distinct
+  
+    if (instances.size < 3 || senses.size < 2)
+      return;
+    
+    val lempos = instances.head.getAs[String]("lempos")
+    
+    Console.err.println("#### Working on " + lempos)
+    instances.foreach(Console.err.println(_))
+    //return
+    
+   
     
 		System.err.println("starting work on: " + lempos + " " + senses);
 		
-    if (senses.size < 2)
-      return
 		for (w <- instances)
 		{
 			try
@@ -99,7 +117,7 @@ object tester
 
 object featureStuff
 {
-     class MyFeature(n: String, f: Row=>String) extends Feature with Serializable
+    class MyFeature(n: String, f: Row=>String) extends Feature with Serializable
   	{
   	  this.name = n
   	  val fun = f
@@ -116,7 +134,7 @@ object featureStuff
   	
   	def fieldAt(f:String,i:Int)(r:Row):String = 
   	{
-  	  val tokens = r.getAs[Array[String]](f)
+  	  val tokens = r.getAs[Seq[String]](f)
   	  val p = r.getAs[Int]("hitStart")+i
   	  if (p > 0 && p < tokens.length) tokens(p) else "#"
   	}
@@ -126,7 +144,7 @@ object featureStuff
   	def bowFeature(k:Int)(r:Row):Distribution =
   	{
   	  
-  	  val tokens = r.getAs[Array[String]]("word")
+  	  val tokens = r.getAs[Seq[String]]("word")
   	  val p = r.getAs[Int]("hitStart")
   	  val l = ((p-k to p-1).toList ++ (p+1 to p+k).toList).filter(i => i>0 && i < tokens.length)
   	  
