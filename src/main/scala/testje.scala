@@ -36,6 +36,7 @@ object tester
   var totalItems = 0
 	var	totalErrors = 0
 	var totalFailures = 0
+	var totalMfsErrors = 0
 	
   def leaveOneOut(wsd:Swsd, df: DataFrame):Unit = 
 	{
@@ -103,19 +104,20 @@ object tester
 		
 		val accuracy = (total- errors -failures) / (total + 0.0);
 		
-		def orderBySecond(a:(String,Int),b:(String,Int)):Boolean = a._2 < b._2
-		val senseDistribution = instances.groupBy(_.getAs[String]("senseId")).mapValues(_.size).toList.sortWith(orderBySecond)
+		val senseDistribution = instances.groupBy(_.getAs[String]("senseId")).mapValues(_.size).toList.sortWith((a,b) => a._2 > b._2)
 	
 		val mfsProportion = senseDistribution.head._2 /  (instances.size + 0.0)
+		val mfsErrors = instances.size - senseDistribution.head._2
 	
 		Console.err.println(lempos + "  |senses|: " + senseDistribution.size + "  "  + errors + " errors of " + total + " failures: "  + 
 		    failures  + " score: " + accuracy + " distribution: " + senseDistribution + "  mfs: " + mfsProportion);
 		
 		Console.err.println("Accuracy: " + accuracy)
 		
-		totalItems += total;
-		totalErrors += errors;
-		totalFailures += failures;
+		totalItems += total
+		totalErrors += errors
+		totalMfsErrors += mfsErrors
+		totalFailures += failures
 	}  
 }
 
@@ -206,7 +208,7 @@ class Swsd extends Serializable
 		   if (!heldout.contains(id))
 				 d.addInstance(w, w.getAs[String]("senseId"))
 			 else
-			   Console.err.println("Held out: " + id + " " + w); 
+			   Console.err.println("Held out: " + id + " " + w)
 		 }
 		 classifier.train(d);
 	 }
@@ -223,8 +225,8 @@ class Swsd extends Serializable
   					val truth = w.getAs[String]("senseId")
   					
   					//System.err.println("############################################################################### " + label);
-  					val isOK = label.equalsIgnoreCase(truth);
-  					System.err.println(isOK + " " + label + "\ttruth:" + truth + "\t" + w);
+  					val isOK = label.equalsIgnoreCase(truth)
+  					Console.err.println(isOK + " " + label + "\ttruth:" + truth + "\t" + w)
   					if (!isOK)
   						errors = errors +1;
   				} 
