@@ -36,48 +36,37 @@ object tester
   var totalItems = 0
 	var	totalErrors = 0
 	var totalFailures = 0
+	
   def leaveOneOut(wsd:Swsd, df: DataFrame):Unit = 
 	{
     Console.err.println("starting...")
     val ks = df.select("lempos").distinct.collect
     Console.err.println("############### " + ks.length)
     // df.groupBy("lempos")
-		for (key <- ks)
-		{
-		  val lp = key.getAs[String]("lempos")
-			if (lp.endsWith(":n")) //  && key.startsWith("bank:n"))
-			{
-			  Console.err.println("It is a noun...:" + key)
-			  if (true)
-			  {
-				val V = df.filter(
-				    r => 
-				      {val x = r.getAs[String]("lempos"); 
-				      x!= null && x == lp})
-				Console.err.println("--------------------------------------------------- Size of V: " + V.count())
-				if (false)
-				{
-				V.foreach(println(_));
-				if (V.select("senseId").distinct().count > 1)	
-				   leaveOneOut(V, lp, wsd);
-				}
-			  }
-			}
-		}
+    
+    val df1 = df.repartition(df.col("lempos"))
+    df1.foreachPartition(r => leaveOneOut(wsd,r))
+		
 		val totalAccuracy = (totalItems - totalErrors -totalFailures) / totalItems.asInstanceOf[Double];
 		val mfs = 100; // MFSScore(ib);
 		System.err.println("overall:  " + totalErrors + " of " + totalItems + " failures: "  + totalFailures  + " score: " + totalAccuracy + " (mfs " + mfs + ")");
 	}
 
   
-  def leaveOneOut(instances:DataFrame, key:String, wsd:Swsd):Unit = 
+  def leaveOneOut(wsd:Swsd,instanceIterator:Iterator[Row]):Unit = 
 	{
 		var errors = 0;
 		var total = 0;
 		var failures = 0;
 		
-		System.err.println("starting work on: " + key);
+    val instances = instanceIterator.toList // Hm niet leuk, maar ja
+    val lempos = instances.head.getAs[String]("lempos")
+    val senses = instances.map(_.getAs[String]("senseId")).distinct
+    
+		System.err.println("starting work on: " + lempos + " " + senses);
 		
+    if (senses.size < 2)
+      return
 		for (w <- instances)
 		{
 			try
@@ -175,7 +164,7 @@ class Swsd extends Serializable
   		//features.addStochasticFeature(new BoWFeature(3)); 
   	}
   	
-   def train(instances: DataFrame, heldout: Set[String]) = 
+   def train(instances: List[Row], heldout: Set[String]) = 
 	 {
      val df:DataFrame = null;
     
