@@ -113,10 +113,13 @@ object tester
 		
 		Console.err.println("Accuracy: " + accuracy)
 		
+		synchronized
+		{
 		totalItems += total
 		totalErrors += errors
 		totalMfsErrors += mfsErrors
 		totalFailures += failures
+		}
 	}  
 }
 
