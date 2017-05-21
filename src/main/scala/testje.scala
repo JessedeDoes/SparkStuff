@@ -194,6 +194,51 @@ object featureStuff
   	   (0 to vector.length-1).foreach(i => d.addOutcome("v" + i, vector(i)))
   	   d
   	}
+  	
+  	def averageVector(v: List[Array[Float]]):Array[Float] =
+  	{
+  	  def rowsum = (i:Int) => v.foldLeft(0.0f)( (k,a) => k + a(i))
+  	  println("Dim:" + v.head.length)
+  	  val r = (0 to v.head.length-1).toArray.map(rowsum)
+  	  println(r.toList)
+  	  word2vec.Util.normalize(r)
+  	  r
+  	}
+  	
+  	def centroidFeature(vectors:Vectors,training: List[Row], heldOutIds:Set[String]): Row => Distribution = 
+  	{
+  	  val window = 4
+  	  val h = training.head
+  	  
+  	  val focus = h.getAs[Int]("hitStart")
+  	  val posFrom = Math.max(focus-window,0)
+  	
+  	
+  	  def avg(r:Row):Array[Float] = 
+  	  { 
+  	    val tokens = r.getAs[Seq[String]]("word").asJava; 
+  	    val posTo = Math.min(focus+window+1,tokens.size)
+  	    word2vec.Util.getRankedAndDistanceWeightedAverageVector(vectors,  tokens, focus, posFrom, posTo) 
+  	  }
+  	  
+  	  val quotationVectors = training.map(r => (r.getAs[String]("id"), r.getAs[String]("senseId"), avg(r)))
+  	  val filtered = quotationVectors.filter(x => !heldOutIds.contains(x._1)) // .toMap
+  	  println("quotation Vectors:"  + quotationVectors.length)
+  	  val groupCenters = filtered.groupBy(_._2).mapValues(l => l.map(_._3)).mapValues(averageVector)
+  	  println("Group centers:"  + groupCenters)
+  	  
+  	  def f(r:Row):Distribution = 
+  	  {
+  	    val qavg = avg(r)
+  	    val distances = groupCenters.mapValues(word2vec.Distance.cosineSimilarity(qavg, _))
+  	    Console.err.println(distances)
+  	    val d = new Distribution
+  	    distances.foreach( { case (k,v) => d.addOutcome(k, v) } )
+  	    d.computeProbabilities 
+  	    d
+  	  }
+  	  f
+  	}
 }
 
 class Swsd extends Serializable
@@ -208,13 +253,13 @@ class Swsd extends Serializable
   	  val features = new FeatureSet
   	  val fList = 
   	  List( 
-  	     fieldFeature("w-1", "word",-1),
-  	     fieldFeature("w+1", "word",1),
-  	     fieldFeature("w-1", "word",-2),
-  	     fieldFeature("w+1", "word",2),
-  	     fieldFeature("p-1", "pos",-1),
-  	     fieldFeature("p+1", "pos",1),
-  	     fieldFeature("p0", "pos",0)
+  	     fieldFeature("w-1", "word", -1),
+  	     fieldFeature("w+1", "word", 1),
+  	     fieldFeature("w-1", "word", -2),
+  	     fieldFeature("w+1", "word", 2),
+  	     fieldFeature("p-1", "pos", -1),
+  	     fieldFeature("p+1", "pos", 1),
+  	     fieldFeature("p0", "pos", 0)
   	  )
   	  
   	  fList.foreach(features.addFeature(_))
@@ -222,8 +267,9 @@ class Swsd extends Serializable
   	  if (addVectors)
   	  {
   	    Console.err.println("Adding vectors!")
-  	    println(vectorz.vectorSize)
+  	    Console.err.println("Dimension: " + vectorz.vectorSize)
   	    features.addStochasticFeature(new MyStochasticFeature("contextVector", vectorFeature(vectorz)))
+  	   
   	  }
   	  features
   		//features.addStochasticFeature(new BoWFeature(3)); 
@@ -233,8 +279,9 @@ class Swsd extends Serializable
 	 {
      val df:DataFrame = null;
      val features = makeFeatures
+     features.addStochasticFeature(new MyStochasticFeature("centerDistances", centroidFeature(vectorz,instances,heldout) ))
 		 val classifier = new LibSVMClassifier();
-		 makeFeatures();
+		
 		
 		 val d = new Dataset("trainingData")
 		 d.features = features
