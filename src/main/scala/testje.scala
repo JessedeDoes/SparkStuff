@@ -60,7 +60,7 @@ object tester
 	{
     val instances = instanceIterator.toList // Hm niet leuk, maar ja
     val grouped = instances.groupBy(_.getAs[String]("lempos"))
-    grouped.foreach( { case (lp,group) => leaveOneOut(wsd,group) })
+    grouped.foreach( { case (lp,group) => if (lp.endsWith(":n")) leaveOneOut(wsd,group) })
 	}
   
   def leaveOneOut(wsd:Swsd,instances: List[Row]):Unit = 
@@ -103,12 +103,15 @@ object tester
 		
 		val accuracy = (total- errors -failures) / (total + 0.0);
 		
-		//Counter<String> c = senseDistribution(instances);
-		//double mfsProportion = c.get(c.keyList().get(0)) / (double) instances.size();
-		//String distribution = c.values().toString();
-		//System.err.println(key + "  |senses|: " + ib.nSenses(key) + "  "  + errors + " errors of " + total + " failures: "  + failures  + " score: " + accuracy + " distribution: " + distribution + "  mfs: " + mfsProportion);
+		def orderBySecond(a:(String,Int),b:(String,Int)):Boolean = a._2 < b._2
+		val senseDistribution = instances.groupBy(_.getAs[String]("senseId")).mapValues(_.size).toList.sortWith(orderBySecond)
+	
+		val mfsProportion = senseDistribution.head._2 /  (instances.size + 0.0)
+	
+		Console.err.println(lempos + "  |senses|: " + senseDistribution.size + "  "  + errors + " errors of " + total + " failures: "  + 
+		    failures  + " score: " + accuracy + " distribution: " + senseDistribution + "  mfs: " + mfsProportion);
 		
-		System.err.println("Accuracy: " + accuracy);
+		Console.err.println("Accuracy: " + accuracy)
 		
 		totalItems += total;
 		totalErrors += errors;
