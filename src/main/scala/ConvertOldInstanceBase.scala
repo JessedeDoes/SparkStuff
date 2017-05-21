@@ -42,7 +42,7 @@ object ConvertOldInstanceBase
        for (e <- w.entrySet().asScala;
           i <- e.getValue.asScala.map(x => convertInstance(x,e.getKey)))
             yield i
-     	session.createDataFrame(session.sparkContext.parallelize(rows.toList, 1), schema)
+     	session.createDataFrame(session.sparkContext.parallelize(rows.toList, 4), schema)
    }
    
    def convertInstance(i:WSDInstance, lempos:String):Row =

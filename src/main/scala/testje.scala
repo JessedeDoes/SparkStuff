@@ -48,14 +48,20 @@ object tester
 			if (lp.endsWith(":n")) //  && key.startsWith("bank:n"))
 			{
 			  Console.err.println("It is a noun...:" + key)
+			  if (true)
+			  {
 				val V = df.filter(
 				    r => 
 				      {val x = r.getAs[String]("lempos"); 
 				      x!= null && x == lp})
 				Console.err.println("--------------------------------------------------- Size of V: " + V.count())
+				if (false)
+				{
 				V.foreach(println(_));
 				if (V.select("senseId").distinct().count > 1)	
 				   leaveOneOut(V, lp, wsd);
+				}
+			  }
 			}
 		}
 		val totalAccuracy = (totalItems - totalErrors -totalFailures) / totalItems.asInstanceOf[Double];
