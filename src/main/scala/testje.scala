@@ -198,9 +198,9 @@ object featureStuff
   	def averageVector(v: List[Array[Float]]):Array[Float] =
   	{
   	  def rowsum = (i:Int) => v.foldLeft(0.0f)( (k,a) => k + a(i))
-  	  println("Dim:" + v.head.length)
+  	  //println("Dim:" + v.head.length)
   	  val r = (0 to v.head.length-1).toArray.map(rowsum)
-  	  println(r.toList)
+  	  //println(r.toList)
   	  word2vec.Util.normalize(r)
   	  r
   	}
@@ -208,20 +208,17 @@ object featureStuff
   	def centroidFeature(vectors:Vectors,training: List[Row], heldOutIds:Set[String]): Row => Distribution = 
   	{
   	  val window = 4
-  	  val h = training.head
   	  
-  	  val focus = h.getAs[Int]("hitStart")
-  	  val posFrom = Math.max(focus-window,0)
-  	
-  	
   	  def avg(r:Row):Array[Float] = 
   	  { 
+  	    val focus = r.getAs[Int]("hitStart")
+  	    val posFrom = Math.max(focus-window,0)
   	    val tokens = r.getAs[Seq[String]]("word").asJava; 
   	    val posTo = Math.min(focus+window+1,tokens.size)
   	    word2vec.Util.getRankedAndDistanceWeightedAverageVector(vectors,  tokens, focus, posFrom, posTo) 
   	  }
   	  
-  	  val quotationVectors = training.map(r => (r.getAs[String]("id"), r.getAs[String]("senseId"), avg(r)))
+  	  val quotationVectors = training.map(r => (r.getAs[String]("id"), r.getAs[String]("senseId"), avg(r))) // we want to cache this
   	  val filtered = quotationVectors.filter(x => !heldOutIds.contains(x._1)) // .toMap
   	  println("quotation Vectors:"  + quotationVectors.length)
   	  val groupCenters = filtered.groupBy(_._2).mapValues(l => l.map(_._3)).mapValues(averageVector)
@@ -231,7 +228,7 @@ object featureStuff
   	  {
   	    val qavg = avg(r)
   	    val distances = groupCenters.mapValues(word2vec.Distance.cosineSimilarity(qavg, _))
-  	    Console.err.println(distances)
+  	    //Console.err.println(distances)
   	    val d = new Distribution
   	    distances.foreach( { case (k,v) => d.addOutcome(k, v) } )
   	    d.computeProbabilities 
