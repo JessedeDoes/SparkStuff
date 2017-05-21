@@ -62,7 +62,7 @@ object tester
 	{
     val instances = instanceIterator.toList // Hm niet leuk, maar ja
     val grouped = instances.groupBy(_.getAs[String]("lempos"))
-    grouped.foreach( { case (lp,group) => if (lp.endsWith(":n")) leaveOneOut(wsd,group) })
+    grouped.par.foreach( { case (lp,group) => if (lp.endsWith(":n")) leaveOneOut(wsd,group) }) // oops .. kan dat wel...
 	}
   
   def leaveOneOut(wsd:Swsd,instances: List[Row]):Unit = 
@@ -83,8 +83,6 @@ object tester
     instances.foreach(Console.err.println(_))
     //return
     
-   
-    
 		System.err.println("starting work on: " + lempos + " " + senses);
 		
 		for (w <- instances)
@@ -92,8 +90,8 @@ object tester
 		  System.err.println("Holding out for instance:" + w.getAs[String]("id") + " " + w);
 			try
 			{
-				wsd.train(instances, Set(w.getAs[String]("id")));
-				errors += wsd.test(Set(w));
+				val classify = wsd.train(instances, Set(w.getAs[String]("id")));
+				errors += wsd.test(Set(w), classify);
 			} catch 
 			{ case e:Exception =>
 	
@@ -180,13 +178,13 @@ object featureStuff
 class Swsd extends Serializable
 {
     import featureStuff._
-  	var features = new FeatureSet
-  	var classifier = new LibSVMClassifier
+  
+  	val addVectors = false
   	
-  	def makeFeatures() = 
+  	def makeFeatures():FeatureSet = 
   	{
   		
-  	  features = new FeatureSet
+  	  val features = new FeatureSet
   	  val fList = 
   	  List( 
   	     fieldFeature("w-1", "word",-1),
@@ -200,22 +198,26 @@ class Swsd extends Serializable
   	  
   	  fList.foreach(features.addFeature(_))
   	  features.addStochasticFeature(new MyStochasticFeature("bow3", bowFeature(3)))
-  	  @volatile var vectorz = Vectors.readFromFile("/home/jesse/workspace/Diamant/Vectors/dbnl.vectors.bin")
-  	  println(vectorz.vectorSize)
-  	  features.addStochasticFeature(new MyStochasticFeature("contextVector", vectorFeature(vectorz)))
+  	  if (addVectors)
+  	  {
+  	    @volatile var vectorz = Vectors.readFromFile("/home/jesse/workspace/Diamant/Vectors/dbnl.vectors.bin")
+  	    println(vectorz.vectorSize)
+  	    features.addStochasticFeature(new MyStochasticFeature("contextVector", vectorFeature(vectorz)))
+  	  }
+  	  features
   		//features.addStochasticFeature(new BoWFeature(3)); 
   	}
   	
-   def train(instances: List[Row], heldout: Set[String]) = 
+   def train(instances: List[Row], heldout: Set[String]): Row=>String = 
 	 {
      val df:DataFrame = null;
-    
-		 this.classifier = new LibSVMClassifier();
+     val features = makeFeatures
+		 val classifier = new LibSVMClassifier();
 		 makeFeatures();
 		
-		 val d = new Dataset("trainingData");
-		 d.features = features;
-		 features.finalize();  // only necessary for continuous feats ......
+		 val d = new Dataset("trainingData")
+		 d.features = features
+		 features.finalize() // only necessary for continuous feats ......
 		
 		 //heldout.filter(($"id" > 1) || ($"name" isin ("A","B"))).show()
 		 
@@ -228,18 +230,20 @@ class Swsd extends Serializable
 			 else
 			   Console.err.println("Held out: " + id + " " + w)
 		 }
-		 classifier.train(d);
+		 classifier.train(d)
+		
+		 return (r:Row) => classifier.classifyInstance(features.makeTestInstance(r))
 	 }
    
-  	def test(instances: Set[Row]):Int =
+  	def test(instances: Set[Row], classify: Row=>String):Int =
   		{
   				val t = new Dataset("test");
   				var errors = 0;
   				for (w <- instances)
   				{
-  					val instance = features.makeTestInstance(w);
+  					
   					//System.err.println(instance);
-  					val label = classifier.classifyInstance(instance);
+  					val label = classify(w)
   					val truth = w.getAs[String]("senseId")
   					
   					//System.err.println("############################################################################### " + label);
