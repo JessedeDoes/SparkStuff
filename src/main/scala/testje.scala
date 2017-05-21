@@ -83,15 +83,15 @@ object tester
     instances.foreach(Console.err.println(_))
     //return
     
-		System.err.println("starting work on: " + lempos + " " + senses);
+		System.err.println("starting work on: " + lempos + " " + senses)
 		
 		for (w <- instances)
 		{
 		  System.err.println("Holding out for instance:" + w.getAs[String]("id") + " " + w);
 			try
 			{
-				val classify = wsd.train(instances, Set(w.getAs[String]("id")));
-				errors += wsd.test(Set(w), classify);
+				val classify = wsd.train(instances, Set(w.getAs[String]("id")))
+				errors += test(Set(w), classify);
 			} catch 
 			{ case e:Exception =>
 	
@@ -101,7 +101,7 @@ object tester
 			total += 1;
 		}
 		
-		val accuracy = (total- errors -failures) / (total + 0.0);
+		val accuracy = (total- errors -failures) / (total + 0.0)
 		
 		val senseDistribution = instances.groupBy(_.getAs[String]("senseId")).mapValues(_.size).toList.sortWith((a,b) => a._2 > b._2)
 	
@@ -121,11 +121,29 @@ object tester
 		totalFailures += failures
 		}
 	}  
+  
+  	def test(instances: Set[Row], classify: Row=>String):Int =
+  		{
+  				val t = new Dataset("test");
+  				var errors = 0;
+  				for (w <- instances)
+  				{
+  					val label = classify(w)
+  					val truth = w.getAs[String]("senseId")
+  					
+  					val isOK = label.equalsIgnoreCase(truth)
+  					Console.err.println(isOK + " " + label + "\ttruth:" + truth + "\t" + w)
+  					if (!isOK)
+  						errors = errors +1;
+  				} 
+  				return errors;
+  		}
 }
 
 object featureStuff
 {
     @volatile var vectorz = Vectors.readFromFile("/home/jesse/workspace/Diamant/Vectors/dbnl.vectors.bin")
+    
     class MyFeature(n: String, f: Row=>String) extends Feature with Serializable
   	{
   	  this.name = n
@@ -171,7 +189,7 @@ object featureStuff
   	   val posFrom = Math.max(focus-window,0)
   	   val posTo = Math.min(focus+window+1,tokens.size)
   	   val vector = word2vec.Util.getRankedAndDistanceWeightedAverageVector(vectors, tokens, focus, posFrom, posTo)
-  	   //Console.err.println(vector)
+  	   // Console.err.println(vector)
   	   val d = new Distribution
   	   (0 to vector.length-1).foreach(i => d.addOutcome("v" + i, vector(i)))
   	   d
@@ -220,13 +238,11 @@ class Swsd extends Serializable
 		
 		 val d = new Dataset("trainingData")
 		 d.features = features
-		 features.finalize() // only necessary for continuous feats ......
+		 features.finalize // only necessary for continuous feats ......
 		
-		 //heldout.filter(($"id" > 1) || ($"name" isin ("A","B"))).show()
 		 
 		 for (w <- instances)
 		 {
-		   //import instances.sqlContext.implicits._
 		   val id = w.getAs[String]("id")
 		   if (!heldout.contains(id))
 				 d.addInstance(w, w.getAs[String]("senseId"))
@@ -237,24 +253,4 @@ class Swsd extends Serializable
 		
 		 return (r:Row) => classifier.classifyInstance(features.makeTestInstance(r))
 	 }
-   
-  	def test(instances: Set[Row], classify: Row=>String):Int =
-  		{
-  				val t = new Dataset("test");
-  				var errors = 0;
-  				for (w <- instances)
-  				{
-  					
-  					//System.err.println(instance);
-  					val label = classify(w)
-  					val truth = w.getAs[String]("senseId")
-  					
-  					//System.err.println("############################################################################### " + label);
-  					val isOK = label.equalsIgnoreCase(truth)
-  					Console.err.println(isOK + " " + label + "\ttruth:" + truth + "\t" + w)
-  					if (!isOK)
-  						errors = errors +1;
-  				} 
-  				return errors;
-  		}
 }
