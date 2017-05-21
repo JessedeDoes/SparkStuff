@@ -11,7 +11,8 @@ import impact.ee.classifier.svmlight.SVMLightClassifier;
 import impact.ee.classifier.svmlight.SVMLightClassifier.TrainingMethod;
 
 import impact.ee.tagger.features.ClusterFeature;
-
+import word2vec.Util
+import word2vec.Vectors
 
 import wsd.features.BoCLFeature;
 import wsd.features.BoWFeature;
@@ -123,6 +124,7 @@ object tester
 
 object featureStuff
 {
+    
     class MyFeature(n: String, f: Row=>String) extends Feature with Serializable
   	{
   	  this.name = n
@@ -159,6 +161,20 @@ object featureStuff
   	  d.computeProbabilities
   	  d
   	}
+  	
+  	def vectorFeature(vectors:Vectors)(r:Row):Distribution =
+  	{
+  	   val window=2
+  	   val tokens = r.getAs[Seq[String]]("word").asJava
+  	   val focus = r.getAs[Int]("hitStart")
+  	   val posFrom = Math.max(focus-window,0)
+  	   val posTo = Math.min(focus+window+1,tokens.size)
+  	   val vector = word2vec.Util.getRankedAndDistanceWeightedAverageVector(vectors, tokens, focus, posFrom, posTo)
+  	   //Console.err.println(vector)
+  	   val d = new Distribution
+  	   (0 to vector.length-1).foreach(i => d.addOutcome("v" + i, vector(i)))
+  	   d
+  	}
 }
 
 class Swsd extends Serializable
@@ -184,7 +200,9 @@ class Swsd extends Serializable
   	  
   	  fList.foreach(features.addFeature(_))
   	  features.addStochasticFeature(new MyStochasticFeature("bow3", bowFeature(3)))
-
+  	  @volatile var vectorz = Vectors.readFromFile("/home/jesse/workspace/Diamant/Vectors/dbnl.vectors.bin")
+  	  println(vectorz.vectorSize)
+  	  features.addStochasticFeature(new MyStochasticFeature("contextVector", vectorFeature(vectorz)))
   		//features.addStochasticFeature(new BoWFeature(3)); 
   	}
   	
