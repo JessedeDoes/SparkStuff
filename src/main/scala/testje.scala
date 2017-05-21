@@ -41,6 +41,7 @@ object tester
     Console.err.println("starting...")
     val ks = df.select("lempos").distinct.collect
     Console.err.println("############### " + ks.length)
+    // df.groupBy("lempos")
 		for (key <- ks)
 		{
 		  val lp = key.getAs[String]("lempos")
@@ -49,8 +50,10 @@ object tester
 			  Console.err.println("It is a noun...:" + key)
 				val V = df.filter(
 				    r => 
-				      {val x = r.getAs[String]("lempos") 
-				      x!= null && x == key})
+				      {val x = r.getAs[String]("lempos"); 
+				      x!= null && x == lp})
+				Console.err.println("--------------------------------------------------- Size of V: " + V.count())
+				V.foreach(println(_));
 				if (V.select("senseId").distinct().count > 1)	
 				   leaveOneOut(V, lp, wsd);
 			}
