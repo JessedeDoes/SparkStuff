@@ -87,6 +87,7 @@ object tester
 		
 		for (w <- instances)
 		{
+		  System.err.println("Holding out for instance:" + w.getAs[String]("id") + " " + w);
 			try
 			{
 				wsd.train(instances, Set(w.getAs[String]("id")));
@@ -200,7 +201,9 @@ class Swsd extends Serializable
 		   //import instances.sqlContext.implicits._
 		   val id = w.getAs[String]("id")
 		   if (!heldout.contains(id))
-				 d.addInstance(w, w.getAs[String]("senseId")); 
+				 d.addInstance(w, w.getAs[String]("senseId"))
+			 else
+			   Console.err.println("Held out: " + id + " " + w); 
 		 }
 		 classifier.train(d);
 	 }
@@ -214,9 +217,11 @@ class Swsd extends Serializable
   					val instance = features.makeTestInstance(w);
   					//System.err.println(instance);
   					val label = classifier.classifyInstance(instance);
-  					//System.err.println(label + "\t" + w.senseId + "\t" + w.plainSentence());
+  					val truth = w.getAs[String]("senseId")
+  					
   					//System.err.println("############################################################################### " + label);
-  					val isOK = label.equalsIgnoreCase(w.getAs[String]("senseId"));
+  					val isOK = label.equalsIgnoreCase(truth);
+  					System.err.println(isOK + " " + label + "\ttruth:" + truth + "\t" + w);
   					if (!isOK)
   						errors = errors +1;
   				} 
