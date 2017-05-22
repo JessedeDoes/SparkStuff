@@ -63,8 +63,8 @@ class RDF
 		  
   def query(service: String, queryString: String) = 
 	{
-		val query = QueryFactory.create(queryString) ;
-		val start = System.currentTimeMillis();
+		val query = QueryFactory.create(queryString)
+		val start = System.currentTimeMillis()
 		try  
 		{
 		  val qexec = new QueryEngineHTTP(service, query)
@@ -73,15 +73,15 @@ class RDF
 			if (query.isSelectType)
 			{
 				val results = qexec.execSelect 
-				while (results.hasNext())
+				while (results.hasNext)
 				{
-					val soln = results.nextSolution();
-					System.out.println(soln);
+					val soln = results.nextSolution()
+					System.out.println(soln)
 					//RDFNode x = soln.get("varName") ;       // Get a result variable by name.
 					//Resource r = soln.getResource("VarR") ; // Get a result variable - must be a resource
 					//Literal l = soln.getLiteral("VarL") ;   // Get a result variable - must be a literal
 				}  
-			} else if (query.isConstructType())
+			} else if (query.isConstructType)
 			{
 				val i =	qexec.execConstructTriples()
 				val i1 = i.asScala.map(convertTriple).toStream
@@ -92,8 +92,8 @@ class RDF
 			}
 		} catch {case ex: Exception => ex.printStackTrace();}
 		
-	  val end =  System.currentTimeMillis();
-		System.err.println("Time: " + (end-start));
+	  val end =  System.currentTimeMillis()
+		System.err.println("Time: " + (end-start))
 	}    
 }
 
