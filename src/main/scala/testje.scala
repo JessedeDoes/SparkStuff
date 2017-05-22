@@ -213,7 +213,7 @@ object featureStuff
   	  { 
   	    val focus = r.getAs[Int]("hitStart")
   	    val posFrom = Math.max(focus-window,0)
-  	    val tokens = r.getAs[Seq[String]]("word").asJava; 
+  	    val tokens = r.getAs[Seq[String]]("word").asJava 
   	    val posTo = Math.min(focus+window+1,tokens.size)
   	    word2vec.Util.getRankedAndDistanceWeightedAverageVector(vectors,  tokens, focus, posFrom, posTo) 
   	  }
