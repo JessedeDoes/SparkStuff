@@ -286,7 +286,7 @@ object Download
 	
 	def main(args: Array[String]):Unit =
   {
-    downloadPar("wolf")
+    downloadPar("das")
   } 
   
 }
