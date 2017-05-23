@@ -175,6 +175,21 @@ object QueryKB
   implicit def StringToTerm(s:String):Term = Term(s)
   implicit def StringToQuery(s:String):SRUQuery = singleWordQuery(s)
   
+  def kwicResults(s:String) =
+    for ((id,metadataRecord) <- matchingDocumentIdentifiers(s))
+      println(KBKwic.concordance(s, id))
+      
+  def kwicResultsPar(s:String)
+  {
+      val s0 = matchingDocumentIdentifiers(s)
+      val split = splitStream(s0,3)
+      split.par.foreach(
+           x =>  
+             for ((id,metadataRecord) <- x)
+             { println(KBKwic.concordance(s, id)) }
+           
+      )
+  }
   def download(id:String,metadataRecord:Node, subdir:String) =     
   try 
       {
@@ -205,21 +220,7 @@ object QueryKB
       )
   }
       
-  def kwicResults(s:String) =
-    for ((id,metadataRecord) <- matchingDocumentIdentifiers(s))
-      println(KBKwic.concordance(s, id))
-      
-  def kwicResultsPar(s:String)
-  {
-      val s0 = matchingDocumentIdentifiers(s)
-      val split = splitStream(s0,3)
-      split.par.foreach(
-           x =>  
-             for ((id,metadataRecord) <- x)
-             { println(KBKwic.concordance(s, id)) }
-           
-      )
-  }
+ 
   def test = 
   {
 		  val aantallen = beesten.map(b => (b,getNumberOfResults(singleWordQuery(b)))) 
@@ -239,11 +240,7 @@ object QueryKB
 				}
   }
   
-  def main(args: Array[String]):Unit =
-  {
-    downloadPar("wolf")
-  } 
-  
+
   def splitStream[A](seq: Iterable[A], n: Int) = 
   {
     (0 until n).map(i => seq.drop(i).sliding(1, n).flatten)
@@ -276,14 +273,22 @@ object KBKwic
   }
   
   def concordance(query:String, url:String):List[Kwic] = concordance(query,XML.load(url))
+  
+  
 }
 object Download
 {
 	import QueryKB._
-	def main(args: Array[String]):Unit =
+	def main_old(args: Array[String]):Unit =
   {
 		downloadForTermList(beesten.filter(s => {val x:Int = getNumberOfResults(s); (x >  35000 && x < 200000) }))
   } 
+	
+	def main(args: Array[String]):Unit =
+  {
+    downloadPar("wolf")
+  } 
+  
 }
 
 object stuff
