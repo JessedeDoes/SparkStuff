@@ -76,29 +76,7 @@ case class SRUQuery(server:String,
     
 
 
-object KBKwic
-{
-  import Tokenizer._
-  def window=8
-  
-  case class Kwic(left:String, hit:String, right:String)
-  {
-    override def toString():String = (f"${left}%80s") + "\t"  + hit + "\t" + right
-  }
-  def concordance(query:String,document:Node):List[Kwic] = 
-  {
-    val tokens = tokenize(document.text)
-    // println(tokens.toList)
-    val matchPositions = (0 to tokens.length-1).toList.filter(i => tokens(i).token.toLowerCase == query.toLowerCase())
-    //println(matchPositions)
-    def slice = (a:Int,b:Int) => tokens.slice(Math.max(0,a),Math.min(b,tokens.length-1)).toList.map(
-        t => t.leading + t.token + t.trailing).mkString(" ")
-    def getMatch(p:Int) = Kwic(slice(p-window,p), tokens(p).token, slice(p+1,p+window+1))
-    matchPositions.map(getMatch)
-  }
-  
-  def concordance(query:String, url:String):List[Kwic] = concordance(query,XML.load(url))
-}
+
     
 object Store
 {
@@ -114,7 +92,7 @@ object Store
   }
 }
 
-object Download
+object QueryKB
 {
   val base = "http://jsru.kb.nl/sru/sru?operation=searchRetrieve&x-collection=DDD_krantnr"
 
@@ -216,6 +194,17 @@ object Download
     for ((id,metadataRecord) <- matchingDocumentIdentifiers(s))
       download(id,metadataRecord,s)
       
+  def downloadPar(s:String)
+  {
+      val s0 = matchingDocumentIdentifiers(s)
+      val split = splitStream(s0,5)
+      split.par.foreach(
+           x =>  
+             for ((id,metadataRecord) <- x)
+             { download(id,metadataRecord,s) }
+      )
+  }
+      
   def kwicResults(s:String) =
     for ((id,metadataRecord) <- matchingDocumentIdentifiers(s))
       println(KBKwic.concordance(s, id))
@@ -252,12 +241,7 @@ object Download
   
   def main(args: Array[String]):Unit =
   {
-    //downloadForTermList(beesten.filter(s => {val x:Int = getNumberOfResults(s); (x >  35000 && x < 200000) }))
-    //test
-    val start = System.currentTimeMillis
-    kwicResultsPar("obsidiaan")
-    val laps = System.currentTimeMillis - start
-    Console.err.println("This took " + laps + " millis ")
+    downloadPar("wolf")
   } 
   
   def splitStream[A](seq: Iterable[A], n: Int) = 
@@ -267,7 +251,44 @@ object Download
   
   // round(Stream.from(1),3).foreach(i => println(i.take(3).toList))
   
-  val exampleRecord = <srw:record>
+}
+
+
+object KBKwic
+{
+  import Tokenizer._
+  def window=8
+  
+  case class Kwic(left:String, hit:String, right:String)
+  {
+    override def toString():String = (f"${left}%80s") + "\t"  + hit + "\t" + right
+  }
+  def concordance(query:String,document:Node):List[Kwic] = 
+  {
+    val tokens = tokenize(document.text)
+    // println(tokens.toList)
+    val matchPositions = (0 to tokens.length-1).toList.filter(i => tokens(i).token.toLowerCase == query.toLowerCase())
+    //println(matchPositions)
+    def slice = (a:Int,b:Int) => tokens.slice(Math.max(0,a),Math.min(b,tokens.length-1)).toList.map(
+        t => t.leading + t.token + t.trailing).mkString(" ")
+    def getMatch(p:Int) = Kwic(slice(p-window,p), tokens(p).token, slice(p+1,p+window+1))
+    matchPositions.map(getMatch)
+  }
+  
+  def concordance(query:String, url:String):List[Kwic] = concordance(query,XML.load(url))
+}
+object Download
+{
+	import QueryKB._
+	def main(args: Array[String]):Unit =
+  {
+		downloadForTermList(beesten.filter(s => {val x:Int = getNumberOfResults(s); (x >  35000 && x < 200000) }))
+  } 
+}
+
+object stuff
+{
+    val exampleRecord = <srw:record>
 <srw:recordPacking>xml</srw:recordPacking>
 <srw:recordSchema>http://www.kb.nl/ddd</srw:recordSchema>
 <srw:recordData>
