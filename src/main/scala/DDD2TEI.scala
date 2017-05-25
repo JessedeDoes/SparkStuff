@@ -20,19 +20,12 @@ object toTEI
      val Date(year,month,day) = (metadataRecord \ "date")(0).text
      val l = List( ("Year_",year), ("Month_",month),("Day_",day))
      val sillyXML = l.map( { case (n,v) =>  List("witness","text","pub").map(t => List("from","to").map(ft => dateField(t + n + ft, v))) })
-    
-     /*
-     val years = List("witness","text","pub").map(t => List("from","to").map(ft => dateField(t + "Year_" + ft, year)))
-     val months = List("witness","text","pub").map(t => List("from","to").map(ft => dateField(t + "Month_" + ft, month)))
-     val days = List("witness","text","pub").map(t => List("from","to").map(ft => dateField(t + "Day_" + ft, day)))
-     * 
-     */
-     //val basicMeta = (List("date", "papertitle", "title").map(x => (x -> (metadataRecord \\ x).text))).toMap
+   
      val title = (text \\ "title")(0).text
    
      val interpjes = (metadataRecord.child).map(x => <interpGrp type={x.label}><interp value={x.text}/></interpGrp>)
      val papertitle = if ((metadataRecord \ "paperTitle").size > 0) (metadataRecord \ "paperTitle")(0).text else ""
-     // <dc:date>1912/12/30 00:00:00</dc:date>
+   
      val textContent = (text \ "text")(0).child
 <TEI>
 <teiHeader>
