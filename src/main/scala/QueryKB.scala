@@ -30,20 +30,7 @@ case class ListDisjunction(l: List[TextQuery]) extends TextQuery
 case class ListConjunction(l: List[TextQuery]) extends TextQuery
 
 // http://sk.taalbanknederlands.inl.nl/LexiconService/lexicon/get_wordforms?database=lexicon_service_db&lemma=bunzing
-object LexiconService
-{
-   def getWordforms(lemma: String):List[String] =
-   {
-     (XML.load("http://sk.taalbanknederlands.inl.nl/LexiconService/lexicon/get_wordforms?database=lexicon_service_db&lemma=" + lemma.toLowerCase)
-     \\ "found_wordforms").toList.map(_.text.toLowerCase)
-   }
-   def getLemmata(wordform: String):List[String] =
-   {
-     (XML.load("http://sk.taalbanknederlands.inl.nl/LexiconService/lexicon/get_lemmata?database=lexicon_service_db&wordform=" + wordform.toLowerCase)
-     \\ "found_lemmata").toList.map(_.text.toLowerCase)
-   }
-   
-}
+
 
 trait ContentQueryT
 {
@@ -74,10 +61,6 @@ case class SRUQuery(server:String,
     startRecord:Int, maximumRecords:Int, query:ContentQuery) extends SRUQueryT
 
     
-
-
-
-    
 object Store
 {
   val dir = "./Store"
@@ -90,6 +73,72 @@ object Store
     if (!f.isDirectory()) f.mkdir()
     new PrintWriter(dir + "/" + subdir + '/' + fileName) { write(doc.toString()); close }
   }
+}
+
+object toTEI
+{
+   def makeTEI(metadataRecord: Elem, text: Elem, id:String):Elem =
+   {
+     val cleanerId = id.replaceAll(".*urn=","")
+     //val basicMeta = (List("date", "papertitle", "title").map(x => (x -> (metadataRecord \\ x).text))).toMap
+     val title = text \\ "title"
+     println(metadataRecord.toString)
+     val interpjes = (metadataRecord.child).map(x => <interpGrp type={x.label}><interp value={x.text}/></interpGrp>)
+     
+     val textContent = (text \ "text")(0).child
+<TEI>
+<teiHeader>
+<fileDesc><titleStmt><title>{title.text}</title>
+</titleStmt><publicationStmt><p/></publicationStmt>
+<sourceDesc><p>whatever</p>
+<listBibl id="inlMetadata">
+<bibl>
+<interpGrp type="date.publication">
+<interp value="1990-01"/>
+</interpGrp>
+<interpGrp type="idno"><interp value={cleanerId}/></interpGrp>
+{interpjes}
+</bibl>
+</listBibl>
+</sourceDesc>
+</fileDesc>
+</teiHeader>
+<text>
+<body>
+{textContent}
+</body>
+</text>
+</TEI>
+   }
+   
+   val xmlFilter = new java.io.FilenameFilter { def accept(dir:File, name:String):Boolean =  name.toLowerCase.endsWith(".xml") }
+  
+   def save(dir:String,doc:Elem,fileName:String):Unit = { new PrintWriter(dir +"/" + fileName) { write(doc.toString()); close } }
+   
+   def convertToTEI(fromDir:String, toDir:String) =
+   {
+     val f = new File(fromDir)
+     if (f.isDirectory)
+     {
+       val str = f.listFiles(xmlFilter).toStream
+       val z = for {
+             fi <- str
+             n = fi.getName
+             x = XML.load(fromDir + "/" + n) 
+             id = (x \\ "identifier").text
+             meta = (x \\ "recordData")(0).asInstanceOf[Elem]
+             tei = makeTEI(meta, x, id)
+             } 
+        yield 
+         save(toDir, tei, n.replaceAll("xml", "tei.xml")) 
+        z.foreach( Nil=>Nil ); 
+     }
+   }
+   
+   def main(args:Array[String]):Unit =
+   {
+     convertToTEI(args(0), args(1))
+   }
 }
 
 object QueryKB
@@ -122,7 +171,6 @@ object QueryKB
     wrapTextQuery(ListDisjunction(l1.map( x => Term(x))))
   }
   
- 
   def get(url: String) = scala.io.Source.fromURL(url).mkString
   
   def getNumberOfResults(q:SRUQuery):Int = 
@@ -141,10 +189,7 @@ object QueryKB
     val n = (xml \\ "numberOfRecords").text.toInt
     n
   }
-  
-  
-
-  
+    
   /**
    * Return a list of pairs: first is article id (actually resolver URI), second is recordData containing metadata for the article
    * There might be millions, so we do not want to keep the metadata record XML nodes in memory all at once,
