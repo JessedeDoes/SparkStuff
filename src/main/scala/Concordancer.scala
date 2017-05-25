@@ -26,10 +26,7 @@ import java.sql.{DriverManager,Connection,ResultSet}
 import scala.collection.JavaConverters._
 import com.esotericsoftware.minlog._
 
-class Concordance
-{
-  
-}
+
 
 class Concordancer(s: Searcher) {
 
@@ -111,6 +108,29 @@ class Concordancer(s: Searcher) {
 				}
 				createDataFrame(iterator,session,schema)
 		}
+	
+		def concordances(searcher: Searcher, corpusQlQuery: String):  Stream[Concordance] = 
+		{
+				val hits = filteredSearch(searcher, corpusQlQuery, null)
+				
+				println("hits created!");
+	      hits.settings.setContextSize(4); 
+	      hits.settings.setMaxHitsToRetrieve(100000) 
+	      
+	      val metaFields = searcher.getIndexStructure.getMetadataFields.asScala.toList.sorted
+	      
+			
+				val schema = createSchema(hits, metaFields)
+				
+				val iterator:Iterator[Concordance] = 
+				for { h <- hits.iterator().asScala;   kwic = hits.getKwic(h) }
+				yield 
+				{
+				   val meta = getMetadata(searcher.document(h.doc), metaFields)
+				   createConcordance(kwic, meta)
+				}
+				iterator.toStream
+		}
 
 			
 
@@ -154,6 +174,17 @@ class Concordancer(s: Searcher) {
 				val metaValues = metaKeys.map(s => meta(s))
 				Row.fromSeq(kwic.getHitStart :: kwic.getHitEnd :: tokenValues ++ metaValues)
 		} 
+	def createConcordance(kwic:Kwic, meta:Map[String,String]): Concordance = 
+		{
+				val tokenProperties  = kwic.getProperties().asScala.toList.map(
+						s => (s -> 
+						(kwic.getLeft(s).asScala.toList ++ kwic.getMatch(s).asScala.toList ++ kwic.getRight(s).asScala.toList).toArray)).toMap;
+
+				val metaKeys = (meta.keys.toList.sorted)
+				val metaValues = metaKeys.map(s => meta(s))
+				new Concordance(kwic.getHitStart, kwic.getHitEnd, tokenProperties, meta)
+		} 
+	
 	def windowed[T](n:Int, s: Stream[T]):Stream[List[T]] = 
 	 {
     if (n==0) 
