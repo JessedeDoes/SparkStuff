@@ -77,26 +77,50 @@ object Store
 
 object toTEI
 {
+   import scala.util.matching._
+   val Date = new Regex("^\\s*([0-9]{4})[^0-9]([0-9]{1,2})[^0-9]([0-9]{1,2}).*")
+   
+   def dateField(name:String, value:String): Elem =
+     <interpGrp type={name}>
+				<interp value={value}/>
+		</interpGrp>
+   
+	 
    def makeTEI(metadataRecord: Elem, text: Elem, id:String):Elem =
    {
      val cleanerId = id.replaceAll(".*urn=","")
-     //val basicMeta = (List("date", "papertitle", "title").map(x => (x -> (metadataRecord \\ x).text))).toMap
-     val title = text \\ "title"
-     println(metadataRecord.toString)
-     val interpjes = (metadataRecord.child).map(x => <interpGrp type={x.label}><interp value={x.text}/></interpGrp>)
      
+     
+     val Date(year,month,day) = (metadataRecord \ "date")(0).text
+     val years = List("witness","text","pub").map(t => List("from","to").map(ft => dateField(t + "Year_" + ft, year)))
+     val months = List("witness","text","pub").map(t => List("from","to").map(ft => dateField(t + "Month_" + ft, month)))
+     val days = List("witness","text","pub").map(t => List("from","to").map(ft => dateField(t + "Day_" + ft, day)))
+     //val basicMeta = (List("date", "papertitle", "title").map(x => (x -> (metadataRecord \\ x).text))).toMap
+     val title = (text \\ "title")(0).text
+   
+     val interpjes = (metadataRecord.child).map(x => <interpGrp type={x.label}><interp value={x.text}/></interpGrp>)
+     val papertitle = if ((metadataRecord \ "paperTitle").size > 0) (metadataRecord \ "paperTitle")(0).text else ""
+     // <dc:date>1912/12/30 00:00:00</dc:date>
      val textContent = (text \ "text")(0).child
 <TEI>
 <teiHeader>
-<fileDesc><titleStmt><title>{title.text}</title>
+<fileDesc><titleStmt><title>{title}</title>
 </titleStmt><publicationStmt><p/></publicationStmt>
 <sourceDesc><p>whatever</p>
 <listBibl id="inlMetadata">
 <bibl>
-<interpGrp type="date.publication">
-<interp value="1990-01"/>
+{years}
+{months}
+{days}
+<interpGrp type="titleLevel1">
+  <interp value={title}/>
 </interpGrp>
-<interpGrp type="idno"><interp value={cleanerId}/></interpGrp>
+<interpGrp type="titleLevel2">
+  <interp value={papertitle}/>
+</interpGrp>
+<interpGrp type="idno">
+  <interp value={cleanerId}/>
+</interpGrp>
 {interpjes}
 </bibl>
 </listBibl>
