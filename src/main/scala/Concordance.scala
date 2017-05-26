@@ -35,8 +35,9 @@ object Contextants
      val b = c.tokenProperties(f.property)
      
      val L = a.length
-     val indexes = (Math.max(0,c.hitStart-w) to c.hitStart)   ++ (Math.min(L,c.hitEnd) to Math.min(L,c.hitEnd+w))
-     val filtered = indexes.filter(k => b(k).matches(f.filter))
+     val indexes = (Math.max(0,c.hitStart-w) to c.hitStart-1)   ++ (Math.min(L,c.hitEnd) to Math.min(L,c.hitEnd+w-1))
+     val filtered = indexes.filter(k => k > 0  && k < b.length && b(k).matches(f.filter))
+     //println(filtered.toList + " " + a.toList)
      return filtered.map(k => a(k))
    }
    
@@ -50,6 +51,7 @@ object Contextants
    {
      c.flatMap(c => context(c,20,"lemma",f))
    }
+   
    def streamContext(c: => Stream[Concordance], w:Int, p:String, f:Filter):Stream[String] = 
    {
      c.flatMap(c => context(c,w,p,f))
