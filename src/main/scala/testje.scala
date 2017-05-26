@@ -250,6 +250,7 @@ class Swsd extends Serializable
   	  val features = new FeatureSet
   	  val fList = 
   	  List( 
+  	     fieldFeature("w0", "word", 0),
   	     fieldFeature("w-1", "word", -1),
   	     fieldFeature("w+1", "word", 1),
   	     fieldFeature("w-2", "word", -2),
@@ -262,7 +263,7 @@ class Swsd extends Serializable
   	  )
   	  
   	  fList.foreach(features.addFeature(_))
-  	  features.addStochasticFeature(new MyStochasticFeature("bow3", bowFeature(10)))
+  	  features.addStochasticFeature(new MyStochasticFeature("bow3", bowFeature(3)))
   	  if (addVectors)
   	  {
   	    Console.err.println("Adding vectors!")
@@ -277,7 +278,7 @@ class Swsd extends Serializable
 	 {
      val df:DataFrame = null;
      val features = makeFeatures
-     features.addStochasticFeature(new MyStochasticFeature("centerDistances", centroidFeature(vectorz,instances,heldout) ))
+     // features.addStochasticFeature(new MyStochasticFeature("centerDistances", centroidFeature(vectorz,instances,heldout) ))
 		 val classifier = new LibSVMClassifier();
 		
 		
