@@ -252,8 +252,8 @@ object Conc
      val c0 = concordancer.concordances(searcher, "[pos='AA.*'][lemma='beer' & pos='NOU-C.*']")
      for (c <- c0)
        println(c + " --> "  + Contextants.context(c,3,"word"))
-     lazy val contextFrequencies = Contextants.streamContext(c0).groupBy(s => s).map({ case (k,str) => (k, str.foldLeft(0)( (c,s) => c+1)) }).toList
-     for (s <- contextFrequencies)
+     lazy val contextFrequencies = Contextants.contextFrequencies(c0)
+     for (s <- contextFrequencies.sortWith({ case (a,b) => a._2 < b._2 } ))
       println(s)
      
   }
