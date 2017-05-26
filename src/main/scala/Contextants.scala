@@ -1,7 +1,7 @@
 import scala.util.matching._
 case class Filter(property: String, filter: String)
 
-object Contextants
+object Collocation
 {
   val defaultWindow = 30
   def context(c: Concordance, w:Int, s:String):Seq[String] = 

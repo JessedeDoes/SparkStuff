@@ -254,7 +254,7 @@ object Conc
      val indexDirectory = if (TestSpark.atHome) "/media/jesse/Data/Diamant/StatenGeneraal/" else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
 		 val searcher = Searcher.open(new java.io.File(indexDirectory))
 		 val concordancer = new Concordancer
-     
+    
      // searcher.termFrequencies(documentFilterQuery, fieldName, propName, altName)
      
      // val fl = List("paard","varken","koe","wolf","bunzing","hond", "vlieg").map(s => singleWordQuery(s)).map(q => (q,concordancer.frequency(searcher, q, null)))
@@ -266,16 +266,16 @@ object Conc
      val f1 = c0.count(( x => true))
      println(s"Hits for ${q0} : ${f1}")  
      val f = Filter("pos",".*")
-     //for (c <- c0) println(c)
+  
      
-     lazy val contextFrequencies = Contextants.contextFrequencies(c0,f)
+     lazy val contextFrequencies = Collocation.contextFrequencies(c0,f)
     
      
      val enhanced = contextFrequencies
               .filter( {case (t,f) => f > 0.05 * f1 && t.matches("^[a-z]+$") } )
               .map( { case (t,f) => (t,f,termFrequency(searcher,t)) })
      
-     val scored = enhanced.map( { case (t,f,f2) => (t,f,f2,Contextants.dice(f, f1, f2, 10000000))} )
+     val scored = enhanced.map( { case (t,f,f2) => (t,f,f2,Collocation.dice(f, f1, f2, 10000000))} )
     
      for (s <- scored.sortWith({ case (a,b) => a._4 < b._4 } ))
       println(s)
