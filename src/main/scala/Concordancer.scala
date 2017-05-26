@@ -271,7 +271,7 @@ object Conc
      
      println("corpus Size: " + corpSize)
      
-     val q0 = "[lemma='varken' & word='(?c)va.*' & pos='NOU-C.*']"
+     val q0 = "[lemma='schuur' & word='(?c)schu.*' & pos='NOU-C.*']"
      val c0 = concordancer.concordances(searcher, q0)
      val f1 = c0.count(( x => true))
      println(s"Hits for ${q0} : ${f1}")  
