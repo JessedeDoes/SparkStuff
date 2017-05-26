@@ -29,7 +29,7 @@ object Contextants
   
    def streamContext(c: => Stream[Concordance]):Stream[String] = 
    {
-     c.flatMap(c => context(c,3,"word"))
+     c.flatMap(c => context(c,20,"lemma"))
    }
    
    def streamContext(c: => Stream[Concordance], w:Int, p:String):Stream[String] = 
