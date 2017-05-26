@@ -249,8 +249,13 @@ object Conc
      val indexDirectory = if (TestSpark.atHome) "/media/jesse/Data/Diamant/CorpusWolf/" else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
 		 val searcher = Searcher.open(new java.io.File(indexDirectory))
 		 val concordancer = new Concordancer(searcher)
-     for (c <- concordancer.concordances(searcher, "[pos='AA.*'][lemma='beer' & pos='NOU-C.*']"))
-       println(c)
+     val c0 = concordancer.concordances(searcher, "[pos='AA.*'][lemma='beer' & pos='NOU-C.*']")
+     for (c <- c0)
+       println(c + " --> "  + Contextants.context(c,3,"word"))
+     lazy val contextFrequencies = Contextants.streamContext(c0).groupBy(s => s).map({ case (k,str) => (k, str.foldLeft(0)( (c,s) => c+1)) }).toList
+     for (s <- contextFrequencies)
+      println(s)
+     
   }
 }
 
