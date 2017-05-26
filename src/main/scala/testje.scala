@@ -252,10 +252,12 @@ class Swsd extends Serializable
   	  List( 
   	     fieldFeature("w-1", "word", -1),
   	     fieldFeature("w+1", "word", 1),
-  	     fieldFeature("w-1", "word", -2),
-  	     fieldFeature("w+1", "word", 2),
+  	     fieldFeature("w-2", "word", -2),
+  	     fieldFeature("w+2", "word", 2),
   	     fieldFeature("p-1", "pos", -1),
   	     fieldFeature("p+1", "pos", 1),
+  	     fieldFeature("p-2", "pos", -2),
+  	     fieldFeature("p+2", "pos", 2),
   	     fieldFeature("p0", "pos", 0)
   	  )
   	  

@@ -20,7 +20,7 @@ object dictionaryStructure
        val l0 = for (q <- (sense \ "eg" \ "cit" \ "q") ++ (sense \ "eg" \  "q"))
          yield (ps, q.text.replaceAll("\\s+", " "))
          
-       val l1 = (sense \ "sense").flatMap(x => doSense(x.asInstanceOf[Elem],newPath))
+       val l1 = (sense \ "sense").flatMap(x => doSense(x.asInstanceOf[Elem], newPath))
        l0 ++ l1
      }
      
