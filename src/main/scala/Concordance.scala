@@ -27,19 +27,19 @@ object Contextants
      a.slice(Math.max(0,c.hitStart-w),c.hitStart).toList ++ a.slice( Math.min(L,c.hitEnd) , Math.min(L,c.hitEnd+w) ).toList
    }
   
-   def streamContext(c: Stream[Concordance]):Stream[String] = 
+   def streamContext(c: => Stream[Concordance]):Stream[String] = 
    {
      c.flatMap(c => context(c,3,"word"))
    }
    
-   def streamContext(c: Stream[Concordance], w:Int, p:String):Stream[String] = 
+   def streamContext(c: => Stream[Concordance], w:Int, p:String):Stream[String] = 
    {
      c.flatMap(c => context(c,w,p))
    }
    
-   def contextFrequencies(c: Stream[Concordance], w:Int, p:String) = 
+   def contextFrequencies(c: => Stream[Concordance], w:Int, p:String) = 
      streamContext(c,w,p).groupBy(s => s).map({ case (k,str) => (k, str.foldLeft(0)( (c,s) => c+1)) }).toList
    
-   def contextFrequencies(c: Stream[Concordance]) = 
+   def contextFrequencies(c: => Stream[Concordance]) = 
      streamContext(c).groupBy(s => s).map({ case (k,str) => (k, str.foldLeft(0)( (c,s) => c+1)) }).toList
 }
