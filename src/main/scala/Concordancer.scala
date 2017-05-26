@@ -284,7 +284,7 @@ object Conc
      
      val enhanced = contextFrequencies.filter( {case (t,f) => f > 0.05 * f1 && t.matches("^[a-z]+$") } ).map( { case (t,f) => (t,f,termFrequency(concordancer,searcher,t)) })
      
-     val stillMore = enhanced.map( { case (t,f,f2) => (t,f,f2,Contextants.salience(f, f1, f2, 10000000))} )
+     val stillMore = enhanced.map( { case (t,f,f2) => (t,f,f2,Contextants.dice(f, f1, f2, 10000000))} )
     
      for (s <- stillMore.sortWith({ case (a,b) => a._4 < b._4 } ))
       println(s)
