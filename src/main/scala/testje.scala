@@ -262,13 +262,12 @@ class Swsd extends Serializable
   	  )
   	  
   	  fList.foreach(features.addFeature(_))
-  	  features.addStochasticFeature(new MyStochasticFeature("bow3", bowFeature(3)))
+  	  features.addStochasticFeature(new MyStochasticFeature("bow3", bowFeature(10)))
   	  if (addVectors)
   	  {
   	    Console.err.println("Adding vectors!")
   	    Console.err.println("Dimension: " + vectorz.vectorSize)
-  	    features.addStochasticFeature(new MyStochasticFeature("contextVector", vectorFeature(vectorz)))
-  	   
+  	    features.addStochasticFeature(new MyStochasticFeature("contextVector", vectorFeature(vectorz))) 
   	  }
   	  features
   		//features.addStochasticFeature(new BoWFeature(3)); 
