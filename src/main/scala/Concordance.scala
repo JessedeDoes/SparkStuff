@@ -41,17 +41,7 @@ object Contextants
      return filtered.map(k => a(k))
    }
    
-   
-   def streamContext(c: => Stream[Concordance]):Stream[String] = 
-   {
-     c.flatMap(c => context(c,20,"lemma"))
-   }
-   
-   def streamContext(c: => Stream[Concordance], f:Filter):Stream[String] = 
-   {
-     c.flatMap(c => context(c,20,"lemma",f))
-   }
-   
+  
    def streamContext(c: => Stream[Concordance], w:Int, p:String, f:Filter):Stream[String] = 
    {
      c.flatMap(c => context(c,w,p,f))
@@ -60,6 +50,6 @@ object Contextants
    def contextFrequencies(c: => Stream[Concordance], w:Int, p:String, f:Filter) = 
      streamContext(c,w,p,f).groupBy(s => s).map({ case (k,str) => (k, str.foldLeft(0)( (c,s) => c+1)) }).toList
    
-   def contextFrequencies(c: => Stream[Concordance], f:Filter) = 
-     streamContext(c,f).groupBy(s => s).map({ case (k,str) => (k, str.foldLeft(0)( (c,s) => c+1)) }).toList
+   def contextFrequencies(c: => Stream[Concordance], f:Filter): List[(String,Int)] = contextFrequencies(c,20,"lemma",f)
+    
 }
