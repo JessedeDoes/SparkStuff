@@ -11,6 +11,10 @@ import org.apache.lucene.analysis.Analyzer
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.queryparser.classic.ParseException
 
+import org.apache.lucene.search.spans.SpanQuery;
+
+
+
 import scala.collection.immutable.{Map,HashMap}
 
 import org.apache.spark.{SparkConf,SparkContext}
@@ -67,6 +71,18 @@ class Concordancer(s: Searcher) {
 	
 
 
+
+  def frequency(searcher: Searcher, corpusQlQuery: String, filterQueryString: String): Int = 
+  {
+    val q = createSpanQuery(searcher, corpusQlQuery, filterQueryString);
+    val hits = filteredSearch(searcher, corpusQlQuery, null)
+				
+		println("hits created for: " + corpusQlQuery);
+	  hits.settings.setContextSize(0); 
+	  hits.settings.setMaxHitsToRetrieve(Int.MaxValue) 
+    hits.size
+  }
+  
 	// type Concordance = List[(String,List[String])]
 
 	def getMetadata(fields:List[HitPropertyDocumentStoredField], i:Int) : Map[String,String] =
@@ -114,13 +130,11 @@ class Concordancer(s: Searcher) {
 				val hits = filteredSearch(searcher, corpusQlQuery, null)
 				
 				println("hits created!");
-	      hits.settings.setContextSize(8); 
+	      hits.settings.setContextSize(50); 
 	      hits.settings.setMaxHitsToRetrieve(1000000) 
 	      
 	      val metaFields = searcher.getIndexStructure.getMetadataFields.asScala.toList.sorted
 	      
-			
-				val schema = createSchema(hits, metaFields)
 				
 				val iterator:Iterator[Concordance] = 
 				for { h <- hits.iterator().asScala;   kwic = hits.getKwic(h) }
@@ -244,19 +258,37 @@ object Conc
 		  println(x)
 	}
 	
+	def singleWordQuery(s:String):String = s"[lemma='${s}']"
+	def termFrequency(c:Concordancer, searcher:Searcher, w:String) = c.frequency(searcher, singleWordQuery(w), null)
+	
 	def main(args: Array[String]):Unit = 
   {
      val indexDirectory = if (TestSpark.atHome) "/media/jesse/Data/Diamant/CorpusWolf/" else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
 		 val searcher = Searcher.open(new java.io.File(indexDirectory))
 		 val concordancer = new Concordancer(searcher)
-     val c0 = concordancer.concordances(searcher, "[lemma='paard' & word='(?c)pa.*' & pos='NOU-C.*']")
      
-     val f = Filter("pos","(NOU-P).*")
-     for (c <- c0) println(c)
+     // searcher.termFrequencies(documentFilterQuery, fieldName, propName, altName)
+     
+     val fl = List("paard","varken","koe","wolf","bunzing","hond", "vlieg").map(s => singleWordQuery(s)).map(q => (q,concordancer.frequency(searcher, q, null)))
+     
+     println(fl)
+     
+     val q0 = "[lemma='advocaat' & word='(?c)adv.*' & pos='NOU-C.*']"
+     val c0 = concordancer.concordances(searcher, q0)
+     val f1 = c0.count(( x => true))
+     println(s"Hits for ${q0} : ${f1}")  
+     val f = Filter("pos",".*")
+     //for (c <- c0) println(c)
      lazy val contextFrequencies = Contextants.contextFrequencies(c0,f)
-     for (s <- contextFrequencies.sortWith({ case (a,b) => a._2 < b._2 } ))
+    
+     
+     val enhanced = contextFrequencies.filter( {case (t,f) => f > 0.05 * f1 && t.matches("^[a-z]+$") } ).map( { case (t,f) => (t,f,termFrequency(concordancer,searcher,t)) })
+     
+     val stillMore = enhanced.map( { case (t,f,f2) => (t,f,f2,Contextants.salience(f, f1, f2, 10000000))} )
+    
+     for (s <- stillMore.sortWith({ case (a,b) => a._4 < b._4 } ))
       println(s)
-     println(c0.count(_ => true))
+     println()
   }
 }
 
