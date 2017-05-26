@@ -92,4 +92,17 @@ object Contextants
         {
                 return (2 * f / (f1 + f2).asInstanceOf[Double]);
         }
+   def windowed[T](n:Int, s: Stream[T]):Stream[List[T]] = 
+	 {
+    if (n==0) 
+      s match 
+      { 
+         case h #::t =>   List.empty  #:: Stream.empty 
+         case _ => Stream.empty
+      } 
+    else s match 
+      {  
+        case h #::t=> (h :: windowed(n-1,t).head) #:: windowed(n,t); case _ => Stream.empty 
+      }
+	 }
 }

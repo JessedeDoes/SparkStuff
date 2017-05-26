@@ -32,9 +32,9 @@ import com.esotericsoftware.minlog._
 
 
 
-class Concordancer(s: Searcher) {
+class Concordancer {
 
-	val searcher = s
+	//val searcher = s
 
   def parseLuceneQuery(s: String, m: String): Query = 
   {
@@ -228,7 +228,7 @@ object Conc
 	
 	def testBlacklabQuery(searcher: Searcher) =
 	{
-	  	val c = new Concordancer(searcher)
+	  	val c = new Concordancer
 	  	val df = c.collectConcordances(searcher, "[pos='AA.*'][lemma='gezindheid']", sparkSession)
 	  	for { conc <- 
 				  df.filter("pos[hitStart-1]='ADV()' and pos[hitEnd]='ADV()'").sort(desc("date")).selectExpr("date", "word", "lemma[hitStart] as lemma")   } 
@@ -259,34 +259,37 @@ object Conc
 	}
 	
 	def singleWordQuery(s:String):String = s"[lemma='${s}']"
-	def termFrequency(c:Concordancer, searcher:Searcher, w:String) = c.frequency(searcher, singleWordQuery(w), null)
+	def termFrequency(searcher:Searcher, w:String) = (new Concordancer).frequency(searcher, singleWordQuery(w), null)
 	
 	def main(args: Array[String]):Unit = 
   {
-     val indexDirectory = if (TestSpark.atHome) "/media/jesse/Data/Diamant/CorpusWolf/" else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
+     val indexDirectory = if (TestSpark.atHome) "/media/jesse/Data/Diamant/StatenGeneraal/" else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
 		 val searcher = Searcher.open(new java.io.File(indexDirectory))
-		 val concordancer = new Concordancer(searcher)
+		 val concordancer = new Concordancer
      
      // searcher.termFrequencies(documentFilterQuery, fieldName, propName, altName)
      
-     val fl = List("paard","varken","koe","wolf","bunzing","hond", "vlieg").map(s => singleWordQuery(s)).map(q => (q,concordancer.frequency(searcher, q, null)))
+     // val fl = List("paard","varken","koe","wolf","bunzing","hond", "vlieg").map(s => singleWordQuery(s)).map(q => (q,concordancer.frequency(searcher, q, null)))
      
-     println(fl)
+     // println(fl)
      
-     val q0 = "[lemma='advocaat' & word='(?c)adv.*' & pos='NOU-C.*']"
+     val q0 = "[lemma='varken' & word='(?c)va.*' & pos='NOU-C.*']"
      val c0 = concordancer.concordances(searcher, q0)
      val f1 = c0.count(( x => true))
      println(s"Hits for ${q0} : ${f1}")  
      val f = Filter("pos",".*")
      //for (c <- c0) println(c)
+     
      lazy val contextFrequencies = Contextants.contextFrequencies(c0,f)
     
      
-     val enhanced = contextFrequencies.filter( {case (t,f) => f > 0.05 * f1 && t.matches("^[a-z]+$") } ).map( { case (t,f) => (t,f,termFrequency(concordancer,searcher,t)) })
+     val enhanced = contextFrequencies
+              .filter( {case (t,f) => f > 0.05 * f1 && t.matches("^[a-z]+$") } )
+              .map( { case (t,f) => (t,f,termFrequency(searcher,t)) })
      
-     val stillMore = enhanced.map( { case (t,f,f2) => (t,f,f2,Contextants.dice(f, f1, f2, 10000000))} )
+     val scored = enhanced.map( { case (t,f,f2) => (t,f,f2,Contextants.dice(f, f1, f2, 10000000))} )
     
-     for (s <- stillMore.sortWith({ case (a,b) => a._4 < b._4 } ))
+     for (s <- scored.sortWith({ case (a,b) => a._4 < b._4 } ))
       println(s)
      println()
   }
