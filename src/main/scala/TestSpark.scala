@@ -17,13 +17,13 @@ object TestSpark
 	//val conf = new SparkConf().setMaster("local").setAppName("My App")
   val atHome = true
   
-	val sparkSession = SparkSession.builder.
+	lazy val sparkSession = SparkSession.builder.
       master("local")
       .appName("My App")
       .getOrCreate()
       
 	//val sc0 = new SparkContext(conf)
- 	val sc = sparkSession.sparkContext
+ 	lazy val sc = sparkSession.sparkContext
  	
 
 

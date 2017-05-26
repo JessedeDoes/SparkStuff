@@ -114,8 +114,8 @@ class Concordancer(s: Searcher) {
 				val hits = filteredSearch(searcher, corpusQlQuery, null)
 				
 				println("hits created!");
-	      hits.settings.setContextSize(4); 
-	      hits.settings.setMaxHitsToRetrieve(100000) 
+	      hits.settings.setContextSize(8); 
+	      hits.settings.setMaxHitsToRetrieve(1000000) 
 	      
 	      val metaFields = searcher.getIndexStructure.getMetadataFields.asScala.toList.sorted
 	      
@@ -203,13 +203,13 @@ class Concordancer(s: Searcher) {
 
 object Conc
 {
-	val sparkSession = SparkSession.builder
+	lazy val sparkSession = SparkSession.builder
 			    .master("local")
 			    .appName("My App")
 			    .getOrCreate()
 
 			//val sc0 = new SparkContext(conf)
-	val sc = sparkSession.sparkContext
+	lazy val sc = sparkSession.sparkContext
 	
 	
 	def testBlacklabQuery(searcher: Searcher) =
@@ -230,11 +230,11 @@ object Conc
 	  joinedDF
 	}
 	
-	def main(args: Array[String])
+	def testjeMetSpark(args: Array[String]) = 
 	{
 	  //Log.set(Log.LEVEL_ERROR)
 	
-	  val indexDirectory = if (TestSpark.atHome) "/media/jesse/Data/Diamant/StatenGeneraal/" else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
+	  val indexDirectory = if (TestSpark.atHome) "/media/jesse/Data/Diamant/CorpusWolf/" else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
 		val searcher = Searcher.open(new java.io.File(indexDirectory))
 				println("searcher open...")
 		val concordances = testBlacklabQuery(searcher).selectExpr("date", "word", "lemma[hitStart] as lemma", "pos[hitStart] as pos") 
@@ -243,7 +243,18 @@ object Conc
 		for (x <- joined)
 		  println(x)
 	}
+	
+	def main(args: Array[String]):Unit = 
+  {
+     val indexDirectory = if (TestSpark.atHome) "/media/jesse/Data/Diamant/CorpusWolf/" else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
+		 val searcher = Searcher.open(new java.io.File(indexDirectory))
+		 val concordancer = new Concordancer(searcher)
+     for (c <- concordancer.concordances(searcher, "[pos='AA.*'][lemma='beer' & pos='NOU-C.*']"))
+       println(c)
+  }
 }
+
+
 
 
 /*
