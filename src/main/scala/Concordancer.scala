@@ -249,9 +249,15 @@ object Conc
 	def singleWordQuery(s:String):String = s"[lemma='${s}']"
 	def termFrequency(searcher:Searcher, w:String) = (new Concordancer).frequency(searcher, singleWordQuery(w), null)
 	
+	def corpusSize(searcher:Searcher):Long = 
+	{
+	  //searcher.getIndexSearcher.collectionStatistics(searcher.getIndexStructure.).sumTotalTermFreq
+	  searcher.getIndexStructure.getTokenCount
+	}
+	
 	def main(args: Array[String]):Unit = 
   {
-     val indexDirectory = if (TestSpark.atHome) "/media/jesse/Data/Diamant/StatenGeneraal/" else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
+     val indexDirectory = if (TestSpark.atHome) "/media/jesse/Data/Diamant/CorpusWolf/" else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
 		 val searcher = Searcher.open(new java.io.File(indexDirectory))
 		 val concordancer = new Concordancer
     
@@ -260,6 +266,10 @@ object Conc
      // val fl = List("paard","varken","koe","wolf","bunzing","hond", "vlieg").map(s => singleWordQuery(s)).map(q => (q,concordancer.frequency(searcher, q, null)))
      
      // println(fl)
+		 
+     val corpSize =  corpusSize(searcher)
+     
+     println("corpus Size: " + corpSize)
      
      val q0 = "[lemma='varken' & word='(?c)va.*' & pos='NOU-C.*']"
      val c0 = concordancer.concordances(searcher, q0)
@@ -275,7 +285,7 @@ object Conc
               .filter( {case (t,f) => f > 0.05 * f1 && t.matches("^[a-z]+$") } )
               .map( { case (t,f) => (t,f,termFrequency(searcher,t)) })
      
-     val scored = enhanced.map( { case (t,f,f2) => (t,f,f2,Collocation.dice(f, f1, f2, 10000000))} )
+     val scored = enhanced.map( { case (t,f,f2) => (t,f,f2,Collocation.dice(f, f1, f2, corpSize))} )
     
      for (s <- scored.sortWith({ case (a,b) => a._4 < b._4 } ))
       println(s)
