@@ -195,12 +195,15 @@ object featureStuff
   	   d
   	}
   	
+  	def vectorNorm(v: Array[Float]):Double = Math.sqrt(v.map(x => x*x).sum);
+  	
   	def averageVector(v: List[Array[Float]]):Array[Float] =
   	{
   	  def rowsum = (i:Int) => v.foldLeft(0.0f)( (k,a) => k + a(i))
   	  //println("Dim:" + v.head.length)
   	  val r = (0 to v.head.length-1).toArray.map(rowsum)
   	  //println(r.toList)
+  	  
   	  word2vec.Util.normalize(r)
   	  r
   	}
@@ -219,15 +222,21 @@ object featureStuff
   	  }
   	  
   	  val quotationVectors = training.map(r => (r.getAs[String]("id"), r.getAs[String]("senseId"), avg(r))) // we want to cache this
+  	  
   	  val filtered = quotationVectors.filter(x => !heldOutIds.contains(x._1)) // .toMap
+  	  
+  	  val removeMe = filtered.size < quotationVectors.size;
   	  println("quotation Vectors:"  + quotationVectors.length)
+  	  
   	  val groupCenters = filtered.groupBy(_._2).mapValues(l => l.map(_._3)).mapValues(averageVector)
+  	  
   	  println("Group centers:"  + groupCenters)
+  	  
   	  
   	  def f(r:Row):Distribution = 
   	  {
   	    val qavg = avg(r)
-  	    val distances = groupCenters.mapValues(word2vec.Distance.cosineSimilarity(qavg, _))
+  	    val distances = groupCenters.mapValues(word2vec.Distance.cosineSimilarity(qavg, _)) // misleading as r can be in a group
   	    //Console.err.println(distances)
   	    val d = new Distribution
   	    distances.foreach( { case (k,v) => d.addOutcome(k, v) } )
