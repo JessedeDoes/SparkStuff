@@ -250,9 +250,10 @@ object Conc
 		 val searcher = Searcher.open(new java.io.File(indexDirectory))
 		 val concordancer = new Concordancer(searcher)
      val c0 = concordancer.concordances(searcher, "[lemma='wolf' & pos='NOU-C.*']")
+     val f = Filter("pos","NOU-C.*")
      for (c <- c0)
        println(c + " --> "  + Contextants.context(c,3,"word"))
-     lazy val contextFrequencies = Contextants.contextFrequencies(c0)
+     lazy val contextFrequencies = Contextants.contextFrequencies(c0,f)
      for (s <- contextFrequencies.sortWith({ case (a,b) => a._2 < b._2 } ))
       println(s)
      
