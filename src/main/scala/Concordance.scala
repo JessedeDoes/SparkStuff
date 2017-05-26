@@ -16,7 +16,6 @@ class Concordance(hitS: Int, hitE: Int, tokenProp:  Map[String,Array[String]], m
   
   override def toString() = (f"${left}%80s") + " "  + hit + "\t" + right
 }
-import scala.util.matching._
-case class Filter(property: String, filter: String)
+
 
 

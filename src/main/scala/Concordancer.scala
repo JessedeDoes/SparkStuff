@@ -199,19 +199,7 @@ class Concordancer {
 				new Concordance(kwic.getHitStart, kwic.getHitEnd, tokenProperties, meta)
 		} 
 	
-	def windowed[T](n:Int, s: Stream[T]):Stream[List[T]] = 
-	 {
-    if (n==0) 
-      s match 
-      { 
-         case h #::t =>   List.empty  #:: Stream.empty 
-         case _ => Stream.empty
-      } 
-    else s match 
-      {  
-        case h #::t=> (h :: windowed(n-1,t).head) #:: windowed(n,t); case _ => Stream.empty 
-      }
-	 }
+	
 }
 
 
