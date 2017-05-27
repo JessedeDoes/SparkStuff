@@ -271,7 +271,7 @@ object Conc
      println("corpus Size: " + corpSize)
      
      val q0 = "[lemma='wolf' & word='(?c)wo.*' & pos='N.*']"
-     val c0 = concordancer.concordances(searcher, q0)
+     val c0 = concordancer.concordances(searcher, q0) // dit is veel te langzaam zoals ik het doe. Hoe komt dat?
      val f1 = c0.count(( x => true))
      println(s"Hits for ${q0} : ${f1}")  
      val f = Filter("pos","N.*")
@@ -281,7 +281,7 @@ object Conc
     
      
      val enhanced = contextFrequencies
-              .filter( {case (t,f) => f > 0.01 * f1 && t.matches("^[a-z]+$") } )
+              .filter( {case (t,f) => f > 0.005 * f1 && t.matches("^[a-z]+$") } )
               .map( { case (t,f) => (t,f,luceneTermFreq(searcher,t)) })
      
      val scored = enhanced.map( { case (t,f,f2) => (t,f,f2,Collocation.salience(f, f1, f2, corpSize.asInstanceOf[Int]))} )
