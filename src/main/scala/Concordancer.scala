@@ -129,9 +129,9 @@ class Concordancer {
 		{
 				val hits = filteredSearch(searcher, corpusQlQuery, null)
 				
-				println("hits created!");
-	      hits.settings.setContextSize(50); 
-	      hits.settings.setMaxHitsToRetrieve(1000000) 
+				println(s"hits created for ${corpusQlQuery}!")
+	      hits.settings.setContextSize(50)
+	      hits.settings.setMaxHitsToRetrieve(Int.MaxValue) 
 	      
 	      val metaFields = searcher.getIndexStructure.getMetadataFields.asScala.toList.sorted
 	      
