@@ -248,7 +248,7 @@ object Conc
 	
 	def singleWordQuery(s:String):String = s"[lemma='${s}']"
 	def termFrequency(searcher:Searcher, w:String) = (new Concordancer).frequency(searcher, singleWordQuery(w), null)
-	def luceneTermFreq(searcher:Searcher, w:String) = searcher.getIndexReader.totalTermFreq(new Term("contents%word@s", w)).asInstanceOf[Int]
+	def luceneTermFreq(searcher:Searcher, w:String) = searcher.getIndexReader.totalTermFreq(new Term("contents%lemma@s", w)).asInstanceOf[Int]
 	
 	def corpusSize(searcher:Searcher):Long = 
 	{
@@ -258,7 +258,7 @@ object Conc
 	
 	def main(args: Array[String]):Unit = 
   {
-     val indexDirectory = if (TestSpark.atHome) "/media/jesse/Data/Diamant/DBNL/" else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
+     val indexDirectory = if (TestSpark.atHome) "/media/jesse/Data/Diamant/CorpusWolf/" else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
 		 val searcher = Searcher.open(new java.io.File(indexDirectory))
 		 val concordancer = new Concordancer
      val struct = searcher.getIndexStructure
@@ -270,18 +270,18 @@ object Conc
      
      println("corpus Size: " + corpSize)
      
-     val q0 = "[lemma='krokodil' & word='(?c)kr.*' & pos='N.*']"
+     val q0 = "[lemma='wolf' & word='(?c)wo.*' & pos='N.*']"
      val c0 = concordancer.concordances(searcher, q0)
      val f1 = c0.count(( x => true))
      println(s"Hits for ${q0} : ${f1}")  
-     val f = Filter("pos",".*")
+     val f = Filter("pos","N.*")
   
      
      lazy val contextFrequencies = Collocation.contextFrequencies(c0,f)
     
      
      val enhanced = contextFrequencies
-              .filter( {case (t,f) => f > 0.05 * f1 && t.matches("^[a-z]+$") } )
+              .filter( {case (t,f) => f > 0.01 * f1 && t.matches("^[a-z]+$") } )
               .map( { case (t,f) => (t,f,luceneTermFreq(searcher,t)) })
      
      val scored = enhanced.map( { case (t,f,f2) => (t,f,f2,Collocation.salience(f, f1, f2, corpSize.asInstanceOf[Int]))} )
