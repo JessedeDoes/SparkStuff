@@ -30,6 +30,10 @@ libraryDependencies += "org.ivdnt.wordvectors"  % "WordVectors" % "0.0.1-SNAPSHO
 libraryDependencies += "org.ivdnt.wsd" % "JustWSD" % "0.0.1-SNAPSHOT" 
 libraryDependencies += "org.ivdnt.tagging" % "DutchTagger" % "0.0.1-SNAPSHOT"
 libraryDependencies += "org.ivdnt.clariah" % "QueryNederlab" % "0.0.1-SNAPSHOT"
+
+// https://mvnrepository.com/artifact/cc.mallet/mallet
+libraryDependencies += "cc.mallet" % "mallet" % "2.0.8"
+
 // libraryDependencies += "graphframes" % "graphframes" % "0.4.0-spark2.1-s_2.11"
 
 // or, for convenience:
