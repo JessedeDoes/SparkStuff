@@ -10,7 +10,7 @@ trait TextQuery
 {
 	override def toString() = this match
 			{
-			case Term(s) => s
+			case SingleTerm(s) => s
 			case And(t1,t2) => "(" + t1.toString + "+AND+" + t2.toString + ")"
 			case Or(t1,t2) => "(" + t1.toString + "+OR+" + t2.toString + ")"
 			case Disjunction(l @ _*) => "(" + l.map(_.toString).mkString("+OR+")  + ")"
@@ -20,7 +20,7 @@ trait TextQuery
 			}
 }
 
-case class Term(term:String) extends TextQuery
+case class SingleTerm(term:String) extends TextQuery
 case class ExpandTerm(term:String) extends TextQuery
 case class And(t1:TextQuery, t2:TextQuery) extends TextQuery
 case class Or(t1:TextQuery, t2:TextQuery) extends TextQuery
@@ -98,13 +98,13 @@ object QueryKB
              defaultCollection, 0, maxDocuments, 
              ContentQuery(defaultStartDate, defaultEndDate, t))
              
-  def singleWordQuery(term:String):SRUQuery = wrapTextQuery(Term(term))
+  def singleWordQuery(term:String):SRUQuery = wrapTextQuery(SingleTerm(term))
   
   def expandedQuery(term:String):SRUQuery = 
   {
     val l = LexiconService.getWordforms(term)
     val l1 = if (l.contains(term.toLowerCase)) l else term.toLowerCase :: l
-    wrapTextQuery(ListDisjunction(l1.map( x => Term(x))))
+    wrapTextQuery(ListDisjunction(l1.map( x => SingleTerm(x))))
   }
   
   def get(url: String) = scala.io.Source.fromURL(url).mkString
@@ -153,7 +153,7 @@ object QueryKB
   
 
 
-  implicit def StringToTerm(s:String):Term = Term(s)
+  implicit def StringToTerm(s:String):SingleTerm = SingleTerm(s)
   implicit def StringToQuery(s:String):SRUQuery = singleWordQuery(s)
   
   def kwicResults(s:String) =

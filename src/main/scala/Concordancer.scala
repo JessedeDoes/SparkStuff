@@ -5,14 +5,14 @@ import nl.inl.blacklab.queryParser.corpusql.CorpusQueryLanguageParser
 import org.apache.lucene.search.{Query,QueryWrapperFilter}
 import org.apache.lucene.document.Document
 import org.apache.lucene.search.spans.SpanQuery;
-
+import org.apache.lucene.index.Term
 import nl.inl.util.LuceneUtil
 import org.apache.lucene.analysis.Analyzer
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.queryparser.classic.ParseException
 
 import org.apache.lucene.search.spans.SpanQuery;
-
+import nl.inl.blacklab.search.TermFrequencyList
 
 
 import scala.collection.immutable.{Map,HashMap}
@@ -248,6 +248,7 @@ object Conc
 	
 	def singleWordQuery(s:String):String = s"[lemma='${s}']"
 	def termFrequency(searcher:Searcher, w:String) = (new Concordancer).frequency(searcher, singleWordQuery(w), null)
+	def luceneTermFreq(searcher:Searcher, w:String) = searcher.getIndexReader.totalTermFreq(new Term("contents%word@s", w)).asInstanceOf[Int]
 	
 	def corpusSize(searcher:Searcher):Long = 
 	{
@@ -257,21 +258,19 @@ object Conc
 	
 	def main(args: Array[String]):Unit = 
   {
-     val indexDirectory = if (TestSpark.atHome) "/media/jesse/Data/Diamant/CorpusWolf/" else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
+     val indexDirectory = if (TestSpark.atHome) "/media/jesse/Data/Diamant/DBNL/" else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
 		 val searcher = Searcher.open(new java.io.File(indexDirectory))
 		 val concordancer = new Concordancer
-    
-     // searcher.termFrequencies(documentFilterQuery, fieldName, propName, altName)
+     val struct = searcher.getIndexStructure
+     val allAvailableFieldNames = struct.getComplexFields.asScala.toList.map( f => struct.getComplexFieldDesc(f).getProperties.asScala.toList)
      
-     // val fl = List("paard","varken","koe","wolf","bunzing","hond", "vlieg").map(s => singleWordQuery(s)).map(q => (q,concordancer.frequency(searcher, q, null)))
-     
-     // println(fl)
+     println(allAvailableFieldNames)
 		 
      val corpSize =  corpusSize(searcher)
      
      println("corpus Size: " + corpSize)
      
-     val q0 = "[lemma='schuur' & word='(?c)schu.*' & pos='NOU-C.*']"
+     val q0 = "[lemma='krokodil' & word='(?c)kr.*' & pos='N.*']"
      val c0 = concordancer.concordances(searcher, q0)
      val f1 = c0.count(( x => true))
      println(s"Hits for ${q0} : ${f1}")  
@@ -283,9 +282,9 @@ object Conc
      
      val enhanced = contextFrequencies
               .filter( {case (t,f) => f > 0.05 * f1 && t.matches("^[a-z]+$") } )
-              .map( { case (t,f) => (t,f,termFrequency(searcher,t)) })
+              .map( { case (t,f) => (t,f,luceneTermFreq(searcher,t)) })
      
-     val scored = enhanced.map( { case (t,f,f2) => (t,f,f2,Collocation.dice(f, f1, f2, corpSize))} )
+     val scored = enhanced.map( { case (t,f,f2) => (t,f,f2,Collocation.salience(f, f1, f2, corpSize.asInstanceOf[Int]))} )
     
      for (s <- scored.sortWith({ case (a,b) => a._4 < b._4 } ))
       println(s)
