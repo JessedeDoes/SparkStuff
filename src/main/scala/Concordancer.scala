@@ -157,15 +157,7 @@ class Concordancer {
 			val tokenFields = fields.map(StructField(_, new ArrayType(StringType,false), nullable = true))
 			val metaFieldz = metaFields.map(StructField(_, StringType, nullable = true))
 			val extraFields = List("hitStart","hitEnd").map(StructField(_, IntegerType, nullable=false))
-/*
-			val tokenFields = fields.map(fieldName => StructField(fieldName, new ArrayType(StringType,false), nullable = true))
-			val metaFieldz = metaFields.map(fieldName => StructField(fieldName, StringType, nullable = true))
-			val extraFields = List(
-								StructField("hitStart", IntegerType, nullable=false),
-								StructField("hitEnd", IntegerType, nullable=false))
-		
-			
-			*/
+
 			val schema = StructType(extraFields ++ tokenFields ++ metaFieldz)
 			println("Schema:" + schema)
 			schema
@@ -188,6 +180,7 @@ class Concordancer {
 				val metaValues = metaKeys.map(s => meta(s))
 				Row.fromSeq(kwic.getHitStart :: kwic.getHitEnd :: tokenValues ++ metaValues)
 		} 
+	
 	def createConcordance(kwic:Kwic, meta:Map[String,String]): Concordance = 
 		{
 				val tokenProperties  = kwic.getProperties().asScala.toList.map(
@@ -256,6 +249,19 @@ object Conc
 	  searcher.getIndexStructure.getTokenCount
 	}
 	
+	def collocations(searcher: Searcher, c0: Stream[Concordance]): List[(String, Int, Int, Double)] =
+	{
+	    val f = Filter("pos","N.*")
+	    val f1 = c0.count(( x => true))
+      val corpSize =  corpusSize(searcher)
+	    val contextFrequencies = Collocation.contextFrequencies(c0,f)
+	    val enhanced = contextFrequencies
+              .filter( {case (t,f) => f > 0.005 * f1 && t.matches("^[a-z]+$") } )
+              .map( { case (t,f) => (t,f,luceneTermFreq(searcher,t)) })
+              
+       enhanced.map( { case (t,f,f2) => (t,f,f2,Collocation.salience(f, f1, f2, corpSize.asInstanceOf[Int]))} )
+	}
+	
 	def main(args: Array[String]):Unit = 
   {
      val indexDirectory = if (TestSpark.atHome) "/media/jesse/Data/Diamant/CorpusWolf/" else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
@@ -270,21 +276,15 @@ object Conc
      
      println("corpus Size: " + corpSize)
      
-     val q0 = "[lemma='wolf' & word='(?c)wo.*' & pos='N.*']"
+     val q0 = "[lemma='das' & word='(?c)da.*' & pos='N.*']"
      val c0 = concordancer.concordances(searcher, q0) // dit is veel te langzaam zoals ik het doe. Hoe komt dat?
      val f1 = c0.count(( x => true))
+     
      println(s"Hits for ${q0} : ${f1}")  
-     val f = Filter("pos","N.*")
-  
      
-     lazy val contextFrequencies = Collocation.contextFrequencies(c0,f)
-    
+
      
-     val enhanced = contextFrequencies
-              .filter( {case (t,f) => f > 0.005 * f1 && t.matches("^[a-z]+$") } )
-              .map( { case (t,f) => (t,f,luceneTermFreq(searcher,t)) })
-     
-     val scored = enhanced.map( { case (t,f,f2) => (t,f,f2,Collocation.salience(f, f1, f2, corpSize.asInstanceOf[Int]))} )
+     val scored = collocations(searcher,c0)
     
      for (s <- scored.sortWith({ case (a,b) => a._4 < b._4 } ))
       println(s)
