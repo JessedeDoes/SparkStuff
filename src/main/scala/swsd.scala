@@ -90,10 +90,8 @@ object featureStuff
   	
   	def averageVector(v: List[Array[Float]]):(Array[Float],Double) =
   	{
-  	  def rowsum = (i:Int) => v.foldLeft(0.0f)( (k,a) => k + a(i))
-  	  //println("Dim:" + v.head.length)
-  	  val r = (0 to v.head.length-1).toArray.map(rowsum)
-  	  //println(r.toList)
+  	  val r = (0 to v.head.length-1).toArray.map(i => v.map(_(i)).sum)
+  	 
   	  val N = vectorNorm(r)
   	  word2vec.Util.normalize(r)
   	  (r,N)
