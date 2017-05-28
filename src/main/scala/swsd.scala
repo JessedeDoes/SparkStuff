@@ -88,15 +88,25 @@ object featureStuff
   	
   	def vectorNorm(v: Array[Float]):Double = Math.sqrt(v.map(x => x*x).sum);
   	
-  	def averageVector(v: List[Array[Float]]):Array[Float] =
+  	def averageVector(v: List[Array[Float]]):(Array[Float],Double) =
   	{
   	  def rowsum = (i:Int) => v.foldLeft(0.0f)( (k,a) => k + a(i))
   	  //println("Dim:" + v.head.length)
   	  val r = (0 to v.head.length-1).toArray.map(rowsum)
   	  //println(r.toList)
-  	  
+  	  val N = vectorNorm(r)
   	  word2vec.Util.normalize(r)
-  	  r
+  	  (r,N)
+  	}
+  	
+  	case class SenseGroup(memberIds: Set[String] , average: Array[Float], norm:Double)
+  	{
+  	    def distance(r: Row):Double = 
+  	    {
+  	        val qavg = avg(r)
+  	        val d= word2vec.Distance.cosineSimilarity(qavg,average)
+  	        d
+  	    }
   	}
   	
   	def centroidFeature(vectors:Vectors,training: List[Row], heldOutIds:Set[String]): Row => Distribution = 
@@ -119,15 +129,30 @@ object featureStuff
   	  val removeMe = filtered.size < quotationVectors.size;
   	  println("quotation Vectors:"  + quotationVectors.length)
   	  
-  	  val groupCenters = filtered.groupBy(_._2).mapValues(l => l.map(_._3)).mapValues(averageVector)
-  	  
+  	  // val groupCenters = filtered.groupBy(_._2).mapValues(l => l.map(_._3)).mapValues(averageVector)
+  	  val groupCenters = filtered.groupBy(_._2).mapValues(l => (l.map(_._1).toSet, averageVector(l.map(_._3))))
+  	  val groupCenters2 = filtered.groupBy(_._2).mapValues(l => averageVector(l.map(_._3)) match { case (v,n) => SenseGroup(l.map(_._1).toSet, v, n ) })
   	  println("Group centers:"  + groupCenters)
   	  
   	  
   	  def f(r:Row):Distribution = 
   	  {
   	    val qavg = avg(r)
-  	    val distances = groupCenters.mapValues(word2vec.Distance.cosineSimilarity(qavg, _)) // misleading as r can be in a group
+  	    val id = r.getAs[String]("id")
+  	  
+  	    val distances = groupCenters.mapValues(
+  	       { case (v,(x,n)) => 
+  	             if (!v.contains(id))
+  	    	             word2vec.Distance.cosineSimilarity(qavg,x)
+  	    	     else
+  	    	       {
+  	    	  	     val x1 =  x.map(n * _)
+  	    		       val x2 = (0 to x.length-1).map(i => x1(i).asInstanceOf[Float] - qavg(i)).toArray
+  	    		       word2vec.Util.normalize(x2)
+  	    		       word2vec.Distance.cosineSimilarity(qavg,x2)
+  	    	     }
+  	         } 
+  	    	) // misleading as r can be in a group
   	    //Console.err.println(distances)
   	    val d = new Distribution
   	    distances.foreach( { case (k,v) => d.addOutcome(k, v) } )
