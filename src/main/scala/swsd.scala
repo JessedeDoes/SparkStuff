@@ -101,11 +101,16 @@ object featureStuff
   	
   	case class SenseGroup(memberIds: Set[String] , average: Array[Float], norm:Double)
   	{
-  	    def distance(r: Row):Double = 
-  	    {
-  	        val qavg = avg(r)
-  	        val d= word2vec.Distance.cosineSimilarity(qavg,average)
-  	        d
+  	    def distance(qavg: Array[Float], id: String):Double = 
+  	    { 
+  	        if (memberIds.contains(id))
+  	            {
+  	    	  	     val x1 =  average.map(norm * _)
+  	    		       val x2 = (0 to x1.length-1).map(i => x1(i).asInstanceOf[Float] - qavg(i)).toArray
+  	    		       word2vec.Util.normalize(x2)
+  	    		       word2vec.Distance.cosineSimilarity(qavg,x2)
+  	    	     } else
+  	         word2vec.Distance.cosineSimilarity(qavg,average)
   	    }
   	}
   	
@@ -130,8 +135,8 @@ object featureStuff
   	  println("quotation Vectors:"  + quotationVectors.length)
   	  
   	  // val groupCenters = filtered.groupBy(_._2).mapValues(l => l.map(_._3)).mapValues(averageVector)
-  	  val groupCenters = filtered.groupBy(_._2).mapValues(l => (l.map(_._1).toSet, averageVector(l.map(_._3))))
-  	  val groupCenters2 = filtered.groupBy(_._2).mapValues(l => averageVector(l.map(_._3)) match { case (v,n) => SenseGroup(l.map(_._1).toSet, v, n ) })
+  	  val groupCentersx = filtered.groupBy(_._2).mapValues(l => (l.map(_._1).toSet, averageVector(l.map(_._3))))
+  	  val groupCenters = filtered.groupBy(_._2).mapValues(l => averageVector(l.map(_._3)) match { case (v,n) => SenseGroup(l.map(_._1).toSet, v, n ) })
   	  println("Group centers:"  + groupCenters)
   	  
   	  
@@ -140,19 +145,7 @@ object featureStuff
   	    val qavg = avg(r)
   	    val id = r.getAs[String]("id")
   	  
-  	    val distances = groupCenters.mapValues(
-  	       { case (v,(x,n)) => 
-  	             if (!v.contains(id))
-  	    	             word2vec.Distance.cosineSimilarity(qavg,x)
-  	    	     else
-  	    	       {
-  	    	  	     val x1 =  x.map(n * _)
-  	    		       val x2 = (0 to x.length-1).map(i => x1(i).asInstanceOf[Float] - qavg(i)).toArray
-  	    		       word2vec.Util.normalize(x2)
-  	    		       word2vec.Distance.cosineSimilarity(qavg,x2)
-  	    	     }
-  	         } 
-  	    	) // misleading as r can be in a group
+  	    val distances = groupCenters.mapValues(x => x.distance(qavg,id))
   	    //Console.err.println(distances)
   	    val d = new Distribution
   	    distances.foreach( { case (k,v) => d.addOutcome(k, v) } )
@@ -203,7 +196,7 @@ class Swsd extends Serializable
 	 {
      val df:DataFrame = null;
      val features = makeFeatures
-     // features.addStochasticFeature(new MyStochasticFeature("centerDistances", centroidFeature(vectorz,instances,heldout) ))
+     features.addStochasticFeature(new MyStochasticFeature("centerDistances", centroidFeature(vectorz,instances,heldout) ))
 		 val classifier = new LibSVMClassifier();
 		
 		
