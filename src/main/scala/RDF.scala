@@ -1,5 +1,6 @@
 import org.apache.jena.graph.Triple
 import org.apache.jena.query._
+import org.apache.jena.arq._
 import org.apache.jena.rdf.model.Model
 import org.apache.jena.sparql.engine.http.QueryEngineHTTP
 import scala.collection.JavaConverters._
@@ -17,6 +18,8 @@ case class Predicate(uri:String) extends RDFNode with RDFResource
 trait Statement
 case class ObjectProperty(subject:RDFResource, predicate:Predicate, obj:RDFResource) extends Statement
 case class DataProperty(subject:RDFResource, predicate:Predicate, obj:RDFLiteral[Any]) extends Statement
+
+
 
 class RDF
 {
@@ -84,9 +87,9 @@ class RDF
 			} else if (query.isConstructType)
 			{
 				val i =	qexec.execConstructTriples()
-				val i1 = i.asScala.map(convertTriple).toStream
+				def i1 = i.asScala.map(convertTriple).toStream
 			
-				for (statement <- i1.take(10))
+				for (statement <- i1.take(100))
 				  println(statement)
 				
 			}
