@@ -134,8 +134,7 @@ object featureStuff
   	  val removeMe = filtered.size < quotationVectors.size;
   	  println("quotation Vectors:"  + quotationVectors.length)
   	  
-  	  // val groupCenters = filtered.groupBy(_._2).mapValues(l => l.map(_._3)).mapValues(averageVector)
-  	  val groupCentersx = filtered.groupBy(_._2).mapValues(l => (l.map(_._1).toSet, averageVector(l.map(_._3))))
+ 
   	  val groupCenters = filtered.groupBy(_._2).mapValues(l => averageVector(l.map(_._3)) match { case (v,n) => SenseGroup(l.map(_._1).toSet, v, n ) })
   	  println("Group centers:"  + groupCenters)
   	  
