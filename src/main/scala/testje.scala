@@ -86,12 +86,13 @@ object tester
 		var total = 0;
 		var failures = 0;
 		
-		val instances = all_Instances.filter(r => { val x = r.getAs[Seq[String]]("word"); x.size >= minWordsinExample} )
+		val instancesX = all_Instances.filter(r => { val x = r.getAs[Seq[String]]("word"); x.size >= minWordsinExample} )
+		val senseDistribX = senseDistribution(instancesX)
+		val senseDistribMap = senseDistribX.toMap
+		
+		val instances = instancesX.filter(r => { val sid = r.getAs[String]("senseId"); senseDistribMap(sid) >= minExamplesInSense} )
+		
 		val senseDistrib = senseDistribution(instances)
-		val senseDistribMap = senseDistrib.toMap
-		
-		val i0 = all_Instances.filter(r => { val sid = r.getAs[String]("senseId"); senseDistribMap(sid) >= minExamplesInSense} )
-		
     val senses = instances.map(_.getAs[String]("senseId")).distinct
     val lempossen = instances.map(_.getAs[String]("lempos")).distinct
   
@@ -100,7 +101,9 @@ object tester
     
     val lempos = instances.head.getAs[String]("lempos")
     
-    Console.err.println("#### Working on " + lempos)
+    if (!(lempos == "ezel:n"))
+      return
+    Console.err.println("#### Working on " + lempossen)
     instances.foreach(Console.err.println(_))
     //return
     
