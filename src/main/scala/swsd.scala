@@ -144,6 +144,11 @@ object featureStuff
   	    val id = r.getAs[String]("id")
   	  
   	    val distances = groupCenters.mapValues(x => x.distance(qavg,id))
+  	    val nonZero = distances.filter(_._2 > 0)
+  	    if (nonZero.size == 0)
+  	    {
+  	       Console.err.println(s"!!!!!!!!!!!!!!!!!!!!!!!!! Huh: alles is nul voor ${qavg.toList}: ${distances} ${r}")
+  	    }
   	    val N = distances.values.sum
   	    Console.err.println("Distances:" + distances)
   	    val d = new Distribution

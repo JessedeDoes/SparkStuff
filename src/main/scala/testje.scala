@@ -62,24 +62,34 @@ object tester
 		System.err.println("overall:  " + totalErrors + " of " + totalItems + " failures: "  + totalFailures  + " score: " + totalAccuracy + " (mfs " + mfs + ")");
 	}
 
+  def senseDistribution(instances: Seq[Row]) = instances.groupBy(_.getAs[String]("senseId")).mapValues(_.size).toList.sortWith((a,b) => a._2 > b._2)
   
+  def enoughData(instances: Seq[Row]):Boolean =
+  {
+      val sd = senseDistribution(instances)
+      val minPerSense = sd.map(_._2).reduce( (a,b) => Math.min(a,b))
+      val avgPerSense = sd.map(_._2).sum / sd.size.asInstanceOf[Double]
+      avgPerSense > 20.0
+  }
+    
   def leaveOneOut(wsd:Swsd,instanceIterator:Iterator[Row]):Unit = 
 	{
     val instances = instanceIterator.toList // Hm niet leuk, maar ja
     val grouped = instances.groupBy(_.getAs[String]("lempos"))
-    grouped.par.foreach( { case (lp,group) => if (lp.endsWith(":n")) leaveOneOut(wsd,group) }) // oops .. kan dat wel...
+    grouped.par.foreach( { case (lempos,group) => if (lempos.endsWith(":n")) leaveOneOut(wsd,group) }) // oops .. kan dat wel...
 	}
   
-  def leaveOneOut(wsd:Swsd,instances: List[Row]):Unit = 
+  def leaveOneOut(wsd:Swsd, all_Instances: List[Row]):Unit = 
 	{  
     var errors = 0;
 		var total = 0;
 		var failures = 0;
 		
+		val instances = all_Instances.filter(_.getAs[Array[String]]("word").length >= 8)
     val senses = instances.map(_.getAs[String]("senseId")).distinct
     val lempossen = instances.map(_.getAs[String]("lempos")).distinct
   
-    if (instances.size < 3 || senses.size < 2)
+    if (instances.size < 3 || senses.size < 2 || !enoughData(instances))
       return;
     
     val lempos = instances.head.getAs[String]("lempos")
