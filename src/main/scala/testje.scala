@@ -101,8 +101,7 @@ object tester
     
     val lempos = instances.head.getAs[String]("lempos")
     
-    if (!(lempos == "ezel:n"))
-      return
+    // if (!(lempos == "ezel:n")) return
     Console.err.println("#### Working on " + lempossen)
     instances.foreach(Console.err.println(_))
     //return
