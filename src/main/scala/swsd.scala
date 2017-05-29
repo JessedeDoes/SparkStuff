@@ -149,9 +149,9 @@ object featureStuff
   	    val d = new Distribution
   	    distances.foreach( { case (k,v) => d.addOutcome(k, v / N) } )
   	    
-  	    println("Before normalization true sense id =" +r.getAs[String]("senseId") +  ", D=" + d + " for r= " + r)
+  	   //  println("Before normalization true sense id =" +r.getAs[String]("senseId") +  ", D=" + d + " for r= " + r)
   	   
-  	    println("true sense id =" +r.getAs[String]("senseId") +  ", D=" + d + " for r= " + r)
+  	   //  println("true sense id =" +r.getAs[String]("senseId") +  ", D=" + d + " for r= " + r)
   	    d
   	  }
   	  f
