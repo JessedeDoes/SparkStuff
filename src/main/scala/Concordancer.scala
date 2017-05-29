@@ -251,7 +251,7 @@ object Conc
 	
 	def collocations(searcher: Searcher, c0: Stream[Concordance]): List[(String, Int, Int, Double)] =
 	{
-	    val f = Filter("pos","N.*")
+	    val f = Filter("pos","AA.*")
 	    val f1 = c0.count(( x => true))
       val corpSize =  corpusSize(searcher)
 	    val contextFrequencies = Collocation.contextFrequencies(c0,f)
@@ -264,7 +264,7 @@ object Conc
 	
 	def main(args: Array[String]):Unit = 
   {
-     val indexDirectory = if (TestSpark.atHome) "/media/jesse/Data/Diamant/CorpusWolf/" else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
+     val indexDirectory = if (TestSpark.atHome) "/media/jesse/Data/Diamant/CorpusEzel/" else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
 		 val searcher = Searcher.open(new java.io.File(indexDirectory))
 		 val concordancer = new Concordancer
      val struct = searcher.getIndexStructure
@@ -276,7 +276,7 @@ object Conc
      
      println("corpus Size: " + corpSize)
      
-     val q0 = "[lemma='das' & word='(?c)da.*' & pos='N.*']"
+     val q0 = "[lemma='ezel' & word='(?c)ez.*' & pos='N.*']"
      val c0 = concordancer.concordances(searcher, q0) // dit is veel te langzaam zoals ik het doe. Hoe komt dat?
      val f1 = c0.count(( x => true))
      

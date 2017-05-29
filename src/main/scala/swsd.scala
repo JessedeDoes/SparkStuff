@@ -189,7 +189,7 @@ class Swsd extends Serializable
   	  )
   	  
   	  fList.foreach(features.addFeature(_))
-  	  features.addStochasticFeature(new MyStochasticFeature("bow3", bowFeature(3)))
+  	  features.addStochasticFeature(new MyStochasticFeature("bow8", bowFeature(8)))
   	  if (addVectors)
   	  {
   	    //Console.err.println("Adding vectors!")
@@ -197,7 +197,6 @@ class Swsd extends Serializable
   	    features.addStochasticFeature(new MyStochasticFeature("contextVector", vectorFeature(vectorz))) 
   	  }
   	  features
-  		//features.addStochasticFeature(new BoWFeature(3)); 
   	}
   	
    def train(instances: List[Row], heldout: Set[String]): Row=>String = 
