@@ -150,7 +150,7 @@ object featureStuff
   	       Console.err.println(s"!!!!!!!!!!!!!!!!!!!!!!!!! Huh: alles is nul voor ${qavg.toList}: ${distances} ${r}")
   	    }
   	    val N = distances.values.sum
-  	    Console.err.println("Distances:" + distances)
+  	    // Console.err.println("Distances:" + distances)
   	    val d = new Distribution
   	    distances.foreach( { case (k,v) => d.addOutcome(k, v / N) } )
   	    
@@ -167,7 +167,7 @@ class Swsd extends Serializable
 {
     import featureStuff._
   
-  	val addVectors = true
+  	val addVectors = false
   	
   	def makeFeatures():FeatureSet = 
   	{

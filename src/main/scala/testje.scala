@@ -41,9 +41,10 @@ object tester
 	var	totalErrors = 0
 	var totalFailures = 0
 	var totalMfsErrors = 0
-	
-
-
+	val minWordsinExample = 8
+  val minExamplesInSense = 5
+  val minAvgPerSense = 20.0
+  
   def leaveOneOut(wsd:Swsd, df: DataFrame):Unit = 
 	{
     Console.err.println("starting...")
@@ -69,7 +70,7 @@ object tester
       val sd = senseDistribution(instances)
       val minPerSense = sd.map(_._2).reduce( (a,b) => Math.min(a,b))
       val avgPerSense = sd.map(_._2).sum / sd.size.asInstanceOf[Double]
-      avgPerSense > 20.0
+      avgPerSense > minAvgPerSense
   }
     
   def leaveOneOut(wsd:Swsd,instanceIterator:Iterator[Row]):Unit = 
@@ -85,11 +86,16 @@ object tester
 		var total = 0;
 		var failures = 0;
 		
-		val instances = all_Instances.filter(_.getAs[Array[String]]("word").length >= 8)
+		val instances = all_Instances.filter(r => { val x = r.getAs[Seq[String]]("word"); x.size >= minWordsinExample} )
+		val senseDistrib = senseDistribution(instances)
+		val senseDistribMap = senseDistrib.toMap
+		
+		val i0 = all_Instances.filter(r => { val sid = r.getAs[String]("senseId"); senseDistribMap(sid) >= minExamplesInSense} )
+		
     val senses = instances.map(_.getAs[String]("senseId")).distinct
     val lempossen = instances.map(_.getAs[String]("lempos")).distinct
   
-    if (instances.size < 3 || senses.size < 2 || !enoughData(instances))
+    if (senses.size < 2 || !enoughData(instances))
       return;
     
     val lempos = instances.head.getAs[String]("lempos")
@@ -118,13 +124,13 @@ object tester
 		
 		val accuracy = (total- errors -failures) / (total + 0.0)
 		
-		val senseDistribution = instances.groupBy(_.getAs[String]("senseId")).mapValues(_.size).toList.sortWith((a,b) => a._2 > b._2)
 	
-		val mfsProportion = senseDistribution.head._2 /  (instances.size + 0.0)
-		val mfsErrors = instances.size - senseDistribution.head._2
 	
-		Console.err.println(lempos + "  |senses|: " + senseDistribution.size + "  "  + errors + " errors of " + total + " failures: "  + 
-		    failures  + " score: " + accuracy + " distribution: " + senseDistribution + "  mfs: " + mfsProportion);
+		val mfsProportion = senseDistrib.head._2 /  (instances.size + 0.0)
+		val mfsErrors = instances.size - senseDistrib.head._2
+	
+		Console.err.println(lempos + "  |senses|: " + senseDistrib.size + "  "  + errors + " errors of " + total + " failures: "  + 
+		    failures  + " score: " + accuracy + " distribution: " + senseDistrib + "  mfs: " + mfsProportion);
 		
 		Console.err.println("Accuracy: " + accuracy)
 		
