@@ -101,6 +101,7 @@ object featureStuff
   	{
   	    def distance(qavg: Array[Float], id: String):Double = 
   	    { 
+  	        // Console.err.println(s"SenseGroup: Situation = ${memberIds.contains(id)} Similarity between ${qavg.toList} and ${average.toList}")
   	        if (memberIds.contains(id))
   	            {
   	    	  	     val x1 =  average.map(norm * _)
@@ -143,10 +144,13 @@ object featureStuff
   	    val id = r.getAs[String]("id")
   	  
   	    val distances = groupCenters.mapValues(x => x.distance(qavg,id))
-  	    //Console.err.println(distances)
+  	    val N = distances.values.sum
+  	    Console.err.println("Distances:" + distances)
   	    val d = new Distribution
-  	    distances.foreach( { case (k,v) => d.addOutcome(k, v) } )
-  	    d.computeProbabilities 
+  	    distances.foreach( { case (k,v) => d.addOutcome(k, v / N) } )
+  	    
+  	    println("Before normalization true sense id =" +r.getAs[String]("senseId") +  ", D=" + d + " for r= " + r)
+  	   
   	    println("true sense id =" +r.getAs[String]("senseId") +  ", D=" + d + " for r= " + r)
   	    d
   	  }
