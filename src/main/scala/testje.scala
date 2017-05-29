@@ -31,6 +31,9 @@ import org.apache.spark.sql._
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.functions._
 
+import org.apache.log4j.Logger
+import org.apache.log4j.Level
+
 
 object tester
 {
@@ -39,6 +42,8 @@ object tester
 	var totalFailures = 0
 	var totalMfsErrors = 0
 	
+
+
   def leaveOneOut(wsd:Swsd, df: DataFrame):Unit = 
 	{
     Console.err.println("starting...")

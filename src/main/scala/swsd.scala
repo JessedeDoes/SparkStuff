@@ -130,11 +130,11 @@ object featureStuff
   	  val filtered = quotationVectors.filter(x => !heldOutIds.contains(x._1)) // .toMap
   	  
   	  val removeMe = filtered.size < quotationVectors.size;
-  	  println("quotation Vectors:"  + quotationVectors.length)
+  	 // println("quotation Vectors:"  + quotationVectors.length)
   	  
  
   	  val groupCenters = filtered.groupBy(_._2).mapValues(l => averageVector(l.map(_._3)) match { case (v,n) => SenseGroup(l.map(_._1).toSet, v, n ) })
-  	  println("Group centers:"  + groupCenters)
+  	  // println("Group centers:"  + groupCenters)
   	  
   	  
   	  def f(r:Row):Distribution = 
@@ -147,6 +147,7 @@ object featureStuff
   	    val d = new Distribution
   	    distances.foreach( { case (k,v) => d.addOutcome(k, v) } )
   	    d.computeProbabilities 
+  	    println("true sense id =" +r.getAs[String]("senseId") +  ", D=" + d + " for r= " + r)
   	    d
   	  }
   	  f
@@ -181,8 +182,8 @@ class Swsd extends Serializable
   	  features.addStochasticFeature(new MyStochasticFeature("bow3", bowFeature(3)))
   	  if (addVectors)
   	  {
-  	    Console.err.println("Adding vectors!")
-  	    Console.err.println("Dimension: " + vectorz.vectorSize)
+  	    //Console.err.println("Adding vectors!")
+  	    //Console.err.println("Dimension: " + vectorz.vectorSize)
   	    features.addStochasticFeature(new MyStochasticFeature("contextVector", vectorFeature(vectorz))) 
   	  }
   	  features

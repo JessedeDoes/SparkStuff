@@ -8,6 +8,9 @@ import org.apache.spark.sql._
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.functions._
 
+import org.apache.log4j.Logger
+import org.apache.log4j.Level
+
 object ConvertOldInstanceBase 
 {
    val sparkSession:SparkSession = SparkSession.builder
@@ -64,7 +67,12 @@ object ConvertOldInstanceBase
 			    .master("local")
 			    .appName("My App")
 			    .getOrCreate()
+		 Logger.getLogger("org").setLevel(Level.WARN)
+     Logger.getLogger("akka").setLevel(Level.WARN)
+     Logger.getRootLogger.setLevel(Level.WARN)
      val frames = convert(args(0), sparkSession)
+     Console.err.println("Instance based loaded")
+
      tester.leaveOneOut(new Swsd, frames)
      //frames.write.format("parquet").save("Data/wsdInstanceBase.parquet") // SaveMode.Overwrite
      //frames.rdd.saveAsTextFile("Data/aapje.framez")
