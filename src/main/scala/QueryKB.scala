@@ -73,6 +73,12 @@ object Store
     if (!f.isDirectory()) f.mkdir()
     new PrintWriter(dir + "/" + subdir + '/' + fileName) { write(doc.toString()); close }
   }
+   def exists(subdir: String, id:String):Boolean = 
+   {
+     val fileName = id.replaceAll(".*urn=","").replaceAll(":","_") + ".xml"
+     val oPath = dir + "/" + subdir + '/' + fileName
+     return new File(oPath).exists
+   }
 }
 
 
@@ -174,9 +180,12 @@ object QueryKB
   def download(id:String,metadataRecord:Node, subdir:String) =     
   try 
       {
-        val txt = get(id);
-        Store.store(subdir,id, metadataRecord,txt)
-        println(s"document length for $id:" + txt.length())
+        if (!Store.exists(subdir,id))
+        {
+          val txt = get(id);
+          Store.store(subdir,id, metadataRecord,txt)
+          println(s"document length for $id:" + txt.length())
+        }
       } catch   
       {
         case e:Exception => Console.err.println(s"nou hoor..., kan $id niet afhalen: " + e)
@@ -267,7 +276,7 @@ object Download
 	
 	def main(args: Array[String]):Unit =
   {
-    downloadPar("ezel")
+    downloadPar("zin")
   } 
   
 }
