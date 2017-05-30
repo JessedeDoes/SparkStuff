@@ -271,7 +271,14 @@ object Download
   } 
   
 }
-
+object countKB
+{
+   import QueryKB._
+   def main(args: Array[String]):Unit =
+  {
+     println(getNumberOfResults(args(0)))
+  } 
+}
 object stuff
 {
     val exampleRecord = <srw:record>
