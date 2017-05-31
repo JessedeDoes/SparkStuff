@@ -77,6 +77,7 @@ object SRU
       case Phrase(l @ _*) => l.flatMap(termsIn).toList 
     }
   }
+   
   def expandQuery(f: String => List[String])(t: TextQuery):TextQuery = 
   {
 	  val expand:TextQuery=>TextQuery = expandQuery(f)
