@@ -4,6 +4,7 @@ import java.io._
 object KBKwic
 {
   import Tokenizer._
+  import SRU._
   import QueryKB._
   def window=8
   

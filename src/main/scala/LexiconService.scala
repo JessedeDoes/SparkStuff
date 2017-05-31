@@ -4,8 +4,9 @@ object LexiconService
 {
    def getWordforms(lemma: String):List[String] =
    {
-     (XML.load("http://sk.taalbanknederlands.inl.nl/LexiconService/lexicon/get_wordforms?database=lexicon_service_db&lemma=" + lemma.toLowerCase)
-     \\ "found_wordforms").toList.map(_.text.toLowerCase)
+     (XML.load("http://sk.taalbanknederlands.inl.nl/LexiconService/lexicon/get_wordforms?database=lexicon_service_db&lemma=" 
+         + lemma.toLowerCase)
+     \\ "found_wordforms").toList.map(_.text.toLowerCase).filter(_.matches("^(\\p{L})*$"))
    }
    def getLemmata(wordform: String):List[String] =
    {

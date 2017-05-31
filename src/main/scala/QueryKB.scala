@@ -40,10 +40,10 @@ object QueryKB
   
   val batchSize = 100
   val maxDocuments = Int.MaxValue
-  //val defaultStartDate = "01-01-1800"
-  //val defaultEndDate = "31-01-1939"
-  val defaultStartDate = "01-01-1700"
-  val defaultEndDate = "31-01-1799"
+  val defaultStartDate = "01-01-1800"
+  val defaultEndDate = "31-01-1939"
+  //val defaultStartDate = "01-01-1700"
+  //val defaultEndDate = "31-01-1799"
   val defaultCollection = "DDD_artikel"
   val defaultServer = "http://jsru.kb.nl/sru/sru?version=1.2"
          
@@ -51,12 +51,9 @@ object QueryKB
       "Dennensnuitkever", "Fret", "Hermelijn", "Huismuis", "Konijn", "Lynx", "Muskusrat", 
       "Otter", "Raaf", "Spreeuw", "Vos", "Wezel", "Wolf")
   
-  def wrapTextQuery(t:TextQuery) = 
-          SRUQuery(defaultServer, "searchRetrieve", 
-             defaultCollection, 0, maxDocuments, 
-             ContentQuery(defaultStartDate, defaultEndDate, t))
-             
-  def singleWordQuery(term:String):SRUQuery = wrapTextQuery(SingleTerm(term))
+ 
+  
+  import SRU._
   
   def expandedQuery(term:String):SRUQuery = 
   {
@@ -111,8 +108,7 @@ object QueryKB
   
 
 
-  implicit def StringToTerm(s:String):SingleTerm = SingleTerm(s)
-  implicit def StringToQuery(s:String):SRUQuery = singleWordQuery(s)
+  
   
   
   def download(id:String,metadataRecord:Node, subdir:String) =     
@@ -184,6 +180,7 @@ object QueryKB
 object Download
 {
 	import QueryKB._
+	import SRU._
 	def main_old(args: Array[String]):Unit =
   {
 		downloadForTermList(beesten.filter(s => {val x:Int = getNumberOfResults(s); (x >  35000 && x < 200000) }))
@@ -199,6 +196,7 @@ object Download
 object countKB
 {
    import QueryKB._
+   import SRU._
    def main(args: Array[String]):Unit =
   {
      println(getNumberOfResults(args(0)))
