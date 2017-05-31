@@ -78,6 +78,15 @@ object SRU
     }
   }
    
+   def cartesian[A](l: List[List[A]]):List[List[A]] =
+   {
+      l match
+      {
+         case head :: tail if tail.size > 0 => head.flatMap(x =>  cartesian(tail).map(y => x :: y))
+         case head :: tail if tail.size == 0 => head.map ( a => List(a) )
+         case _ => List.empty
+      }
+   }
   def expandQuery(f: String => List[String])(t: TextQuery):TextQuery = 
   {
 	  val expand:TextQuery=>TextQuery = expandQuery(f)
@@ -104,6 +113,8 @@ object testSRU
    def main(args:Array[String]) =
    {
       val t0 = ListConjunction(List("wit", "paard"))
+      
+      
       val t1 = expandQuery(expand)(t0)
       println(t1)
       println(termsIn(t1))
