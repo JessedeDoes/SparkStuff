@@ -188,11 +188,10 @@ object Download
 	
 	def main(args: Array[String]):Unit =
   {
-    downloadPar("wolf")
-    downloadPar("wolven")
+      downloadPar("zin")
   } 
-  
 }
+
 object countKB
 {
    import QueryKB._
