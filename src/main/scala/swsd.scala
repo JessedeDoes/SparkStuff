@@ -59,6 +59,14 @@ object featureStuff
   	
   	def fieldFeature(n:String, f:String, i:Int) = new MyFeature(n,fieldAt(f,i))
   	
+  	def fieldAtMultiple(f:String, l:List[Int])(r:Row): String =
+  	{
+  	  val tokens = r.getAs[Seq[String]](f)
+  	  val hs = r.getAs[Int]("hitStart")
+  	  val ps = l.map( hs +_ ).map(p =>  { if (p > 0 && p < tokens.length) tokens(p) else "#"} ) 
+  	  ps.mkString("_")
+  	}
+  	
   	def bowFeature(k:Int)(r:Row):Distribution =
   	{
   	  
