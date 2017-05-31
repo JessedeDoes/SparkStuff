@@ -92,7 +92,7 @@ object SRU
       case Disjunction(l @ _*) => Disjunction(l.map(expand):_*)
       case ListDisjunction(li) => ListDisjunction(li.map(expand))
       case ListConjunction(li) => ListConjunction(li.map(expand)) 
-      case Phrase(l @ _*) => Phrase(l.map(expand):_*)
+      //case Phrase(l @ _*) => Phrase(l.map(expand):_*)
     }
   }
 }
