@@ -51,6 +51,7 @@ case class ContentQuery(startDate:String,
 case class SRUQuery(server:String, 
     operation:String, collection:String, 
     startRecord:Int, maximumRecords:Int, query:ContentQuery) extends SRUQueryT
+
 object SRU
 {
    implicit def wrapTextQuery(t:TextQuery):SRUQuery = 
