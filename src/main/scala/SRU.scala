@@ -65,7 +65,7 @@ object SRU
   
   def termsIn(t: TextQuery):List[String] = 
   {
-       t match 
+     t match 
     {
       case SingleTerm(term) => List(term)
       case ListDisjunction(l1) => l1.flatMap( termsIn) 
@@ -109,6 +109,7 @@ object testSRU
       println(termsIn(t1))
       println(t1.toQueryString())
       println(QueryKB.getNumberOfResults(t1))
+      KBKwic.kwicResultsPar(t1)
    }
 }
     
