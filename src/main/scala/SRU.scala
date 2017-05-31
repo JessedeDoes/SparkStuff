@@ -16,7 +16,7 @@ trait TextQuery
 case class SingleTerm(term:String) extends TextQuery
 case class And(t1:TextQuery, t2:TextQuery) extends TextQuery
 case class Or(t1:TextQuery, t2:TextQuery) extends TextQuery
-case class Phrase(l: TextQuery*) extends TextQuery
+case class Phrase(l: SingleTerm*) extends TextQuery
 case class Disjunction(l: TextQuery*) extends TextQuery
 case class ListDisjunction(l: List[TextQuery]) extends TextQuery
 case class ListConjunction(l: List[TextQuery]) extends TextQuery
