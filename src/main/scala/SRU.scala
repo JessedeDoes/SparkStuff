@@ -78,15 +78,16 @@ object SRU
     }
   }
    
-   def cartesian[A](l: List[List[A]]):List[List[A]] =
+   def cartesianProduct[A](l: List[List[A]]):List[List[A]] =
    {
       l match
       {
-         case head :: tail if tail.size > 0 => head.flatMap(x =>  cartesian(tail).map(y => x :: y))
+         case head :: tail if tail.size > 0 => head.flatMap(x =>  cartesianProduct(tail).map(y => x :: y))
          case head :: tail if tail.size == 0 => head.map ( a => List(a) )
          case _ => List.empty
       }
    }
+   
   def expandQuery(f: String => List[String])(t: TextQuery):TextQuery = 
   {
 	  val expand:TextQuery=>TextQuery = expandQuery(f)
@@ -101,7 +102,10 @@ object SRU
       case Disjunction(l @ _*) => Disjunction(l.map(expand):_*)
       case ListDisjunction(li) => ListDisjunction(li.map(expand))
       case ListConjunction(li) => ListConjunction(li.map(expand)) 
-      //case Phrase(l @ _*) => Phrase(l.map(expand):_*)
+      case Phrase(l @ _*) => // pfft. dit moet toch simpeler kunnen? In ieder geval zou je beter de expansies filteren op voorkomen; of de lijst in queries splitsen
+          val x = cartesianProduct(l.toList.map( { case SingleTerm(t) => f(t) }))
+          val y = x.map(s =>  { val l = s.map(x => SingleTerm(x)); Phrase(l:_*) } )   
+          ListDisjunction(y) 
     }
   }
 }
@@ -113,9 +117,9 @@ object testSRU
    def main(args:Array[String]) =
    {
       val t0 = ListConjunction(List("wit", "paard"))
+      val t00 = Phrase("ernstig", "probleem")
       
-      
-      val t1 = expandQuery(expand)(t0)
+      val t1 = expandQuery(expand)(t00)
       println(t1)
       println(termsIn(t1))
       println(t1.toQueryString())
