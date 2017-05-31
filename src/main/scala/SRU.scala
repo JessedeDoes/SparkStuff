@@ -63,18 +63,17 @@ object SRU
   implicit def StringToTerm(s:String):SingleTerm = SingleTerm(s)
   implicit def StringToQuery(s:String):SRUQuery = singleWordQuery(s)
   
-  def termsIn(t: TextQuery):List[String] = 
+  def termsIn(t: TextQuery):Set[String] = 
   {
      t match 
     {
-      case SingleTerm(term) => List(term)
-      case ListDisjunction(l1) => l1.flatMap( termsIn) 
+      case SingleTerm(term) => Set(term)
       case And(t1,t2)  => termsIn(t1) ++ termsIn(t2) 
       case Or(t1,t2) => termsIn(t1) ++ termsIn(t2)
-      case Disjunction(l @ _*) => l.flatMap(termsIn).toList 
-      case ListDisjunction(li) => li.flatMap(termsIn)
-      case ListConjunction(li) => li.flatMap(termsIn)
-      case Phrase(l @ _*) => l.flatMap(termsIn).toList 
+      case Disjunction(l @ _*) => l.flatMap(termsIn).toSet
+      case ListDisjunction(li) => li.flatMap(termsIn).toSet
+      case ListConjunction(li) => li.flatMap(termsIn).toSet
+      case Phrase(l @ _*) => l.flatMap(termsIn).toSet
     }
   }
    
@@ -112,14 +111,16 @@ object SRU
 
 object testSRU
 {
-   val expand: String => List[String] = LexiconService.getWordforms
    import SRU._
+   val expand: String => List[String] = LexiconService.getWordforms
+   val expandRestricted: String => List[String]  = x => LexiconService.getWordforms(x).filter(QueryKB.getNumberOfResults(_) > 0)
+  
    def main(args:Array[String]) =
    {
-      val t0 = ListConjunction(List("wit", "paard"))
+      val t0 = Phrase("goed", "gedachte")
       val t00 = Phrase("ernstig", "probleem")
       
-      val t1 = expandQuery(expand)(t00)
+      val t1 = expandQuery(expandRestricted)(t0)
       println(t1)
       println(termsIn(t1))
       println(t1.toQueryString())
