@@ -62,6 +62,21 @@ object SRU
   def singleWordQuery(term:String):SRUQuery = wrapTextQuery(SingleTerm(term))
   implicit def StringToTerm(s:String):SingleTerm = SingleTerm(s)
   implicit def StringToQuery(s:String):SRUQuery = singleWordQuery(s)
+  
+  def termsIn(t: TextQuery):List[String] = 
+  {
+       t match 
+    {
+      case SingleTerm(term) => List(term)
+      case ListDisjunction(l1) => l1.flatMap( termsIn) 
+      case And(t1,t2)  => termsIn(t1) ++ termsIn(t2) 
+      case Or(t1,t2) => termsIn(t1) ++ termsIn(t2)
+      case Disjunction(l @ _*) => l.flatMap(termsIn).toList 
+      case ListDisjunction(li) => li.flatMap(termsIn)
+      case ListConjunction(li) => li.flatMap(termsIn)
+      case Phrase(l @ _*) => l.flatMap(termsIn).toList 
+    }
+  }
   def expandQuery(f: String => List[String])(t: TextQuery):TextQuery = 
   {
 	  val expand:TextQuery=>TextQuery = expandQuery(f)
@@ -90,6 +105,7 @@ object testSRU
       val t0 = ListConjunction(List("wit", "paard"))
       val t1 = expandQuery(expand)(t0)
       println(t1)
+      println(termsIn(t1))
       println(t1.toQueryString())
       println(QueryKB.getNumberOfResults(t1))
    }
