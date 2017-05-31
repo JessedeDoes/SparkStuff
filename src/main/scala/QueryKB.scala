@@ -90,8 +90,10 @@ object QueryKB
   
   val batchSize = 100
   val maxDocuments = Int.MaxValue
-  val defaultStartDate = "01-01-1800"
-  val defaultEndDate = "31-01-1939"
+  //val defaultStartDate = "01-01-1800"
+  //val defaultEndDate = "31-01-1939"
+  val defaultStartDate = "01-01-1700"
+  val defaultEndDate = "31-01-1799"
   val defaultCollection = "DDD_artikel"
   val defaultServer = "http://jsru.kb.nl/sru/sru?version=1.2"
          
@@ -162,21 +164,7 @@ object QueryKB
   implicit def StringToTerm(s:String):SingleTerm = SingleTerm(s)
   implicit def StringToQuery(s:String):SRUQuery = singleWordQuery(s)
   
-  def kwicResults(s:String) =
-    for ((id,metadataRecord) <- matchingDocumentIdentifiers(s))
-      println(KBKwic.concordance(s, id))
-      
-  def kwicResultsPar(s:String)
-  {
-      val s0 = matchingDocumentIdentifiers(s)
-      val split = splitStream(s0,3)
-      split.par.foreach(
-           x =>  
-             for ((id,metadataRecord) <- x)
-             { println(KBKwic.concordance(s, id)) }
-           
-      )
-  }
+  
   def download(id:String,metadataRecord:Node, subdir:String) =     
   try 
       {
@@ -244,12 +232,14 @@ object QueryKB
 object KBKwic
 {
   import Tokenizer._
+  import QueryKB._
   def window=8
   
   case class Kwic(left:String, hit:String, right:String)
   {
     override def toString():String = (f"${left}%80s") + "\t"  + hit + "\t" + right
   }
+  
   def concordance(query:String,document:Node):List[Kwic] = 
   {
     val tokens = tokenize(document.text)
@@ -262,10 +252,33 @@ object KBKwic
     matchPositions.map(getMatch)
   }
   
+  def concordanceFile(query:String, fileName:String):List[Kwic] = concordance(query,XML.load(fileName))
+  
+  def concordancesDir(query:String, dirName:String):List[Kwic] =
+    new File(dirName).list().toList.flatMap(f => concordanceFile(query, dirName + "/" + f))
+  
+  def concordanceDir(query:String, dirName:String):Unit = concordancesDir(query,dirName).foreach(println)
+  
   def concordance(query:String, url:String):List[Kwic] = concordance(query,XML.load(url))
   
-  
+  def kwicResults(s:String) =
+    for ((id,metadataRecord) <- matchingDocumentIdentifiers(s))
+      println(concordance(s, id))
+      
+  def kwicResultsPar(s:String)
+  {
+      val s0 = matchingDocumentIdentifiers(s)
+      val split = splitStream(s0,3)
+      split.par.foreach(
+           x =>  
+             for ((id,metadataRecord) <- x)
+             { println(KBKwic.concordance(s, id)) }
+           
+      )
+  }
+  def main(args:Array[String]) = if (args.length >= 2) concordanceDir(args(0),args(1)) else kwicResults(args(0))
 }
+
 object Download
 {
 	import QueryKB._
@@ -276,7 +289,8 @@ object Download
 	
 	def main(args: Array[String]):Unit =
   {
-    downloadPar("zin")
+    downloadPar("wolf")
+    downloadPar("wolven")
   } 
   
 }

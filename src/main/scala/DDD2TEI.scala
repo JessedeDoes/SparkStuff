@@ -1,6 +1,23 @@
 import scala.xml._
 import java.io._
-
+object printMetadata
+{
+  def getMetadata(x: Node):Map[String,String] =
+	 {
+	   val m:Elem = (x \\ "recordData").head.asInstanceOf[Elem]
+	   m.child.map(x => (x.label, x.text)).toMap
+	 }
+	 
+	 def getMetadata(fileName:String): Map[String,String] = getMetadata(XML.load(fileName))
+	 
+	 def getMetadataForAll(dir: String):Stream[Map[String,String]] =
+	   new File(dir).list.toStream.map(f => getMetadata(dir + "/" + f))
+	 
+	 def printAllMetadata(dir:String) = 
+	   getMetadataForAll(dir).map(m => m.toList.map({ case (k,v) => k  + ":" + v } ).mkString("\t")).foreach(println)
+	   
+	 def main(args:Array[String]):Unit = printAllMetadata(args(0))
+}
 object toTEI
 {
    import scala.util.matching._
@@ -11,6 +28,7 @@ object toTEI
 				<interp value={value}/>
 		</interpGrp>
    
+	 
 	 
    def makeTEI(metadataRecord: Elem, text: Elem, id:String):Elem =
    {
