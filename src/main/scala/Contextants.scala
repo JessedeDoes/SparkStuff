@@ -20,7 +20,7 @@ object Collocation
      val L = a.length
      val indexes = (Math.max(0,c.hitStart-w) to c.hitStart-1)   ++ (Math.min(L,c.hitEnd) to Math.min(L,c.hitEnd+w-1))
      val filtered = indexes.filter(k => k > 0  && k < b.length && b(k).matches(f.filter))
-     //println(filtered.toList + " " + a.toList)
+    
      return filtered.map(k => a(k))
    }
    
@@ -54,21 +54,14 @@ object Collocation
                 val m21:Double = n2p * np1 / npp;
                 val m22:Double = n2p * np2 / npp;
 
-                var logLikelihood = 0.0;
-
-                if ( n11  != 0) { logLikelihood += n11 * StrictMath.log ( n11 / m11 ); }
-                if ( n12  != 0) { logLikelihood += n12 * StrictMath.log ( n12 / m12 ); }
-                if ( n21  != 0) { logLikelihood += n21 * StrictMath.log ( n21 / m21 ); }
-                if ( n22  != 0 ) { logLikelihood += n22 * StrictMath.log ( n22 / m22 ); }
-
-                return ( 2 * logLikelihood );
+                 2 * List( (n11,m11), (n12,m12), (n21,m21),(n22,m22) ).map( { case (n,m) => if (n != 0 && m != 0) n/m else 0 }).sum  
         }
    
    def salience(freq:Int, freq1:Int, freq2:Int, totalBigrams:Int):Double = 
         {
-                var temp = ( freq / freq1.asInstanceOf[Double] ) /  freq2.asInstanceOf[Double];
-                temp *= totalBigrams;
-                return ( StrictMath.log(freq) * StrictMath.log(temp) / StrictMath.log(2.0) );
+                val temp = ( freq / freq1.asInstanceOf[Double] ) /  freq2.asInstanceOf[Double];
+              
+                StrictMath.log(freq) * StrictMath.log(totalBigrams * temp) / StrictMath.log(2.0) 
         }
    def dice(f:Int, f1:Int, f2:Int, N:Long):Double = 
         {
