@@ -31,31 +31,8 @@ case class Attestation(wordform: Wordform, quote:String, hitStart: Int, hitEnd: 
 
 private object util
 {
-   def investigate(a:AnyRef) =
-   {
-       val c = a.getClass
-       val StringType = classTag[String].runtimeClass.asInstanceOf[Class[String]]
-       val IntegerType = classTag[Int].runtimeClass.asInstanceOf[Class[Int]]
-       val BooleanType = classTag[Boolean].runtimeClass.asInstanceOf[Class[Boolean]]
-       val actions = c.getFields.map(x => 
-        { 
-          val cx = x.getType
-          if (cx.isPrimitive)
-          {
-             cx match
-             {
-               case StringType => ((r:PositionedResult) => r.nextString)
-               case BooleanType => ((r:PositionedResult) => r.nextBoolean)
-               case IntegerType => ((r:PositionedResult) => r.nextInt)
-             }
-          }
-        })
-        actions.toList
-   }
-   
-   val l = Lemma("aap", 10, "l10", "NOU")
-   val y = investigate(l)
-   println(y)
+
+
     def concat(a: SQLActionBuilder, b: SQLActionBuilder): SQLActionBuilder = 
   {
 		SQLActionBuilder(a.queryParts ++ b.queryParts, new SetParameter[Unit] {
