@@ -20,6 +20,7 @@ case class Lemma(modern_lemma: String, lemma_id:Int, persistent_id:String, pos:S
 case class Wordform(lemma: Lemma, analyzed_wordform_id:Int, wordform: String)
 {
   val jubel="juich"
+  println(jubel)
 }
 case class Attestation(wordform: Wordform, quote:String, hitStart: Int, hitEnd: Int, eg_id: Option[String])
 
