@@ -53,6 +53,8 @@ object queries
                    where a.wordform_id=w.wordform_id and lemma_id in """, values(ids)).as[Wordform]
     }
     
+    
+    
     val testQuery = sql""" select 42 """.as[Int]
     
     val wfQuery = sql"""
@@ -63,17 +65,28 @@ where
      AND w.wordform_id=a.wordform_id
      AND lemma_part_of_speech ~  'ADP'"""
   
-  val attestationQuery = sql"""
+    def getAttestations(wordforms: List[Wordform]) =
+    {
+        
+      
+  
+    val ids = wordforms.map(_.analyzed_wordform_id)
+    val wordformMap = wordforms.map(l => (l.analyzed_wordform_id,l)).toMap
+    implicit val makeAttestation =   GetResult[Attestation](
+          r => Attestation(wordformMap(r.nextInt),r.nextString, r.nextInt, r.nextInt)
+      )
+  
+     concat(sql"""
 select 
-    modern_lemma, l.lemma_id,lemma_part_of_speech, a.analyzed_wordform_id, wordform,
-      quote, start_pos,end_pos
+     a.analyzed_wordform_id,
+     quote, start_pos,end_pos
      from data.lemmata l, data.analyzed_wordforms a, data.wordforms w, data.token_attestations t
 where
      l.lemma_id=a.lemma_id
      AND w.wordform_id=a.wordform_id
-     AND a.analyzed_wordform_id=t.analyzed_wordform_id"""
-  
-  
+     AND a.analyzed_wordform_id=t.analyzed_wordform_id and t.analyzed_wordform_id in """, values(ids)).as[Attestation]
+    } 
+    
   def concat(a: SQLActionBuilder, b: SQLActionBuilder): SQLActionBuilder = 
   {
 		SQLActionBuilder(a.queryParts ++ b.queryParts, new SetParameter[Unit] {
@@ -114,9 +127,13 @@ object Hilex
     def reportFailure(t: Throwable) {}
   }
 
-  val db = 
+  lazy val dbAtWork = 
     Database.forURL("jdbc:postgresql://svowdb06/gigant_hilex?user=fannee&password=Cric0topus", driver="org.postgresql.Driver")
-
+  lazy val dbAtHome = 
+    Database.forURL("jdbc:postgresql://svowdb02/gigant_hilex_dev?user=postgres&password=inl", driver="org.postgresql.Driver")
+   
+  val db = dbAtHome
+  
   def test =
   {
     println("hallo")
@@ -127,25 +144,33 @@ object Hilex
     println("done")
   }
   
-  def slurp = (a:DBIOAction[_,_,_]) => { val r = db.run(a); r}
+  
+  def slurp[A] = (a:DBIOAction[Vector[A], NoStream, Nothing]) => 
+    { 
+       val r = db.run(a); 
+       Await.result(r,120.seconds);
+       r.value match
+      {
+        case Some(Success(x)) => x.toList
+       }
+    }
   
     
   
-  def findSomeLemmata:Vector[Lemma] =
+  def findSomeLemmata:List[Lemma] =
   {
-    val r = db.run(queries.lemmaQueryWhere("lemma_part_of_speech ~ 'INT'"))
-          
-    Await.result(r, 120.seconds)
-    println(r.value)
-    r.value match
-    {
-      case Some(Success(x)) => x
-    }
+     slurp(queries.lemmaQueryWhere("modern_lemma ~ 'goed'"))
   }
   
   def main(args:Array[String]):Unit = 
   { 
     val l = findSomeLemmata
-    val q = queries.getWordforms(l.toList)
+    l.foreach(println)
+    val q = queries.getWordforms(l)
+    val l1 = slurp(q)
+    l1.foreach(println)
+    val q2 = queries.getAttestations(l1)
+    val l2 = slurp(q2)
+    l2.foreach(println)
   }
 }
