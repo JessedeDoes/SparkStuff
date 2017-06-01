@@ -21,7 +21,7 @@ case class Wordform(lemma: Lemma, analyzed_wordform_id:Int, wordform: String)
 {
   val jubel="juich"
 }
-case class Attestation(wordform: Wordform, quote:String, hitStart: Int, hitEnd: Int)
+case class Attestation(wordform: Wordform, quote:String, hitStart: Int, hitEnd: Int, eg_id: Option[String])
 
 object queries
 {
@@ -76,18 +76,19 @@ where
     val ids = wordforms.map(_.analyzed_wordform_id)
     val wordformMap = wordforms.map(l => (l.analyzed_wordform_id,l)).toMap
     implicit val makeAttestation =   GetResult[Attestation](
-          r => Attestation(wordformMap(r.nextInt),r.nextString, r.nextInt, r.nextInt)
+          r => Attestation(wordformMap(r.nextInt),r.nextString, r.nextInt, r.nextInt, Some(r.nextString))
       )
   
      concat(sql"""
 select 
      a.analyzed_wordform_id,
-     quote, start_pos,end_pos
-     from data.lemmata l, data.analyzed_wordforms a, data.wordforms w, data.token_attestations t
+     quote, start_pos,end_pos, eg_id
+from
+     data.analyzed_wordforms a, data.token_attestations t, wnt_ids.documents d
 where
-     l.lemma_id=a.lemma_id
-     AND w.wordform_id=a.wordform_id
-     AND a.analyzed_wordform_id=t.analyzed_wordform_id and t.analyzed_wordform_id in """, values(ids)).as[Attestation]
+       d.document_id=t.document_id
+      and a.analyzed_wordform_id=t.analyzed_wordform_id 
+      and t.analyzed_wordform_id in """, values(ids)).as[Attestation]
     } 
     
   def concat(a: SQLActionBuilder, b: SQLActionBuilder): SQLActionBuilder = 
