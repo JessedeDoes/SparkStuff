@@ -17,17 +17,19 @@ import slick.jdbc.{SQLActionBuilder,SetParameter,PositionedParameters}
 import scala.util.{Try, Success, Failure}
 
 case class Lemma(modern_lemma: String, lemma_id:Int, persistent_id:String, pos:String) 
+{
+   lazy val wordforms = Hilex.slurp(queries.getWordforms(List(this)))
+}
+
 case class Wordform(lemma: Lemma, analyzed_wordform_id:Int, wordform: String)
 {
-  val jubel="juich"
-  println(jubel)
+ 
 }
+
 case class Attestation(wordform: Wordform, quote:String, hitStart: Int, hitEnd: Int, eg_id: Option[String])
 
 object queries
-{
- 
-    
+{   
     val pos = "ADP"
     
     val lemmaQuery = 
@@ -56,9 +58,7 @@ object queries
       concat(sql"""select lemma_id, analyzed_wordform_id, wordform from data.analyzed_wordforms a, data.wordforms w 
                    where a.wordform_id=w.wordform_id and lemma_id in """, values(ids)).as[Wordform]
     }
-    
-    
-    
+     
     val testQuery = sql""" select 42 """.as[Int]
     
     val wfQuery = sql"""
@@ -164,13 +164,14 @@ object Hilex
   
   def findSomeLemmata:List[Lemma] =
   {
-     slurp(queries.lemmaQueryWhere("modern_lemma ~ '^zin$'"))
+     slurp(queries.lemmaQueryWhere("modern_lemma ~ '^harlekijn$'"))
   }
   
   def main(args:Array[String]):Unit = 
   { 
     val l = findSomeLemmata
     l.foreach(println)
+    l.foreach(x => println(x.wordforms))
     val q = queries.getWordforms(l)
     val l1 = slurp(q)
     l1.foreach(println)
