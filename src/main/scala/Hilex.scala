@@ -6,12 +6,62 @@ import scalaz.effect.IO
 
 case class Lemma(modern_lemma: String, lemma_id:Int, pos:String) 
 case class Wordform(lemma: Lemma, analyzed_wordform_id:Int, wordform: String)
+case class Attestation(wordform: Wordform, quote:String, hitStart: Int, hitEnd: Int)
+
+object queries
+{
+    val wfQuery = sql"""
+select modern_lemma, l.lemma_id,lemma_part_of_speech, analyzed_wordform_id, wordform
+     from data.lemmata l, data.analyzed_wordforms a, data.wordforms w
+where
+     l.lemma_id=a.lemma_id
+     AND w.wordform_id=a.wordform_id
+     AND lemma_part_of_speech ~  'ADP'"""
+  
+  val attestationQuery = sql"""
+select 
+    modern_lemma, l.lemma_id,lemma_part_of_speech, a.analyzed_wordform_id, wordform,
+      quote, start_pos,end_pos
+     from data.lemmata l, data.analyzed_wordforms a, data.wordforms w, data.token_attestations t
+where
+     l.lemma_id=a.lemma_id
+     AND w.wordform_id=a.wordform_id
+     AND a.analyzed_wordform_id=t.analyzed_wordform_id"""
+
+    
+  
+    
+   /*
+   def lemmaQuery(where: String) =
+     sql""" select modern_lemma, l.lemma_id,lemma_part_of_speech ${where}""".query[Lemma]
+     * 
+     */
+    
+    /*
+  def wordformsForLemmata(lemmata: NonEmptyList[Lemma]) =
+   {
+      val lemmaIds = lemmata.map(_.lemma_id)
+      implicit val idParam = Param.many(lemmaIds)
+      sql"""
+select modern_lemma, l.lemma_id,lemma_part_of_speech, analyzed_wordform_id, wordform
+     from data.lemmata l, data.analyzed_wordforms a, data.wordforms w
+where
+     l.lemma_id=a.lemma_id
+     AND w.wordform_id=a.wordform_id
+     AND lemma_id in (${lemmaIds: lemmaIds.type}) 
+""".query[Wordform].list
+   } 
+   * 
+   */
+ 
+  
+}
 
 object Hilex 
 {
   // dbc:postgresql://svowdb06/gig_pro?user=fannee&password=Cric0topus
   val atHome = false
-  case class Country(code: String, name: String, population: Long)
+  
   lazy val  xaWork = DriverManagerTransactor[IO](
 				  "org.postgresql.Driver", "jdbc:postgresql://svowdb06/gigant_hilex", "fannee", "Cric0topus"
 				  )
@@ -21,15 +71,9 @@ object Hilex
   lazy val xa = if (atHome) xaHome else xaWork
   
   import xa.yolo._
-  val wfQuery = sql"""
-      select modern_lemma, l.lemma_id,lemma_part_of_speech, analyzed_wordform_id, wordform
-     from data.lemmata l, data.analyzed_wordforms a, data.wordforms w
-    where
-     l.lemma_id=a.lemma_id
-     AND w.wordform_id=a.wordform_id
-AND
-lemma_part_of_speech ~  'ADP'"""
   
+
+   
   def testje =
   {
    
@@ -45,14 +89,26 @@ lemma_part_of_speech ~  'ADP'"""
   // And then
   //find("France").transact(xa).unsafePerformIO
   }
+ 
+ 
   
   def test2 = 
   {
-    val program2 = wfQuery.query[Wordform].list
+    val program2 = queries.wfQuery.query[Wordform].list
     val task2 = program2.transact(xa)
     println(task2.unsafePerformIO)
   }
-    
+   
+     def populationIn(range: Range, codes: NonEmptyList[String]) = {
+  //implicit val codesParam = Param.many(codes)
+  sql"""
+    select code, name, population, gnp 
+    from country
+    where population > ${range.min}
+    and   population < ${range.max}
+    and   code in (${codes : codes.type})
+  """.query[Lemma] 
+     }
    def main(args:Array[String]):Unit = test2
      
 }
