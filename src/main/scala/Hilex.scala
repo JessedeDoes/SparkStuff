@@ -16,29 +16,32 @@ import slick.jdbc.GetResult
 import slick.jdbc.{SQLActionBuilder,SetParameter,PositionedParameters}
 import scala.util.{Try, Success, Failure}
 
-case class Lemma(modern_lemma: String, lemma_id:Int, pos:String) 
+case class Lemma(modern_lemma: String, lemma_id:Int, persistent_id:String, pos:String) 
 case class Wordform(lemma: Lemma, analyzed_wordform_id:Int, wordform: String)
+{
+  val jubel="juich"
+}
 case class Attestation(wordform: Wordform, quote:String, hitStart: Int, hitEnd: Int)
 
 object queries
 {
-    implicit def l(s:String,i:Int,s1:String):Lemma = Lemma(s,i,s1)
+ 
     
     val pos = "ADP"
     
     val lemmaQuery = 
     {
-      implicit val getLemma = GetResult[Lemma](r => Lemma(r.nextString, r.nextInt, r.nextString))
+      implicit val getLemma = GetResult[Lemma](r => Lemma(r.nextString, r.nextInt, r.nextString,r.nextString))
       sql"""
-      select modern_lemma, lemma_id,lemma_part_of_speech from data.lemmata 
+      select modern_lemma, lemma_id,persistent_id, lemma_part_of_speech from data.lemmata 
         where lemma_part_of_speech ~ ${pos}""".as[Lemma]
     }
     
     def lemmaQueryWhere(where:String) = 
     {
-      implicit val getLemma = GetResult[Lemma](r => Lemma(r.nextString, r.nextInt, r.nextString()))
+      implicit val getLemma = GetResult[Lemma](r => Lemma(r.nextString, r.nextInt, r.nextString,r.nextString))
       sql"""
-      select modern_lemma, lemma_id,lemma_part_of_speech from data.lemmata 
+      select modern_lemma, lemma_id,persistent_id, lemma_part_of_speech from data.lemmata 
         where #${where}""".as[Lemma]
     }
     
@@ -159,7 +162,7 @@ object Hilex
   
   def findSomeLemmata:List[Lemma] =
   {
-     slurp(queries.lemmaQueryWhere("modern_lemma ~ 'go'"))
+     slurp(queries.lemmaQueryWhere("modern_lemma ~ '^zin$'"))
   }
   
   def main(args:Array[String]):Unit = 
