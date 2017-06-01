@@ -13,8 +13,9 @@ import scala.concurrent.forkjoin._
 import org.apache.log4j.Logger
 import org.apache.log4j.Level
 import slick.jdbc.GetResult
-import slick.jdbc.{SQLActionBuilder,SetParameter,PositionedParameters}
+import slick.jdbc.{SQLActionBuilder,SetParameter,PositionedParameters, PositionedResult}
 import scala.util.{Try, Success, Failure}
+import scala.reflect._
 
 case class Lemma(modern_lemma: String, lemma_id:Int, persistent_id:String, pos:String) 
 {
@@ -28,8 +29,59 @@ case class Wordform(lemma: Lemma, analyzed_wordform_id:Int, wordform: String)
 
 case class Attestation(wordform: Wordform, quote:String, hitStart: Int, hitEnd: Int, eg_id: Option[String])
 
+private object util
+{
+   def investigate(a:AnyRef) =
+   {
+       val c = a.getClass
+       val StringType = classTag[String].runtimeClass.asInstanceOf[Class[String]]
+       val IntegerType = classTag[Int].runtimeClass.asInstanceOf[Class[Int]]
+       val BooleanType = classTag[Boolean].runtimeClass.asInstanceOf[Class[Boolean]]
+       val actions = c.getFields.map(x => 
+        { 
+          val cx = x.getType
+          if (cx.isPrimitive)
+          {
+             cx match
+             {
+               case StringType => ((r:PositionedResult) => r.nextString)
+               case BooleanType => ((r:PositionedResult) => r.nextBoolean)
+               case IntegerType => ((r:PositionedResult) => r.nextInt)
+             }
+          }
+        })
+        actions.toList
+   }
+   
+   val l = Lemma("aap", 10, "l10", "NOU")
+   val y = investigate(l)
+   println(y)
+    def concat(a: SQLActionBuilder, b: SQLActionBuilder): SQLActionBuilder = 
+  {
+		SQLActionBuilder(a.queryParts ++ b.queryParts, new SetParameter[Unit] {
+				def apply(p: Unit, pp: PositionedParameters): Unit = {
+						a.unitPConv.apply(p, pp)
+						b.unitPConv.apply(p, pp)
+				}
+		})
+  }
+    
+   def values[T](xs: TraversableOnce[T])(implicit sp: SetParameter[T]): SQLActionBuilder = {
+      var b = sql"("
+      var first = true
+      xs.foreach { x =>
+        if(first) first = false
+        else b = concat(b, sql",")
+        b = concat(b, sql"$x")
+      }
+      concat(b, sql")")
+    }
+}
+
 object queries
 {   
+  
+    import util._
     val pos = "ADP"
     
     val lemmaQuery = 
@@ -59,7 +111,6 @@ object queries
                    where a.wordform_id=w.wordform_id and lemma_id in """, values(ids)).as[Wordform]
     }
      
-    val testQuery = sql""" select 42 """.as[Int]
     
     val wfQuery = sql"""
 select modern_lemma, l.lemma_id,lemma_part_of_speech, analyzed_wordform_id, wordform
@@ -92,27 +143,7 @@ where
       and t.analyzed_wordform_id in """, values(ids)).as[Attestation]
     } 
     
-  def concat(a: SQLActionBuilder, b: SQLActionBuilder): SQLActionBuilder = 
-  {
-		SQLActionBuilder(a.queryParts ++ b.queryParts, new SetParameter[Unit] {
-				def apply(p: Unit, pp: PositionedParameters): Unit = {
-						a.unitPConv.apply(p, pp)
-						b.unitPConv.apply(p, pp)
-				}
-		})
-  }
-    
-   def values[T](xs: TraversableOnce[T])(implicit sp: SetParameter[T]): SQLActionBuilder = {
-      var b = sql"("
-      var first = true
-      xs.foreach { x =>
-        if(first) first = false
-        else b = concat(b, sql",")
-        b = concat(b, sql"$x")
-      }
-      concat(b, sql")")
-    }
-   
+
    // as in: concat(sql"select id from USERS where id in ", values(Seq(1,2))).as[Int]
 }
 
@@ -152,8 +183,8 @@ object Hilex
   
     def slurp[A] (a:DBIOAction[Vector[A], NoStream, Nothing]):List[A] =
     { 
-       val r = db.run(a); 
-       Await.result(r,120.seconds);
+       val r = db.run(a)
+       Await.result(r,120.seconds)
        r.value match
       {
         case Some(Success(x)) => x.toList
