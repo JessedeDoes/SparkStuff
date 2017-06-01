@@ -150,7 +150,7 @@ object Hilex
   }
   
   
-  def slurp[A] = (a:DBIOAction[Vector[A], NoStream, Nothing]) => 
+    def slurp[A] (a:DBIOAction[Vector[A], NoStream, Nothing]):List[A] =
     { 
        val r = db.run(a); 
        Await.result(r,120.seconds);
