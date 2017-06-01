@@ -20,20 +20,21 @@ import scala.reflect._
 case class Lemma(modern_lemma: String, lemma_id:Int, persistent_id:String, pos:String) 
 {
    lazy val wordforms = Hilex.slurp(queries.getWordforms(List(this)))
+   lazy val senses = Hilex.slurp(queries.getSenses(List(this)))
 }
 
 case class Wordform(lemma: Lemma, analyzed_wordform_id:Int, wordform: String)
-{
- 
-}
 
 case class Attestation(wordform: Wordform, quote:String, hitStart: Int, hitEnd: Int, eg_id: Option[String])
+{
+   lazy val senses = ???
+}
+
+case class Sense(lemma: Lemma, persistent_id: String, lemma_id:String, parent_id: String, definition: String)
 
 private object util
 {
-
-
-    def concat(a: SQLActionBuilder, b: SQLActionBuilder): SQLActionBuilder = 
+   def concat(a: SQLActionBuilder, b: SQLActionBuilder): SQLActionBuilder = 
   {
 		SQLActionBuilder(a.queryParts ++ b.queryParts, new SetParameter[Unit] {
 				def apply(p: Unit, pp: PositionedParameters): Unit = {
@@ -88,39 +89,73 @@ object queries
                    where a.wordform_id=w.wordform_id and lemma_id in """, values(ids)).as[Wordform]
     }
      
+     def getSenses(lemmata: List[Lemma]) = 
+    {
+      val ids = lemmata.map(_.persistent_id)
+      val lemmaMap = lemmata.map(l => (l.persistent_id,l)).toMap
+      println(lemmaMap.toList)
+      implicit val makeSense = GetResult[Sense](
+          r => Sense(lemmaMap(r.nextString), r.nextString, r.nextString, r.nextString, r.nextString)
+      )
+      concat(sql"""select lemma_id, persistent_id, lemma_id, parent_sense_id , definition
+                   from wnt_ids.senses 
+                   where lemma_id in """, values(ids)).as[Sense]
+    }
     
-    val wfQuery = sql"""
-select modern_lemma, l.lemma_id,lemma_part_of_speech, analyzed_wordform_id, wordform
-     from data.lemmata l, data.analyzed_wordforms a, data.wordforms w
-where
-     l.lemma_id=a.lemma_id
-     AND w.wordform_id=a.wordform_id
-     AND lemma_part_of_speech ~  'ADP'"""
-  
+    
     def getAttestations(wordforms: List[Wordform]) =
     {
-        
-      
-  
-    val ids = wordforms.map(_.analyzed_wordform_id)
-    val wordformMap = wordforms.map(l => (l.analyzed_wordform_id,l)).toMap
-    implicit val makeAttestation =   GetResult[Attestation](
-          r => Attestation(wordformMap(r.nextInt),r.nextString, r.nextInt, r.nextInt, Some(r.nextString))
-      )
+      val ids = wordforms.map(_.analyzed_wordform_id)
+      val wordformMap = wordforms.map(l => (l.analyzed_wordform_id,l)).toMap
+      implicit val makeAttestation =   GetResult[Attestation](
+            r => Attestation(wordformMap(r.nextInt),r.nextString, r.nextInt, r.nextInt, Some(r.nextString)))
   
      concat(sql"""
-select 
-     a.analyzed_wordform_id,
-     quote, start_pos,end_pos, eg_id
-from
-     data.analyzed_wordforms a, data.token_attestations t, wnt_ids.documents d
-where
-       d.document_id=t.document_id
-      and a.analyzed_wordform_id=t.analyzed_wordform_id 
-      and t.analyzed_wordform_id in """, values(ids)).as[Attestation]
+      select 
+           a.analyzed_wordform_id,
+           quote, start_pos,end_pos, eg_id
+      from
+           data.analyzed_wordforms a, data.token_attestations t, wnt_ids.documents d
+      where
+             d.document_id=t.document_id
+            and a.analyzed_wordform_id=t.analyzed_wordform_id 
+            and t.analyzed_wordform_id in """, values(ids)).as[Attestation]
     } 
     
-
+    def getLemma(lemma_id: Int):Lemma =
+    {
+        Hilex.slurp(queries.lemmaQueryWhere(s"lemma_id='${lemma_id}'" )).head
+    }
+    
+    def getWordform(analyzed_wordform_id: Int):Wordform = 
+    {
+      implicit val makeWordform = GetResult[Wordform](
+          r => Wordform(getLemma(r.nextInt), r.nextInt, r.nextString)
+      )
+      val a = sql"""select lemma_id, analyzed_wordform_id, wordform from data.analyzed_wordforms a, data.wordforms w 
+                   where a.wordform_id=w.wordform_id and analyzed_wordform_id=${analyzed_wordform_id} """.as[Wordform]
+       Hilex.slurp(a).head
+    }
+    
+    def getAttestationsForSense(senses: List[Sense]) =
+    {
+      val ids = senses.map(_.persistent_id)
+      val senseMap = senses.map(l => (l.persistent_id,l)).toMap
+      implicit val makeAttestation =   GetResult[Attestation](
+            r => Attestation(getWordform(r.nextInt),r.nextString, r.nextInt, r.nextInt, Some(r.nextString)))
+  
+     concat(sql"""
+      select 
+           analyzed_wordform_id,
+           quote, start_pos,end_pos, d.eg_id
+      from
+            data.token_attestations t, wnt_ids.eg_sense e, wnt_ids.documents d
+      where
+            d.eg_id = e.eg_id
+            and t.document_id=d.document_id
+            and e.sense_id in """, values(ids)).as[Attestation]
+    } 
+    
    // as in: concat(sql"select id from USERS where id in ", values(Seq(1,2))).as[Int]
 }
 
@@ -179,7 +214,10 @@ object Hilex
   { 
     val l = findSomeLemmata
     l.foreach(println)
-    l.foreach(x => println(x.wordforms))
+    l.foreach(x => println(x.senses))
+    val qs = queries.getSenses(l)
+    val qsa = queries.getAttestationsForSense(slurp(qs))
+    slurp(qsa).foreach(println)
     val q = queries.getWordforms(l)
     val l1 = slurp(q)
     l1.foreach(println)
