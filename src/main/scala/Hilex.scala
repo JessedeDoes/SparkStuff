@@ -159,7 +159,7 @@ object Hilex
   
   def findSomeLemmata:List[Lemma] =
   {
-     slurp(queries.lemmaQueryWhere("modern_lemma ~ 'goed'"))
+     slurp(queries.lemmaQueryWhere("modern_lemma ~ 'go'"))
   }
   
   def main(args:Array[String]):Unit = 
