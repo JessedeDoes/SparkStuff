@@ -13,7 +13,7 @@ import java.io.File
     
 object Store
 {
-  val dir = "./Store"
+  val dir = "../Store"
   def store(subdir: String, id:String, metadata:Node, text:String) = 
   {
     val fileName = id.replaceAll(".*urn=","").replaceAll(":","_") + ".xml"
