@@ -31,8 +31,21 @@ libraryDependencies += "org.ivdnt.wsd" % "JustWSD" % "0.0.1-SNAPSHOT"
 libraryDependencies += "org.ivdnt.tagging" % "DutchTagger" % "0.0.1-SNAPSHOT"
 libraryDependencies += "org.ivdnt.clariah" % "QueryNederlab" % "0.0.1-SNAPSHOT"
 
+resolvers ++= Seq(
+  "tpolecat" at "http://dl.bintray.com/tpolecat/maven",
+  "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases"
+)
+
+lazy val doobieVersion = "0.4.1"
+
+libraryDependencies ++= Seq(
+  "org.tpolecat"   %% "doobie-core"               % doobieVersion,
+  "org.tpolecat"   %% "doobie-contrib-postgresql" % "0.3.0",
+  "org.tpolecat"   %% "doobie-contrib-specs2"     % "0.3.0"
+)
+
 // https://mvnrepository.com/artifact/cc.mallet/mallet
-libraryDependencies += "cc.mallet" % "mallet" % "2.0.8"
+// libraryDependencies += "cc.mallet" % "mallet" % "2.0.8"
 
 // libraryDependencies += "graphframes" % "graphframes" % "0.4.0-spark2.1-s_2.11"
 

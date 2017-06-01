@@ -8,6 +8,7 @@ object LexiconService
          + lemma.toLowerCase)
      \\ "found_wordforms").toList.map(_.text.toLowerCase).filter(_.matches("^(\\p{L})*$"))
    }
+   
    def getLemmata(wordform: String):List[String] =
    {
      (XML.load("http://sk.taalbanknederlands.inl.nl/LexiconService/lexicon/get_lemmata?database=lexicon_service_db&wordform=" + wordform.toLowerCase)

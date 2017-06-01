@@ -1,0 +1,101 @@
+import java.sql.Date
+import doobie.imports._
+import scalaz._
+import scalaz.Scalaz._
+scalaz.concurrent.Task
+
+
+
+object testje
+{
+// transactor
+  def test1 =
+  {
+val xa = DriverManagerTransactor[Task]("com.mysql.jdbc.Driver", "jdbc:mysql://localhost/menagerie", "root", "")
+
+// program that returns a constant
+val program1 = 42.point[ConnectionIO]
+val task = program1.transact(xa)
+task.run
+
+// program that returns a constant from the database
+val program2 = sql"select 42".query[Int].unique
+val task2 = program2.transact(xa)
+task2.run
+
+// sample program in for comprehension
+val program3 =
+  for {
+    a <- sql"select 42".query[Int].unique
+    b <- sql"select rand()".query[Double].unique
+  } yield (a, b)
+program3.transact(xa).run
+
+// equivalent program that uses applicative, since a & b are independent
+val program3a = {
+  val a = sql"select 42".query[Int].unique
+  val b = sql"select rand()".query[Double].unique
+  (a |@| b).tupled
+}
+program3a.transact(xa).run
+
+// build a program that puts 5 of the previous program together
+List.fill(5)(program3a).sequenceU.transact(xa).run.foreach(println)
+  }
+
+def test2 =
+{
+// transactor
+val xa = DriverManagerTransactor[Task]("com.mysql.jdbc.Driver", "jdbc:mysql://localhost/menagerie", "root", "")
+import xa.yolo._
+// program that returns a constant
+val program1 = 42.point[ConnectionIO]
+val task = program1.transact(xa)
+task.run
+
+// program that returns a constant from the database
+val program2 = sql"select 42".query[Int].unique
+val task2 = program2.transact(xa)
+task2.run
+
+// sample program in for comprehension
+val program3 =
+  for {
+    a <- sql"select 42".query[Int].unique
+    b <- sql"select rand()".query[Double].unique
+  } yield (a, b)
+program3.transact(xa).run
+
+// equivalent program that uses applicative, since a & b are independent
+val program3a = {
+  val a = sql"select 42".query[Int].unique
+  val b = sql"select rand()".query[Double].unique
+  (a |@| b).tupled
+}
+program3a.transact(xa).run
+
+// build a program that puts 5 of the previous program together
+List.fill(5)(program3a).sequenceU.transact(xa).run.foreach(println)
+
+
+
+// case class that matches the query output
+case class Pet(name: Option[String], owner: Option[String], species: Option[String], sex: Option[String], birth: Option[Date], death: Option[Date])
+// query into records of the case class type
+val program4 = sql"select name, owner, species, sex, birth, death from pet".query[Pet]
+program4.unique.transact(xa).run
+
+
+program4.check.run // typecheck the query against the db
+
+
+// case class that matches the query output
+case class Pet(name: Option[String], owner: Option[String], species: Option[String], sex: Option[String], birth: Option[Date], death: Option[Date])
+// query into records of the case class type
+val program4 = sql"select name, owner, species, sex, birth, death from pet".query[Pet]
+program4.unique.transact(xa).run
+
+import xa.yolo._
+program4.check.run // typecheck the query against the db
+  }
+}
