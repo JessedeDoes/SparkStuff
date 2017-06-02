@@ -36,13 +36,16 @@ case class Attestation(wordform: Wordform, quote:String, start_pos: Int, end_pos
        x match { case TokenWithOffsets(t,s,e) => Math.abs(s - start_pos + e - end_pos) } 
    }
    
-   def  toConcordance =
+   def toConcordance =
    {
-     val tokens = TokenizerWithOffsets.tokenize(quote)
+     val tokens = TokenizerWithOffsets.tokenize(quote)(really=false)
      val probableHit = tokens.toList.zipWithIndex.minBy(x => sillyCriterium(x._1))
      println(probableHit)
      val tokenStream = tokens.toStream
-    
+     
+     val c = new Concordance(probableHit._2, probableHit._2+1, List(("word",tokens.map(_.token.token))).toMap, Map.empty)
+     println(c.toString())
+     // hm... 
    }
 }
 

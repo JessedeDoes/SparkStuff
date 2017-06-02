@@ -1,0 +1,797 @@
+&su;	[su]		
+&risie;	[risie]		
+&rs;	[rs]		
+&dots;	[dots]		
+&tgra;	[tgra]		
+&female;	[female]		
+&gAasperacu;	[gAasperacu]		
+&sdot;	[sdot]		
+&gplenis;	[gplenis]		
+&fuml;	[fuml]		
+&T;	[T]		
+&ygrave;	[ygrave]		
+&ssT;	[ssT]		
+&sgate;	[sgate]		
+&ceed;	[ceed]		
+&s;	[s]		
+&zdb;	[zdb]		
+&tacute;	[tacute]		
+&usup;	[usup]		
+&iibreveb;	[iibreveb]		
+&supcomma;	[supcomma]		
+&rdquor;	[rdquor]		
+&wmac;	[wmac]		
+&gib;	[gib]		
+&quot;	[quot]		
+&tdot;	[tdot]		
+&aasper;	[aasper]		
+&geaspertilde;	[geaspertilde]		
+&rsquor;	[rsquor]		
+&uibreveb;	[uibreveb]		
+&gpasper;	[gpasper]		
+&dubdubinspr;	 		
+&sigmavasper;	[sigmavasper]		
+&Iotaasper;	[Iotaasper]		
+&dubinspr;	[dubinspr]		
+&guaspergra;	[guaspergra]		
+&uibreve;	[uibreve]		
+&vmac;	[vmac]		
+&r;	[r]		
+&ssU;	[ssU]		
+&tdb;	[tdb]		
+&odotb;	[odotb]		
+&heta;	[heta]		
+&gelenisgra;	[gelenisgra]		
+&Alpha1;	[Alpha1]		
+&gucirc;	[gucirc]		
+&ustrok;	[ustrok]		
+&ssL;	[ssL]		
+&dollar;	&#x0024;		
+&pcnt;	&#x0025;		
+&percnt;	&#x0025;		
+&amp;	&#x0026;		
+&ast;	&#x002A;		
+&kmacr;	&#x002A;		
+&plus;	&#x002B;		
+&sl;	&#x002F;		
+&lt;	&#x003C;		
+&equiv;	&#x003D;		
+&gt;	&#x003E;		
+&circ;	&#x005E;		
+&gra;	&#x0060;		
+&vr;	&#x007C;		
+&tilde;	&#x007E;		
+&#132;	&#x0084;		
+&#148;	&#x0094;		
+&pound;	&#x00A3;		
+&sect;	&#x00A7;		
+&sects;	&#x00A7;&#x00A7;	A700A7	
+&uml;	&#x00A8;		
+&supa;	&#x00AA;		
+&laquo;	&#x00AB;		
+&#x00B0;	&#x00B0;		
+&ordm;	&#x00B0;		
+&deg;	&#x00B0;		
+&plusmn;	&#x00B1;		
+&sup2;	&#x00B2;		
+&sup3;	&#x00B3;		
+&para;	&#x00B6;		
+&middot;	&#x00B7;		
+&cd;	&#x00B7;		
+&sup1;	&#x00B9;		
+&supo;	&#x00BA;		
+&raquo;	&#x00BB;		
+&frac14;	&#x00BC;		
+&half;	&#x00BD;		
+&frac12;	&#x00BD;		
+&frac34;	&#x00BE;		
+&iquest;	&#x00BF;		
+&Agrave;	&#x00C0;		
+&Aacute;	&#x00C1;		
+&Acirc;	&#x00C2;		
+&Auml;	&#x00C4;		
+&Aring;	&#x00C5;		
+&Aelig;	&#x00C6;		
+&AElig;	&#x00C6;		
+&Ccedil;	&#x00C7;		
+&Egrave;	&#x00C8;		
+&Eacute;	&#x00C9;		
+&Ecirc;	&#x00CA;		
+&Euml;	&#x00CB;		
+&Igrave;	&#x00CC;		
+&Iacute;	&#x00CD;		
+&Icirc;	&#x00CE;		
+&Iuml;	&#x00CF;		
+&Ntilde;	&#x00D1;		
+&Ograve;	&#x00D2;		
+&Oacute;	&#x00D3;		
+&Ocirc;	&#x00D4;		
+&Ouml;	&#x00D6;		
+&Oslash;	&#x00D8;		
+&Ugrave;	&#x00D9;		
+&Ucirc;	&#x00DB;		
+&Uuml;	&#x00DC;		
+&szlig;	&#x00DF;		
+&agrave;	&#x00E0;		
+&aacute;	&#x00E1;		
+&acirc;	&#x00E2;		
+&atilde;	&#x00E3;		
+&auml;	&#x00E4;		
+&aring;	&#x00E5;		
+&aelig;	&#x00E6;		
+&ccedd;	&#x00E7;		
+&ccedil;	&#x00E7;		
+&egrave;	&#x00E8;		
+&eacute;	&#x00E9;		
+&ecirc;	&#x00EA;		
+&ecircn;	&#x00EA;		
+&euml;	&#x00EB;		
+&igrave;	&#x00EC;		
+&iacute;	&#x00ED;		
+&icirc;	&#x00EE;		
+&icir;	&#x00EE;		
+&iuml;	&#x00EF;		
+&eth;	&#x00F0;		
+&sntilde;	&#x00F1;		
+&ntilde;	&#x00F1;		
+&ograk;	&#x00F2;		
+&ograve;	&#x00F2;		
+&oacute;	&#x00F3;		
+&oacu;	&#x00F3;		
+&ocirc;	&#x00F4;		
+&otilde;	&#x00F5;		
+&ouml;	&#x00F6;		
+&#x00F6;	&#x00F6;		
+&div;	&#x00F7;		
+&divide;	&#x00F7;		
+&oslash;	&#x00F8;		
+&ugrave;	&#x00F9;		
+&uacute;	&#x00FA;		
+&ucircu;	&#x00FB;		
+&ucirc;	&#x00FB;		
+&uuml;	&#x00FC;		
+&uda;	&#x00FC;		
+&yacute;	&#x00FD;		
+&thorn;	&#x00FE;		
+&#x00FE;	&#x00FE;		
+&yuml;	&#x00FF;		
+&times;	&#x00d7;		
+&Amacr;	&#x0100;		
+&abar;	&#x0101;		
+&amacr;	&#x0101;		
+&#x0101;	&#x0101;		
+&abreve;	&#x0103;		
+&aibr;	&#x0103;		
+&at;	&#x0105;		
+&Cacute;	&#x0106;		
+&cacute;	&#x0107;		
+&ccirc;	&#x0109;		
+&Ccaron;	&#x010C;		
+&ccaron;	&#x010D;		
+&dmacr;	&#x0111;		
+&dtilde;	&#x0111;		
+&dstrok;	&#x0111;		
+&dbar;	&#x0111;		
+&Emacr;	&#x0112;		
+&#x0113;	&#x0113;		
+&emacr;	&#x0113;		
+&Ebreve;	&#x0114;		
+&ebreve;	&#x0115;		
+&edot;	&#x0117;		
+&et;	&#x0119;		
+&eib;	&#x0119;		
+&eogonek;	&#x0119;		
+&Ecaron;	&#x011A;		
+&ecaron;	&#x011B;		
+&gcirc;	&#x011D;		
+&gdot;	&#x0121;		
+&itilde;	&#x0129;		
+&ibar;	&#x012B;		
+&imacr;	&#x012B;		
+&Ibreve;	&#x012C;		
+&ibreve;	&#x012D;		
+&inodot;	&#x0131;		
+&ntb;	&#x014B;		
+&eng;	&#x014B;		
+&Omacr;	&#x014C;		
+&somac;	&#x014D;		
+&omc;	&#x014D;		
+&omacr;	&#x014D;		
+&obreve;	&#x014F;		
+&#140;	&#x0152;		
+&OElig;	&#x0152;		
+&oelig;	&#x0153;		
+&#x0157;	&#x0157;		
+&Sacute;	&#x015A;		
+&sacute;	&#x015B;		
+&scirc;	&#x015D;		
+&Scaron;	&#x0160;		
+&scaron;	&#x0161;		
+&#x0161;	&#x0161;		
+&utilde;	&#x0169;		
+&umacr;	&#x016B;		
+&ubrev;	&#x016D;		
+&ubreve;	&#x016D;		
+&uang;	&#x016F;		
+&uca;	&#x016F;		
+&uring;	&#x016F;		
+&wcirc;	&#x0175;		
+&ycirc;	&#x0177;		
+&zacute;	&#x017A;		
+&zdot;	&#x017C;		
+&Zcaron;	&#x017D;		
+&zcaron;	&#x017E;		
+&bstrok;	&#x0180;		1
+&bbar;	&#x0180;		1
+&bmacr;	&#x0183;		1
+&#x0192;	&#x0192;		
+&fnof;	&#x0192;		
+&zbt;	&#x01B6;		1
+&acaron;	&#x01CE;		1
+&ahacek;	&#x01CE;		1
+&ihacek;	&#x01D0;		1
+&icaron;	&#x01D0;		1
+&ocaron;	&#x01D2;		1
+&ohacek;	&#x01D2;		1
+&Ucaron;	&#x01D3;		1
+&ucaron;	&#x01D4;		1
+&uhacek;	&#x01D4;		1
+&uumlmac;	&#x01D6;		1
+&uumlacu;	&#x01D8;		1
+&aemac;	&#x01E3;		1
+&gcaron;	&#x01E7;		1
+&q;	&#x01EB;		1
+&oogonek;	&#x01EB;		1
+&omacced;	&#x01ED;		1
+&otmac;	&#x01ED;		1
+&aeacute;	&#x01FD;		
+&zced;	&#x0225;		1
+&adot;	&#x0227;		1
+&eced;	&#x0229;		1
+&oumlmac;	&#x022B;		1
+&odot;	&#x022F;		1
+&ymac;	&#x0233;		1
+&ymacr;	&#x0233;		1
+&ic;	&#x0254;		1
+&ie;	&#x0259;		1
+&zyogh;	&#x0292;		1
+&yogh;	&#x0292;		1
+&#x02B9;	&#x02B9;		
+&br;	&#x02BB;		1
+&acute;	&#x02CA;		1
+&acu;	&#x02CA;		1
+&breve;	&#x02D8;		
+&#x0301;	&#x0301;		
+&#x0302;	&#x0302;		
+&#x0323;	&#x0323;		
+&#x0325;	&#x0325;		
+&#x032E;	&#x032E;		
+&#x032F;	&#x032F;		
+&#x0339;	&#x0339;		
+&asper;	&#x0384;		
+&grd;	&#x0387;		
+&Alpha;	&#x0391;		
+&Beta;	&#x0392;		
+&Gamma;	&#x0393;		
+&Delta;	&#x0394;		
+&Epsilon;	&#x0395;		
+&Zeta;	&#x0396;		
+&Eta;	&#x0397;		
+&Theta;	&#x0398;		
+&Iota;	&#x0399;		
+&Kappa;	&#x039A;		
+&Lambda;	&#x039B;		
+&Mu;	&#x039C;		
+&Nu;	&#x039D;		
+&Xi;	&#x039E;		
+&Omicron;	&#x039F;		
+&Pi;	&#x03A0;		
+&Rho;	&#x03A1;		
+&Sigma;	&#x03A3;		
+&Tau;	&#x03A4;		
+&Upsilon;	&#x03A5;		
+&Phi;	&#x03A6;		
+&Chi;	&#x03A7;		
+&Omega;	&#x03A9;		
+&#x03AC;	&#x03AC;		
+&alpha;	&#x03B1;		
+&#x03B1;	&#x03B1;		
+&beta;	&#x03B2;		
+&gamma;	&#x03B3;		
+&#x03B4;	&#x03B4;		
+&delta;	&#x03B4;		
+&epsilon;	&#x03B5;		
+&ge;	&#x03B5;		
+&#x03B5;	&#x03B5;		
+&zeta;	&#x03B6;		
+&eta;	&#x03B7;		
+&iota;	&#x03B9;		
+&#x03BA;	&#x03BA;		
+&kappa;	&#x03BA;		
+&kappav;	&#x03BA;		
+&lambda;	&#x03BB;		
+&mu;	&#x03BC;		
+&nu;	&#x03BD;		
+&#x03BD;	&#x03BD;		
+&xi;	&#x03BE;		
+&#x03BE;	&#x03BE;		
+&omicron;	&#x03BF;		
+&#x03BF;	&#x03BF;		
+&pi;	&#x03C0;		
+&#x03C0;	&#x03C0;		
+&#x03C1;	&#x03C1;		
+&rho;	&#x03C1;		
+&tsigma;	&#x03C2;		
+&sigmav;	&#x03C2;		
+&sigma;	&#x03C3;		
+&tau;	&#x03C4;		
+&upsilon;	&#x03C5;		
+&phi;	&#x03C6;		
+&#x03C7;	&#x03C7;		
+&chi;	&#x03C7;		
+&psi;	&#x03C8;		
+&omega;	&#x03C9;		
+&#x03C9;	&#x03C9;		
+&guuml;	&#x03CB;		
+&#x03CC;	&#x03CC;		
+&theta;	&#x03D1;		0
+&#x03D1;	&#x03D1;		
+&phiv;	&#x03D5;		1
+&Sigmav;	&#x03DA;		1
+&Digamma;	&#x03DC;		1
+&veth;	&#x05D1;		
+&heh;	&#x05D4;		
+&lamed;	&#x05DC;		
+&#2215;	&#x08A7;		
+&ddotb;	&#x1E0D;		1
+&gmac;	&#x1E21;		1
+&hdotb;	&#x1E25;		1
+&kdotb;	&#x1E33;		1
+&ldb;	&#x1E37;		1
+&mdot;	&#x1E41;		1
+&mdotb;	&#x1E43;		1
+&ndot;	&#x1E45;		1
+&ndotb;	&#x1E47;		1
+&nbb;	&#x1E49;		1
+&omaggra;	&#x1E51;		1
+&omacgra;	&#x1E51;		1
+&omacacu;	&#x1E53;		1
+&rdot;	&#x1E5B;		1
+&#x1E5B;	&#x1E5B;		
+&rdotb;	&#x1E5B;		1
+&rdb;	&#x1E5B;		1
+&Sdb;	&#x1E62;		1
+&sdotb;	&#x1E63;		1
+&#x1E63;	&#x1E63;		
+&tdotb;	&#x1E6D;		1
+&#x1E6D;	&#x1E6D;		
+&#x1E6F;	&#x1E6F;		
+&etilde;	&#x1EBD;		
+&ecircacu;	&#x1EBF;		
+&odb;	&#x1ECD;		
+&olenis;	&#x1ECF;		
+&ygra;	&#x1EF3;		
+&ytilde;	&#x1EF9;		
+&galenis;	&#x1F00;		1
+&gaasper;	&#x1F01;		1
+&gaaspergra;	&#x1F03;		1
+&galenisacu;	&#x1F04;		1
+&gaasperacu;	&#x1F05;		1
+&gasperacu;	&#x1F05;		1
+&galenistilde;	&#x1F06;		1
+&gaaspertilde;	&#x1F07;		1
+&gAlenis;	&#x1F08;		1
+&gAasper;	&#x1F09;		1
+&gAlenisacu;	&#x1F0C;		1
+&gelenis;	&#x1F10;		1
+&geasper;	&#x1F11;		1
+&gelenisacu;	&#x1F14;		1
+&geasperacu;	&#x1F15;		1
+&gElenis;	&#x1F18;		1
+&gEasper;	&#x1F19;		1
+&gElenisacu;	&#x1F1C;		1
+&ghlenis;	&#x1F20;		1
+&ghasper;	&#x1F21;		1
+&ghlenisgra;	&#x1F22;		1
+&gilenisacu;	&#x1F24;		1
+&ghlenisacu;	&#x1F24;		1
+&ghasperacu;	&#x1F25;		1
+&ghaspertilde;	&#x1F27;		1
+&gHasperacu;	&#x1F2C;		1
+&#x1F30;	&#x1F30;		
+&gilenis;	&#x1F30;		1
+&giasper;	&#x1F31;		1
+&gisperacu;	&#x1F35;		1
+&giasperacu;	&#x1F35;		1
+&giaspertilde;	&#x1F37;		1
+&#x1F38;	&#x1F38;		
+&gIlenis;	&#x1F38;		1
+&gIlenisacu;	&#x1F3C;		1
+&golenis;	&#x1F40;		1
+&goasper;	&#x1F41;		1
+&goaspergra;	&#x1F43;		1
+&golenisacu;	&#x1F44;		1
+&goasperacu;	&#x1F45;		1
+&gOlenis;	&#x1F48;		1
+&gOlenisacu;	&#x1F4C;		1
+&gulenis;	&#x1F50;		1
+&#x1F51;	&#x1F51;		
+&guasper;	&#x1F51;		1
+&gulenisacu;	&#x1F54;		1
+&guasperacu;	&#x1F55;		1
+&gulenistilde;	&#x1F56;		1
+&guaspertilde;	&#x1F57;		1
+&gYasper;	&#x1F59;		1
+&gwlenis;	&#x1F60;		1
+&gwasper;	&#x1F61;		1
+&gwlenisgra;	&#x1F62;		1
+&gwlenisacu;	&#x1F64;		1
+&gwasperacu;	&#x1F65;		1
+&gwlenistilde;	&#x1F66;		1
+&gwaspertilde;	&#x1F67;		1
+&gagra;	&#x1F70;		1
+&gaacute;	&#x1F71;		1
+&gaacu;	&#x1F71;		1
+&gegra;	&#x1F72;		1
+&ghgra;	&#x1F74;		1
+&ghacu;	&#x1F75;		1
+&gigra;	&#x1F76;		1
+&#x1F76;	&#x1F76;		
+&giacu;	&#x1F77;		1
+&gogra;	&#x1F78;		1
+&goacu;	&#x1F79;		1
+&gugra;	&#x1F7A;		1
+&guacu;	&#x1F7B;		1
+&gwgra;	&#x1F7C;		1
+&#x1F7C;	&#x1F7C;		
+&gwacu;	&#x1F7D;		1
+&#x1F88;	&#x1F88;		
+&gwlenisiota;	&#x1FA0;		1
+&alphamac;	&#x1FB1;		1
+&gamac;	&#x1FB1;		1
+&gaiota;	&#x1FB3;		1
+&gaiotab;	&#x1FB3;		1
+&gaiotaacu;	&#x1FB4;		1
+&gatilde;	&#x1FB6;		1
+&gatildeiota;	&#x1FB7;		1
+&ghiotagra;	&#x1FC2;		1
+&ghiota;	&#x1FC3;		1
+&ghacuiota;	&#x1FC4;		1
+&ghtilde;	&#x1FC6;		1
+&ghtildeiota;	&#x1FC7;		1
+&ghiotatilde;	&#x1FC7;		1
+&gimac;	&#x1FD1;		1
+&giumlacu;	&#x1FD3;		1
+&gitilde;	&#x1FD6;		1
+&gubreve;	&#x1FE0;		1
+&gumac;	&#x1FE1;		1
+&rlenis;	&#x1FE4;		1
+&grasper;	&#x1FE5;		1
+&#x1FE6;	&#x1FE6;		
+&gutilde;	&#x1FE6;		1
+&#x1FE7;	&#x1FE7;		
+&gRasper;	&#x1FEC;		1
+&gwiota;	&#x1FF3;		1
+&wtilde;	&#x1FF6;		1
+&gwtilde;	&#x1FF6;		1
+&gwiotatilde;	&#x1FF7;		1
+&ndash;	&#x2013;		
+&mdash;	&#x2014;		
+&vrs;	&#x2016;		1
+&wa;	&#x2018;		
+&lsquo;	&#x2018;		
+&dl;	&#x2018;		
+&ocq;	&#x2019;		
+&rsquo;	&#x2019;		
+&lsquor;	&#x2019;		
+&ldquo;	&#x201C;		
+&rdquo;	&#x201D;		
+&ldquor;	&#x201D;		
+&cdq;	&#x201D;		
+&opq;	&#x201E;		
+&dagger;	&#x2020;		
+&dd;	&#x2025;		1
+&dddd;	&#x2026;		
+&ddd;	&#x2026;		
+&pt;	&#x2030;		
+&permil;	&#x2030;		
+&prime;	&#x2032;		
+&Prime;	&#x2033;		
+&msec;	&#x2034;		1
+&firb;	&#x203F;		1
+&trb;	&#x2040;		1
+&trs;	&#x2042;		1
+&#x2042;	&#x2042;		
+&sup0;	&#x2070;		1
+&sup4;	&#x2074;		1
+&sup5;	&#x2075;		1
+&sup6;	&#x2076;		1
+&sup7;	&#x2077;		1
+&sup8;	&#x2078;		1
+&sup9;	&#x2079;		1
+&#x207B;	&#x207B;		
+&sub0;	&#x2080;		1
+&sub1;	&#x2081;		1
+&sub2;	&#x2082;		1
+&#x2082;	&#x2082;		
+&sub3;	&#x2083;		1
+&sub4;	&#x2084;		1
+&sub5;	&#x2085;		1
+&sub6;	&#x2086;		1
+&sub7;	&#x2087;		1
+&sub8;	&#x2088;		1
+&sub9;	&#x2089;		1
+&#x208B;	&#x208B;		
+&#x2114;	&#x2114;		
+&lbbar;	&#x2114;		1
+&frac13;	&#x2153;		1
+&frac23;	&#x2154;		1
+&frac18;	&#x2155;		
+&frac38;	&#x215C;		
+&frac58;	&#x215D;		
+&arrow;	&#x2192;		1
+&larr;	&#x2192;		1
+&rarr;	&#x2192;		1
+&sup;	&#x2212;		
+&minus;	&#x2212;		
+&supsol;	&#x2215;		
+&sr;	&#x221A;		
+&radic;	&#x221A;		
+&root3;	&#x221B;		1
+&inf;	&#x221E;		
+&ang;	&#x2220;		1
+&pyr;	&#x2227;		1
+&hc;	&#x222A;		1
+&int;	&#x222B;		
+&hdot;	&#x2234;		1
+&there4;	&#x2234;		1
+&be;	&#x2235;		1
+&ea;	&#x2245;		1
+&ne;	&#x2260;		
+&qp;	&#x2263;		1
+&le;	&#x2266;		1
+&cont;	&#x2282;		1
+&ogt;	&#x228F;		1
+&it;	&#x22A5;		1
+&#x230A;	&#x230A;		
+&tri;	&#x25B3;		1
+&itri;	&#x25BF;		1
+&hand;	&#x261E;		1
+&fm;	&#x2640;		1
+&male;	&#x2642;		1
+&clubs;	&#x2660;		1
+&flat;	&#x266D;		1
+&natur;	&#x266E;		1
+&nat;	&#x266E;		1
+&sharp;	&#x266F;		1
+&sbreve;	&#xE002;	E002	1
+&zbreve;	&#xE004;	E004	1
+&aecirc;	&#xE006;	E006	1
+&oemac;	&#xE007;	E007	1
+&oslashmacr;	&#xE009;	E009	1
+&smacr;	&#xE00F;	E00F	1
+&gemac;	&#xE019;	E019	1
+&emacgra;	&#xE01B;	E01B	1
+&ering;	&#xE01C;	E01C	1
+&mmacr;	&#xE02F;	E02F	1
+&jacute;	&#xE059;	E059	1
+&oudholspond;	&#xE066;	E066	1
+&Gkey;	&#xE069;	E069	1
+&kibreve;	&#xE06E;	E06E	1
+&emacu;	&#xE073;	E073	
+&aibreveb;	&#xE078;	E078	1
+&eibreveb;	&#xE079;	E079	1
+&ibreveb;	&#xE07A;	E07A	1
+&oberb;	&#xE07B;	E07B	1
+&umacb;	&#xE07C;	E07C	1
+&ubreveb;	&#xE07C;	E07C	1
+&uibr;	&#xE07C;	E07C	1
+&amacacu;	&#xE07D;	E07D	1
+&umacacu;	&#xE07F;	E07F	1
+&amacbreve;	&#xE080;	E080	1
+&emacbreve;	&#xE081;	E081	1
+&imacbreve;	&#xE082;	E082	1
+&omacbreve;	&#xE083;	E083	1
+&umacbreve;	&#xE084;	E084	1
+&ltilde;	&#xE088;	E088	1
+&langb;	&#xE08E;	E08E	1
+&mangb;	&#xE08F;	E08F	1
+&nangb;	&#xE090;	E090	1
+&rangb;	&#xE091;	E091	1
+&umlcirc;	&#xE0A6;	E0A6	1
+&eaa;	&#xE0B3;	E0B3	1
+&eu;	&#xE0B5;	E0B5	1
+&eo;	&#xE0BC;	E0BC	1
+&oang;	&#xE0C1;	E0C1	1
+&oring;	&#xE0C1;	E0C1	1
+&ptilde;	&#xE0C5;	E0C5	1
+&rtilde;	&#xE0C6;	E0C6	1
+&Nangb;	&#xE0DF;	E0DF	1
+&Omacgra;	&#xE0E0;	E0E0	1
+&Oumlcirc;	&#xE0E1;	E0E1	1
+&Rangb;	&#xE0E2;	E0E2	1
+&abreveb;	&#xE0E3;	E0E3	1
+&aemaccirc;	&#xE0E4;	E0E4	1
+&ddba;	&#xE0E5;	E0E5	1
+&aiota;	&#xE0E6;	E0E6	1
+&allabreve;	&#xE0E7;	E0E7	1
+&amacang;	&#xE0E8;	E0E8	1
+&aumlcirc;	&#xE0E9;	E0E9	1
+&cdba;	&#xE0EA;	E0EA	1
+&cmacr;	&#xE0EB;	E0EB	1
+&cvb;	&#xE0EC;	E0EC	1
+&ds;	&#xE0ED;	E0ED	1
+&ebreveacu;	&#xE0EE;	E0EE	1
+&ebreveb;	&#xE0EF;	E0EF	1
+&eda;	&#xE0F0;	E0F0	1
+&edba;	&#xE0F1;	E0F1	1
+&edbmac;	&#xE0F2;	E0F2	1
+&edt;	&#xE0F3;	E0F3	1
+&eecirc;	&#xE0F4;	E0F4	1
+&eemac;	&#xE0F5;	E0F5	1
+&emaccirc;	&#xE0F6;	E0F6	1
+&etacb;	&#xE0F7;	E0F7	1
+&ett;	&#xE0F8;	E0F8	1
+&eumlbreve;	&#xE0F9;	E0F9	1
+&eumltilde;	&#xE0FA;	E0FA	1
+&gabreveacu;	&#xE0FB;	E0FB	1
+&gacute;	&#xE0FC;	E0FC	1
+&gamacacu;	&#xE0FD;	E0FD	1
+&gate;	&#xE0FE;	E0FE	1
+&gdlenis;	&#xE0FF;	E0FF	1
+&geacu;	&#xE100;	E100	1
+&geaspergra;	&#xE101;	E101	1
+&ghlenistilde;	&#xE102;	E102	1
+&giibrb;	&#xE103;	E103	1
+&gilenistilde;	&#xE104;	E104	1
+&gimacacu;	&#xE105;	E105	1
+&gotilde;	&#xE106;	E106	1
+&grlenis;	&#xE107;	E107	1
+&gwati;	&#xE108;	E108	1
+&ibreveacu;	&#xE109;	E109	1
+&icacu;	&#xE10B;	E10B	1
+&icuml;	&#xE10C;	E10C	1
+&iehacek;	&#xE10D;	E10D	1
+&ieibreveb;	&#xE10E;	E10E	1
+&iemacb;	&#xE10F;	E10F	1
+&iemacr;	&#xE110;	E110	1
+&imacacu;	&#xE111;	E111	1
+&imacbb;	&#xE112;	E112	1
+&imaccirc;	&#xE113;	E113	1
+&intab;	&#xE114;	E114	1
+&ith;	&#xE115;	E115	1
+&jmacr;	&#xE116;	E116	1
+&kangb;	&#xE117;	E117	1
+&kcirc;	&#xE118;	E118	1
+&lasper;	&#xE119;	E119	1
+&macucb;	&#xE11A;	E11A	1
+&mf;	&#xE11B;	E11B	1
+&nca;	&#xE11C;	E11C	1
+&nmacr;	&#xE11D;	E11D	1
+&noacu;	&#xE11E;	E11E	1
+&not;	&#xE11F;	E11F	1
+&obo;	&#xE120;	E120	1
+&obreveb;	&#xE121;	E121	1
+&obrevelenis;	&#xE122;	E122	1
+&oumlb;	&#xE123;	E123	1
+&odia;	&#xE123;	E123	1
+&oeacute;	&#xE124;	E124	1
+&oebreve;	&#xE125;	E125	1
+&oecirc;	&#xE126;	E126	1
+&oegra;	&#xE127;	E127	1
+&oemaccirc;	&#xE128;	E128	1
+&omaccirc;	&#xE129;	E129	1
+&omacemac;	&#xE12A;	E12A	1
+&oocirc;	&#xE12B;	E12B	1
+&oumlcirc;	&#xE12D;	E12D	1
+&oumlgra;	&#xE12E;	E12E	1
+&pmacr;	&#xE12F;	E12F	1
+&prmac;	&#xE130;	E130	1
+&puml;	&#xE131;	E131	1
+&qacu;	&#xE132;	E132	1
+&qacute;	&#xE132;	E132	1
+&remac;	&#xE133;	E133	1
+&rmacr;	&#xE134;	E134	1
+&rmac;	&#xE134;	E134	1
+&rnmac;	&#xE135;	E135	1
+&rootpn;	&#xE136;	E136	1
+&sdia;	&#xE137;	E137	1
+&sgra;	&#xE138;	E138	1
+&tm;	&#xE139;	E139	1
+&tris;	&#xE13A;	E13A	1
+&uangacu;	&#xE13B;	E13B	1
+&uangb;	&#xE13C;	E13C	1
+&uangtilde;	&#xE13D;	E13D	1
+&uasper;	&#xE13E;	E13E	1
+&umacuml;	&#xE13F;	E13F	1
+&uumlibr;	&#xE140;	E140	1
+&uumlibrb;	&#xE141;	E141	1
+&uumlmaccirc;	&#xE142;	E142	1
+&xmac;	&#xE143;	E143	1
+&ybreve;	&#xE144;	E144	1
+&ycaron;	&#xE145;	E145	1
+&zerothree;	&#xE146;	E146	1
+&ddddd;	&#xE147;	E147	1
+&dddddd;	&#xE148;	E148	1
+&dum;	&#xE149;	E149	1
+&fs;	&#xE14A;	E14A	1
+&oced;	&#xE14B;	E14B	1
+&umaccirc;	&#xE14C;	E14C	1
+&uumlcirc;	&#xE14C;	E14C	1
+&agothic;	&#xF421;	F421	1
+&bgothic;	&#xF422;	F422	1
+&cgothic;	&#xF423;	F423	1
+&dgothic;	&#xF424;	F424	1
+&egothic;	&#xF425;	F425	1
+&supM;	<sup>M</sup>		
+&suby;	<sub>y</sub>		
+&supS;	<sup>S</sup>		
+&supperiod;	<sub>.</sub>		
+&supw;	<sup>w</sup>		
+&subg;	<sub>g</sub>		
+&supden;	<sup>den</sup>		
+&supP;	<sup>P</sup>		
+&supg;	<sup>g</sup>		
+&supdquo;	<sup>"</sup>		
+&supd;	<sup>d</sup>		
+&supast;	<sup>*</sup>		
+&supv;	<sup>v</sup>		
+&subz;	<sub>z</sub>		
+&subperiod;	<sub>.</sub>		
+&subs;	<sub>s</sub>		
+&subo;	<sub>o</sub>		
+&supspace;	<sup> </sup>		
+&subn;	<sub>n</sub>		
+&supm;	<sup>m</sup>		
+&suprpar;	<sup>)</sup>		
+&supe;	<sup>e</sup>		
+&subr;	<sub>r</sub>		
+&subO;	<sub>O</sub>		
+&subspace;	<sub> </sub>		
+&supA;	<sup>A</sup>		
+&subplus;	<sub>+</sub>		
+&supl;	<sup>l</sup>		
+&supu;	<sup>u</sup>		
+&supL;	<sup>L</sup>		
+&supI;	<sup>I</sup>		
+&suph;	<sup>h</sup>		
+&supb;	<sup>b</sup>		
+&subc;	<sub>c</sub>		
+&supp;	<sup>p</sup>		
+&supexcl;	<sup>!</sup>		
+&supf;	<sup>f</sup>		
+&sub;	<sub></sub>		
+&supx;	<sup>x</sup>		
+&subminus;	<sub>-</sub>		
+&subd;	<sub>d</sub>		
+&subw;	<sub>w</sub>		
+&supy;	<sup>y</sup>		
+&sube;	<sub>e</sub>		
+&subN;	<sub>N</sub>		
+&supplus;	<sup>+</sup>		
+&supz;	<sup>z</sup>		
+&subh;	<sub>h</sub>		
+&subk;	<sub>k</sub>		
+&supj;	<sup>j</sup>		
+&subp;	<sub>p</sub>		
+&subi;	<sub>i</sub>		
+&supQ;	<sup>Q</sup>		
+&supC;	<sup>C</sup>		
+&supr;	<sup>r</sup>		
+&supt;	<sup>t</sup>		
+&supc;	<sup>c</sup>		
+&suba;	<sub>a</sub>		
+&supk;	<sup>k</sup>		
+&subM;	<sub>M</sub>		
+&subI;	<sub>I</sub>		
+&subb;	<sub>b</sub>		
+&sups;	<sup>s</sup>		
+&subm;	<sub>m</sub>		
+&subB;	<sub>B</sub>		
+&suplpar;	<sup>(</sup>		
+&supminus;	<sup>-</sup>		
+&supi;	<sup>i</sup>		
+&subx;	<sub>x</sub>		
+&supn;	<sup>n</sup>		
+&subv;	<sub>v</sub>		
+&cperiod;	<sub>.</sub>		

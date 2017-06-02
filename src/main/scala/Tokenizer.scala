@@ -1,6 +1,38 @@
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 import scala.collection.mutable.ArrayBuffer
+
+import scala.io.Source
+
+
+
+object entities
+{
+  implicit val entityFile = "src/main/resources/wntchars.tab"
+  
+  val entityPattern = """(&[^;\\s]*;)""".r
+  
+  def readMappingFile(implicit fileName:String):Map[String,String] =
+    Source.fromFile(fileName).getLines.map(l => (l.split("\t")(0), l.split("\t")(1))).toMap
+  
+  // def toChar(s:String) =
+    
+  implicit lazy val defaultMapping = readMappingFile
+  
+  
+  def substitute(s:String)(implicit mapping:Map[String,String]):String =
+  {
+    val replaceOne = (s:String) => if (mapping.contains(s)) mapping(s) else s
+    val newLine = entityPattern.replaceAllIn(s, m => "[ENTITY STARTS]" + replaceOne(m.group(0)) + "[ENTITY ENDS]")
+    newLine
+  }
+  
+  def main(args:Array[String]):Unit = 
+  {
+    println(substitute("Hallo &ouml;"))
+  }
+}
+
 object Tokenizer
 {
   import scala.util.matching._
@@ -13,6 +45,8 @@ object Tokenizer
      val Split(l,c,r) = s
      Token(l,c,r)
   }
+  
+  def doNotTokenize(s:String): Token = Token("",s,"")
   
   def tokenize(s:String): Array[Token] = 
     s.split("\\s+").map(tokenizeOne)
@@ -30,17 +64,19 @@ object TokenizerWithOffsets
   
   case class TokenWithOffsets(token:Token, startPosition:Int, endPosition:Int)
   
-  def tokenize(s:String): Array[TokenWithOffsets] =
+  implicit val tokenize = true
+  def tokenize(s:String)(implicit really:Boolean): Array[TokenWithOffsets] =
   {
     val matcher = notWhite.matcher(s)
     val r = new ArrayBuffer[TokenWithOffsets]
     while (matcher.find)
     {
-      val z = TokenWithOffsets(tokenizeOne(matcher.group), matcher.start,  matcher.end)
+      val t = if (really) tokenizeOne(matcher.group) else doNotTokenize(matcher.group)
+      val z = TokenWithOffsets(t, matcher.start,  matcher.end)
       r += z
     }
     r.toArray
   }
  
-   def main(args:Array[String]):Unit = println(TokenizerWithOffsets.tokenize("Waarom, waarom, hebt u mij verlaten??").toList)
+  def main(args:Array[String]):Unit = println(TokenizerWithOffsets.tokenize("Waarom, waarom, hebt u mij verlaten??").toList)
 }
