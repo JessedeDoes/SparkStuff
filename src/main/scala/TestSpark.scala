@@ -15,7 +15,7 @@ import org.apache.spark.sql.types._
 object TestSpark 
 {
 	//val conf = new SparkConf().setMaster("local").setAppName("My App")
-  val atHome = true
+  val atHome = false
   
 	lazy val sparkSession = SparkSession.builder.
       master("local")

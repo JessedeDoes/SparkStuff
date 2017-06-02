@@ -67,7 +67,7 @@ object queries
     import util._
     val pos = "ADP"
     
-    val dataSchema = if (TestSpark.atHome) "data" else "hilex_data"
+    val dataSchema = if (TestSpark.atHome) "data" else "gigant_hilex_data"
     val senseSchema = "wnt_ids"
     
     val lemmaQuery = 
@@ -185,7 +185,7 @@ object Hilex
   }
   
   lazy val dbAtWork = 
-    Database.forURL("jdbc:postgresql://svowdb06/gigant_hilex?user=fannee&password=Cric0topus", driver="org.postgresql.Driver")
+    Database.forURL("jdbc:postgresql://svprre02/diamant_prototype?user=postgres&password=inl", driver="org.postgresql.Driver")
   lazy val dbAtHome = 
     Database.forURL("jdbc:postgresql://svowdb02/gigant_hilex_dev?user=postgres&password=inl", driver="org.postgresql.Driver")
    
@@ -216,17 +216,21 @@ object Hilex
   
   def findSomeLemmata:List[Lemma] =
   {
-     slurp(queries.lemmaQueryWhere("modern_lemma ~ '^harlekijn$'"))
+     slurp(queries.lemmaQueryWhere("modern_lemma ~ '^zin$'"))
   }
   
   def main(args:Array[String]):Unit = 
   { 
     val l = findSomeLemmata
+    println("lemmata gevonden")
     l.foreach(println)
-    l.foreach(x => println(x.senses))
+    println("betekenissen gevonden")
+    l.foreach(x => x.senses.foreach(println))
     val qs = queries.getSenses(l)
     val qsa = queries.getAttestationsForSense(slurp(qs))
+    println("Attestaties van betekenissen?")
     slurp(qsa).foreach(println)
+    println("Zoek woordvormen erbij")
     val q = queries.getWordforms(l)
     val l1 = slurp(q)
     l1.foreach(println)
