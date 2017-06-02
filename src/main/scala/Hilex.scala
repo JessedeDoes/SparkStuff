@@ -51,6 +51,8 @@ case class Attestation(wordform: Wordform, quote:String, start_pos: Int, end_pos
    }
 }
 
+case class Document(persistent_id: String, properties:Map[String,String])
+
 case class Sense(lemma: Lemma, persistent_id: String, lemma_id:String, parent_id: String, definition: String)
 {
   lazy val attestations = Hilex.slurp(queries.getAttestationsForSense(List(this)))
