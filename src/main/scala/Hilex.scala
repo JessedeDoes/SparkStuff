@@ -226,11 +226,16 @@ object Hilex
     l.foreach(println)
     println("betekenissen gevonden")
     l.foreach(x => x.senses.foreach(println))
+    l.foreach(_.senses.foreach(s => 
+      { println(s"Attestaties voor ${s}"); s.attestations.foreach(println) }))
     val qs = queries.getSenses(l)
+    /*
     val qsa = queries.getAttestationsForSense(slurp(qs))
     println("Attestaties van betekenissen?")
     slurp(qsa).foreach(println)
     println("Zoek woordvormen erbij")
+    * 
+    */
     val q = queries.getWordforms(l)
     val l1 = slurp(q)
     l1.foreach(println)
