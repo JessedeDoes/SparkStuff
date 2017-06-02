@@ -31,6 +31,11 @@ case class Attestation(wordform: Wordform, quote:String, hitStart: Int, hitEnd: 
 }
 
 case class Sense(lemma: Lemma, persistent_id: String, lemma_id:String, parent_id: String, definition: String)
+{
+  lazy val attestations = Hilex.slurp(queries.getAttestationsForSense(List(this)))
+  lazy val parentSense = ???
+  lazy val subSenses = ???
+}
 
 private object util
 {
@@ -62,6 +67,9 @@ object queries
     import util._
     val pos = "ADP"
     
+    val dataSchema = if (TestSpark.atHome) "data" else "hilex_data"
+    val senseSchema = "wnt_ids"
+    
     val lemmaQuery = 
     {
       implicit val getLemma = GetResult[Lemma](r => Lemma(r.nextString, r.nextInt, r.nextString,r.nextString))
@@ -74,7 +82,7 @@ object queries
     {
       implicit val getLemma = GetResult[Lemma](r => Lemma(r.nextString, r.nextInt, r.nextString,r.nextString))
       sql"""
-      select modern_lemma, lemma_id,persistent_id, lemma_part_of_speech from data.lemmata 
+      select modern_lemma, lemma_id,persistent_id, lemma_part_of_speech from #${dataSchema}.lemmata 
         where #${where}""".as[Lemma]
     }
     
@@ -85,7 +93,7 @@ object queries
       implicit val makeWordform = GetResult[Wordform](
           r => Wordform(lemmaMap(r.nextInt), r.nextInt, r.nextString)
       )
-      concat(sql"""select lemma_id, analyzed_wordform_id, wordform from data.analyzed_wordforms a, data.wordforms w 
+      concat(sql"""select lemma_id, analyzed_wordform_id, wordform from #${dataSchema}.analyzed_wordforms a, #${dataSchema}.wordforms w 
                    where a.wordform_id=w.wordform_id and lemma_id in """, values(ids)).as[Wordform]
     }
      
@@ -98,7 +106,7 @@ object queries
           r => Sense(lemmaMap(r.nextString), r.nextString, r.nextString, r.nextString, r.nextString)
       )
       concat(sql"""select lemma_id, persistent_id, lemma_id, parent_sense_id , definition
-                   from wnt_ids.senses 
+                   from #${senseSchema}.senses 
                    where lemma_id in """, values(ids)).as[Sense]
     }
     
@@ -115,7 +123,7 @@ object queries
            a.analyzed_wordform_id,
            quote, start_pos,end_pos, eg_id
       from
-           data.analyzed_wordforms a, data.token_attestations t, wnt_ids.documents d
+           #${dataSchema}.analyzed_wordforms a, #${dataSchema}.token_attestations t, wnt_ids.documents d
       where
              d.document_id=t.document_id
             and a.analyzed_wordform_id=t.analyzed_wordform_id 
@@ -132,7 +140,8 @@ object queries
       implicit val makeWordform = GetResult[Wordform](
           r => Wordform(getLemma(r.nextInt), r.nextInt, r.nextString)
       )
-      val a = sql"""select lemma_id, analyzed_wordform_id, wordform from data.analyzed_wordforms a, data.wordforms w 
+      val a = sql"""select lemma_id, analyzed_wordform_id, wordform 
+                       from #${dataSchema}.analyzed_wordforms a, #${dataSchema}.wordforms w 
                    where a.wordform_id=w.wordform_id and analyzed_wordform_id=${analyzed_wordform_id} """.as[Wordform]
        Hilex.slurp(a).head
     }
@@ -149,7 +158,7 @@ object queries
            analyzed_wordform_id,
            quote, start_pos,end_pos, d.eg_id
       from
-            data.token_attestations t, wnt_ids.eg_sense e, wnt_ids.documents d
+            #${dataSchema}.token_attestations t, #${senseSchema}.eg_sense e, #${senseSchema}.documents d
       where
             d.eg_id = e.eg_id
             and t.document_id=d.document_id
@@ -174,19 +183,19 @@ object Hilex
 
     def reportFailure(t: Throwable) {}
   }
-
+  
   lazy val dbAtWork = 
     Database.forURL("jdbc:postgresql://svowdb06/gigant_hilex?user=fannee&password=Cric0topus", driver="org.postgresql.Driver")
   lazy val dbAtHome = 
     Database.forURL("jdbc:postgresql://svowdb02/gigant_hilex_dev?user=postgres&password=inl", driver="org.postgresql.Driver")
    
-  val db = dbAtHome
+  val db = if (TestSpark.atHome) dbAtHome else dbAtWork
   
   def test =
   {
-    println("hallo")
+ 
     val s = db.stream(queries.lemmaQuery)
-    println(s)
+    
     val r = s.foreach(x => println(x))
     Await.result(r, 10.seconds)
     println("done")
