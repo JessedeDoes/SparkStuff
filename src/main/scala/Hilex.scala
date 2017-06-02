@@ -29,6 +29,7 @@ case class Attestation(wordform: Wordform, quote:String, start_pos: Int, end_pos
 {
    lazy val senses = ???
    import TokenizerWithOffsets._
+   import entities._
    toConcordance
    
    def sillyCriterium (x:TokenWithOffsets):Int = 
@@ -40,11 +41,12 @@ case class Attestation(wordform: Wordform, quote:String, start_pos: Int, end_pos
    {
      val tokens = TokenizerWithOffsets.tokenize(quote)(really=false)
      val probableHit = tokens.toList.zipWithIndex.minBy(x => sillyCriterium(x._1))
-     println(probableHit)
+     //println(probableHit)
      val tokenStream = tokens.toStream
      
-     val c = new Concordance(probableHit._2, probableHit._2+1, List(("word",tokens.map(_.token.token))).toMap, Map.empty)
-     println(c.toString())
+     val c = new Concordance(probableHit._2, probableHit._2+1, List(("word",tokens.map( t =>  entities.substitute(t.token.token) ))).toMap, Map.empty)
+     c
+     //println(c.toString())
      // hm... 
    }
 }
@@ -151,7 +153,11 @@ object queries
     
     def getLemma(lemma_id: Int):Lemma =
     {
-        Hilex.slurp(queries.lemmaQueryWhere(s"lemma_id='${lemma_id}'" )).head
+        val l = Hilex.slurp(queries.lemmaQueryWhere(s"lemma_id='${lemma_id}'" ))
+        if (l.isEmpty)
+         null
+       else
+         l.head
     }
     
     def getWordform(analyzed_wordform_id: Int):Wordform = 
@@ -162,7 +168,12 @@ object queries
       val a = sql"""select lemma_id, analyzed_wordform_id, wordform 
                        from #${dataSchema}.analyzed_wordforms a, #${dataSchema}.wordforms w 
                    where a.wordform_id=w.wordform_id and analyzed_wordform_id=${analyzed_wordform_id} """.as[Wordform]
-       Hilex.slurp(a).head
+       val l:List[Wordform] = Hilex.slurp(a)
+       if (l.isEmpty)
+         null
+       else
+         l.head
+       //if (l.
     }
     
     def getAttestationsForSense(senses: List[Sense]) =
@@ -246,7 +257,7 @@ object Hilex
     println("betekenissen gevonden")
     l.foreach(x => x.senses.foreach(println))
     l.foreach(_.senses.foreach(s => 
-      { println(s"Attestaties voor ${s}"); s.attestations.foreach(println) }))
+      { println(s"\nAttestaties voor ${s}"); s.attestations.foreach( a => println(a.toConcordance)) }))
     val qs = queries.getSenses(l)
     /*
     val qsa = queries.getAttestationsForSense(slurp(qs))
