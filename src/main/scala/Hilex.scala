@@ -98,7 +98,7 @@ object queries
     }
      
      def getSenses(lemmata: List[Lemma]) = 
-    {
+     {
       val ids = lemmata.map(_.persistent_id)
       val lemmaMap = lemmata.map(l => (l.persistent_id,l)).toMap
       println(lemmaMap.toList)
@@ -108,7 +108,7 @@ object queries
       concat(sql"""select lemma_id, persistent_id, lemma_id, parent_sense_id , definition
                    from #${senseSchema}.senses 
                    where lemma_id in """, values(ids)).as[Sense]
-    }
+     }
     
     
     def getAttestations(wordforms: List[Wordform]) =
