@@ -25,9 +25,25 @@ case class Lemma(modern_lemma: String, lemma_id:Int, persistent_id:String, pos:S
 
 case class Wordform(lemma: Lemma, analyzed_wordform_id:Int, wordform: String)
 
-case class Attestation(wordform: Wordform, quote:String, hitStart: Int, hitEnd: Int, eg_id: Option[String])
+case class Attestation(wordform: Wordform, quote:String, start_pos: Int, end_pos: Int, eg_id: Option[String])
 {
    lazy val senses = ???
+   import TokenizerWithOffsets._
+   toConcordance
+   
+   def sillyCriterium (x:TokenWithOffsets):Int = 
+   {
+       x match { case TokenWithOffsets(t,s,e) => Math.abs(s - start_pos + e - end_pos) } 
+   }
+   
+   def  toConcordance =
+   {
+     val tokens = TokenizerWithOffsets.tokenize(quote)
+     val probableHit = tokens.toList.zipWithIndex.minBy(x => sillyCriterium(x._1))
+     println(probableHit)
+     val tokenStream = tokens.toStream
+    
+   }
 }
 
 case class Sense(lemma: Lemma, persistent_id: String, lemma_id:String, parent_id: String, definition: String)
