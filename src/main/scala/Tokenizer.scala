@@ -53,8 +53,6 @@ object Tokenizer extends Tokenizer
   import scala.util.matching._
   val Split = new Regex("^(\\p{P}*)(.*?)(\\p{P}*)$")
   
-  
-  
   def tokenizeOne(s:String): Token =
   {
      val Split(l,c,r) = s

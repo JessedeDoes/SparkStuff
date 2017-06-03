@@ -25,7 +25,7 @@ case class Lemma(modern_lemma: String, lemma_id:Int, persistent_id:String, pos:S
 
 case class Wordform(lemma: Lemma, analyzed_wordform_id:Int, wordform: String)
 
-case class Attestation(wordform: Wordform, quote:String, start_pos: Int, end_pos: Int, eg_id: String, document:Document)
+case class Attestation(wordform: Wordform, quote:String, start_pos: Int, end_pos: Int, eg_id: String, document:DocumentMetadata)
 {
    lazy val senses = ???
    import TokenizerWithOffsets._
@@ -49,7 +49,7 @@ case class Attestation(wordform: Wordform, quote:String, start_pos: Int, end_pos
    }
 }
 
-case class Document(persistent_id: String, properties:Map[String,String])
+case class DocumentMetadata(persistent_id: String, properties:Map[String,String])
 
 case class Sense(lemma: Lemma, persistent_id: String, lemma_id:String, parent_id: String, definition: String)
 {
@@ -137,7 +137,7 @@ object queries
            where lemma_id in """, values(ids)).as[Sense]
      }
     
-      def getDocument(r:PositionedResult):Document =
+      def getDocument(r:PositionedResult):DocumentMetadata =
       {
          val items =
           List(
@@ -147,7 +147,7 @@ object queries
               ("year_to", r.nextInt.toString),
               ("dictionary", r.nextString)
            ).toMap
-           Document("bla", items)
+           DocumentMetadata("bla", items)
       }
       
       def getAttestation(r:PositionedResult):Attestation = 

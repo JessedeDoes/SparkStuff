@@ -89,7 +89,7 @@ class Concordancer {
 	    fields.map(f => f.getName ->  f.get(i).toString()).toMap
 	   
 	
-	def getFieldValue(doc:Document, s:String):String =
+	def getFieldValue(doc:DocumentMetadata, s:String):String =
 	  try
 	    doc.getField(s).stringValue()
 	  catch
@@ -98,7 +98,7 @@ class Concordancer {
 	  }
 	
 	
-	def getMetadata(doc:Document, fields: List[String]): Map[String,String] =
+	def getMetadata(doc:DocumentMetadata, fields: List[String]): Map[String,String] =
 	  fields.map(s => s -> getFieldValue(doc,s)).toMap
 	
 	
