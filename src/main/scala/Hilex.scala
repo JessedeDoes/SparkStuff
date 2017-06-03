@@ -91,7 +91,7 @@ object queries
     val dataSchema = if (TestSpark.atHome) "data" else "gigant_hilex_data"
     val senseSchema = "wnt_ids"
     
-    val lemmaQuery = 
+    val lemmaQueryExample = 
     {
       implicit val getLemma = GetResult[Lemma](r => Lemma(r.nextString, r.nextInt, r.nextString,r.nextString))
       sql"""
@@ -114,8 +114,13 @@ object queries
       implicit val makeWordform = GetResult[Wordform](
           r => Wordform(lemmaMap(r.nextInt), r.nextInt, r.nextString)
       )
-      concat(sql"""select lemma_id, analyzed_wordform_id, wordform from #${dataSchema}.analyzed_wordforms a, #${dataSchema}.wordforms w 
-                   where a.wordform_id=w.wordform_id and lemma_id in """, values(ids)).as[Wordform]
+      concat(sql"""
+        select 
+                       lemma_id, analyzed_wordform_id, wordform 
+        from 
+            #${dataSchema}.analyzed_wordforms a, 
+            #${dataSchema}.wordforms w 
+        where a.wordform_id=w.wordform_id and lemma_id in """, values(ids)).as[Wordform]
     }
      
      def getSenses(lemmata: List[Lemma]) = 
@@ -126,9 +131,10 @@ object queries
       implicit val makeSense = GetResult[Sense](
           r => Sense(lemmaMap(r.nextString), r.nextString, r.nextString, r.nextString, r.nextString)
       )
-      concat(sql"""select lemma_id, persistent_id, lemma_id, parent_sense_id , definition
-                   from #${senseSchema}.senses 
-                   where lemma_id in """, values(ids)).as[Sense]
+      concat(sql"""
+          select lemma_id, persistent_id, lemma_id, parent_sense_id , definition
+           from #${senseSchema}.senses 
+           where lemma_id in """, values(ids)).as[Sense]
      }
     
       def getDocument(r:PositionedResult):Document =
@@ -257,7 +263,7 @@ object Hilex
   def test =
   {
  
-    val s = db.stream(queries.lemmaQuery)
+    val s = db.stream(queries.lemmaQueryExample)
     
     val r = s.foreach(x => println(x))
     Await.result(r, 10.seconds)
