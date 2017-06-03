@@ -1,6 +1,6 @@
 
 
-class Concordance(hitS: Int, hitE: Int, tokenProp:  Map[String,Array[String]], meta: Map[String,String])
+case class Concordance(hitS: Int, hitE: Int, tokenProp:  Map[String,Array[String]], meta: Map[String,String])
 {
   val hitStart = hitS
   val hitEnd = hitE
@@ -13,9 +13,10 @@ class Concordance(hitS: Int, hitE: Int, tokenProp:  Map[String,Array[String]], m
   lazy val right = words.slice(hitEnd, words.length).mkString(" ")
   lazy val hit = words.slice(hitStart, hitEnd).mkString(" ")
   
+  def retokenize(t:Tokenizer):Concordance = ???
   
   override def toString() = (f"${left}%80s") + " \u169b"  + hit + "\u169c " + right + " metadata: " + meta
-}
+ }
 
 
 
