@@ -198,9 +198,15 @@ object queries
       implicit val makeWordform = GetResult[Wordform](
           r => Wordform(getLemma(r.nextInt), r.nextInt, r.nextString)
       )
-      val a = sql"""select lemma_id, analyzed_wordform_id, wordform 
-                       from #${dataSchema}.analyzed_wordforms a, #${dataSchema}.wordforms w 
-                   where a.wordform_id=w.wordform_id and analyzed_wordform_id=${analyzed_wordform_id} """.as[Wordform]
+      val a = sql"""
+        select 
+          lemma_id, analyzed_wordform_id, wordform 
+        from 
+            #${dataSchema}.analyzed_wordforms a, #${dataSchema}.wordforms w 
+        where 
+        a.wordform_id=w.wordform_id and analyzed_wordform_id=${analyzed_wordform_id} """
+        .as[Wordform]
+      
        val l:List[Wordform] = Hilex.slurp(a)
        if (l.isEmpty)
          null
@@ -298,13 +304,7 @@ object Hilex
     l.foreach(_.senses.foreach(s => 
       { println(s"\nAttestaties voor ${s}"); s.attestations.foreach( a => println(a.toConcordance)) }))
     val qs = queries.getSenses(l)
-    /*
-    val qsa = queries.getAttestationsForSense(slurp(qs))
-    println("Attestaties van betekenissen?")
-    slurp(qsa).foreach(println)
-    println("Zoek woordvormen erbij")
-    * 
-    */
+  
     val q = queries.getWordforms(l)
     val l1 = slurp(q)
     l1.foreach(println)
