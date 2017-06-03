@@ -17,12 +17,16 @@ object babTagger extends Tagger
        List(
            ("word", w.text), 
            ("lemma", (w \ "@lemma").text), 
-           ("pos", (w \ "@pos").text)).toMap)
+           ("pos", (w \ "@type").text)).toMap)
        
        
-       val a = z.flatMap(x => x.keys).toSet
+       val properties = z.flatMap(x => x.keys).toSet.toList
+       val l = properties.map((p:String) => (p -> z.map(m => m(p)))).toMap
+       l  
+       // .map((p:String) => z.map(m => m(p)))
        // z.map(p => z.map 
        // map(p => (0 to z.size-1).map(i => z(i)
    }
-   def main(args:Array[String]):Unit = println(taggedDocument("Ghy sy een esel die syn sinnen hevet verlooren"))
+   
+   def main(args:Array[String]):Unit = (tag("Ghy syt een esel die syn sinnen hevet verlooren")).foreach(println)
 }
