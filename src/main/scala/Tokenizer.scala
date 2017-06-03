@@ -4,6 +4,12 @@ import scala.collection.mutable.ArrayBuffer
 
 import scala.io.Source
 
+case class Token(leading:String, token:String, trailing:String)
+
+trait Tokenizer
+{
+   def tokenize(s:String): Array[Token] 
+}
 
 
 object entities
@@ -38,11 +44,11 @@ object entities
   }
 }
 
-object Tokenizer
+object Tokenizer extends Tokenizer
 {
   import scala.util.matching._
   val Split = new Regex("^(\\p{P}*)(.*?)(\\p{P}*)$")
-  case class Token(leading:String, token:String, trailing:String)
+  
   
   
   def tokenizeOne(s:String): Token =
