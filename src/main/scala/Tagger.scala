@@ -35,6 +35,6 @@ object babTagger extends Tagger
    def main(args:Array[String]):Unit = 
     {
       val tagged = tag("Ghy syt een eesel, die syn sinnen hevet verloeren. Swyght!")
-      tagged.foreach({ case (p,a) => println(p + " -> " + a.toList)})
+      tagged.foreach({ case (p,a) => println(p + " -> " + a.toList.mkString(" "))})
     }
 }

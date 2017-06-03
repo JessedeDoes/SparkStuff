@@ -13,7 +13,15 @@ case class Concordance(hitS: Int, hitE: Int, tokenProp:  Map[String,Array[String
   lazy val right = words.slice(hitEnd, words.length).mkString(" ")
   lazy val hit = words.slice(hitStart, hitEnd).mkString(" ")
   
-  def retokenize(t:Tokenizer):Concordance = ???
+  def retokenize(t:Tokenizer) = 
+  {
+    val tokens = tokenProperties("word").map(s => t.tokenize(s).head)
+    val prepunct = tokens.map(t => t.leading)
+    val postpunct = tokens.map(t => t.trailing)
+    val words = tokens.map(t => t.token)
+    val newProperties = tokenProperties -- List("words","prepunctuation","postpunctuation") ++ List("word" -> words, "prepunctuation" -> prepunct, "postpunctuation" -> postpunct)
+    this.copy(tokenProp=newProperties)
+  }
   
   def tag(implicit tagger:Any):Concordance = ???
   
