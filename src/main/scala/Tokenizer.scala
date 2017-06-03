@@ -11,8 +11,12 @@ trait Tokenizer
    def tokenize(s:String): Array[Token] 
 }
 
+trait EntityReplacer
+{
+   def substitute(s:String)(implicit mapping:Map[String,String]):String
+}
 
-object entities
+object entities extends EntityReplacer
 {
   implicit val entityFile = "src/main/resources/wntchars.tab"
   
@@ -29,7 +33,7 @@ object entities
   
   def replaceNumericEntities = ???
     
-  def substitute(s:String)(implicit mapping:Map[String,String]):String =
+  override def substitute(s:String)(implicit mapping:Map[String,String]):String =
   {
     val replaceOne = (s:String) => if (mapping.contains(s)) mapping(s) else s
     val s1 = entityPattern.replaceAllIn(s, m => replaceOne(m.group(0)))
@@ -59,7 +63,7 @@ object Tokenizer extends Tokenizer
   
   def doNotTokenize(s:String): Token = Token("",s,"")
   
-  def tokenize(s:String): Array[Token] = 
+  override def tokenize(s:String): Array[Token] = 
     s.split("\\s+").map(tokenizeOne)
    
   def main(args:Array[String]):Unit = 
