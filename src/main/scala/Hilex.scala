@@ -25,7 +25,7 @@ case class Lemma(modern_lemma: String, lemma_id:Int, persistent_id:String, pos:S
 
 case class Wordform(lemma: Lemma, analyzed_wordform_id:Int, wordform: String)
 
-case class Attestation(wordform: Wordform, quote:String, start_pos: Int, end_pos: Int, eg_id: Option[String])
+case class Attestation(wordform: Wordform, quote:String, start_pos: Int, end_pos: Int, eg_id: String, document:Document)
 {
    lazy val senses = ???
    import TokenizerWithOffsets._
@@ -133,18 +133,45 @@ object queries
                    where lemma_id in """, values(ids)).as[Sense]
      }
     
-    
+      def getDocument(r:PositionedResult):Document =
+      {
+         val items =
+          List(
+              ("author", r.nextString),
+              ("title", r.nextString),
+              ("year_from", r.nextInt.toString),
+              ("year_to", r.nextInt.toString),
+              ("dictionary", r.nextString)
+           ).toMap
+           Document("bla", items)
+      }
+      
+      def getAttestation(r:PositionedResult):Attestation = 
+      {
+         val a =  Attestation(getWordform(r.nextInt),r.nextString, r.nextInt, r.nextInt, r.nextString,getDocument(r))
+         a.copy(document=a.document.copy(persistent_id=a.eg_id))
+      }
+      
     def getAttestations(wordforms: List[Wordform]) =
     {
       val ids = wordforms.map(_.analyzed_wordform_id)
       val wordformMap = wordforms.map(l => (l.analyzed_wordform_id,l)).toMap
+    
       implicit val makeAttestation =   GetResult[Attestation](
-            r => Attestation(wordformMap(r.nextInt),r.nextString, r.nextInt, r.nextInt, Some(r.nextString)))
+            r => getAttestation(r))
   
      concat(sql"""
       select 
            a.analyzed_wordform_id,
-           quote, start_pos,end_pos, eg_id
+           quote, 
+           start_pos,
+           end_pos, 
+           eg_id,
+           d.author,
+           d.title,
+           d.year_from,
+           d.year_to,
+           d.dictionary
       from
            #${dataSchema}.analyzed_wordforms a, #${dataSchema}.token_attestations t, wnt_ids.documents d
       where
@@ -162,7 +189,7 @@ object queries
          l.head
     }
     
-    def getWordform(analyzed_wordform_id: Int):Wordform = 
+    implicit def getWordform(analyzed_wordform_id: Int):Wordform = 
     {
       implicit val makeWordform = GetResult[Wordform](
           r => Wordform(getLemma(r.nextInt), r.nextInt, r.nextString)
@@ -183,7 +210,7 @@ object queries
       val ids = senses.map(_.persistent_id)
       val senseMap = senses.map(l => (l.persistent_id,l)).toMap
       implicit val makeAttestation =   GetResult[Attestation](
-            r => Attestation(getWordform(r.nextInt),r.nextString, r.nextInt, r.nextInt, Some(r.nextString)))
+            r => getAttestation(r) )
   
      concat(sql"""
       select 
