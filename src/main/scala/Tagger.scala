@@ -21,6 +21,7 @@ object babTagger extends Tagger
        
        
        val a = z.flatMap(x => x.keys).toSet
+       // z.map(p => z.map 
        // map(p => (0 to z.size-1).map(i => z(i)
    }
    def main(args:Array[String]):Unit = println(taggedDocument("Ghy sy een esel die syn sinnen hevet verlooren"))
