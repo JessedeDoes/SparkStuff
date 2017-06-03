@@ -1,24 +1,26 @@
 import scala.xml._
 
-trait Tagger 
+object sidedish
 {
-    def tag(text:String):Map[String,Array[String]]
-} 
-
-object babTagger extends Tagger
-{
-   def urlFor(text:String) = s"http://inl-labs.inl.nl/succeed/text?input=${text}&format=text&tagger=bab-tagger&output=raw" 
-   def taggedDocument(text:String):Elem = XML.load(urlFor(text))
-   
-   def getTextButNotIn(x:Node,tagName:String):String =
+  def getTextButNotIn(x:Node,tagName:String):String =
    {
        if (x.isInstanceOf[Text])
          x.text
        else 
          x.child.filter(_.label != tagName).map(getTextButNotIn(_,tagName)).mkString("")
    }
+}
+
+trait Tagger 
+{
+  
+   import sidedish._
    
-   override def tag(text:String):Map[String,Array[String]] =
+   def urlFor(text:String):String
+   
+   def taggedDocument(text:String):Elem = XML.load(urlFor(text))
+   
+   def tag(text:String):Map[String,Array[String]] =
    {
      val d = taggedDocument(text)
      val z = (d \\ "w").map(w => 
@@ -31,6 +33,11 @@ object babTagger extends Tagger
        val l = properties.map( (p:String) => (p -> z.map(m => m(p)).toArray)).toMap
        l  
    }
+} 
+
+object babTagger extends Tagger
+{
+   override def urlFor(text:String) = s"http://inl-labs.inl.nl/succeed/text?input=${text}&format=text&tagger=bab-tagger&output=raw" 
    
    def main(args:Array[String]):Unit = 
     {
@@ -38,3 +45,15 @@ object babTagger extends Tagger
       tagged.foreach({ case (p,a) => println(p + " -> " + a.toList.mkString(" "))})
     }
 }
+
+object chnTagger extends Tagger
+{
+   override def urlFor(text:String) = s"http://openconvert.clarin.inl.nl/openconvert/text?input=${text}&format=text&tagger=chn-tagger&output=raw&to=tei" 
+   
+    def main(args:Array[String]):Unit = 
+    {
+      val tagged = tag("Je ben een ezel die zijn verstand kwijt is. Zwijg!")
+      tagged.foreach({ case (p,a) => println(p + " -> " + a.toList.mkString(" "))})
+    }
+}
+   
