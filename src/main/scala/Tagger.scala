@@ -23,6 +23,7 @@ trait Tagger
    def tag(text:String):Map[String,Array[String]] =
    {
      val d = taggedDocument(text)
+     println(d)
      val z = (d \\ "w").map(w => 
        List(
            ("word", getTextButNotIn(w,"interp")), 
@@ -37,12 +38,18 @@ trait Tagger
 
 object babTagger extends Tagger
 {
-   override def urlFor(text:String) = s"http://inl-labs.inl.nl/succeed/text?input=${text}&format=text&tagger=bab-tagger&output=raw" 
+   override def urlFor(text:String) = s"http://inl-labs.inl.nl/succeed/text?input=${java.net.URLEncoder.encode(text)}&format=text&tagger=bab-tagger&output=raw" 
    
    def main(args:Array[String]):Unit = 
     {
-      val tagged = tag("Ghy syt een eesel, die syn sinnen hevet verloeren. Swyght!")
-      tagged.foreach({ case (p,a) => println(p + " -> " + a.toList.mkString(" "))})
+      val tagged = tag("""" Ghy syt een eesel, die syn sinnen hevet verloeren. Swyght!
+        INDEN beginne schiep Godt den Hemel, ende de Aerde.
+ De Aerde nu was woest ende ledich, ende duysternisse was op den afgront: ende de Geest Godts sweefde op de Wateren.
+ Ende Godt seyde: Daer zy Licht: ende daer wert Licht.
+Ende Godt sach het Licht, dat het goet was: ende Godt maeckte scheydinge tusschen het Licht, ende tusschen de duysternisse.  
+        """ )
+        val c = Concordance(0,0,tagged,Map.empty)
+      println(c.vertical)
     }
 }
 
@@ -52,8 +59,9 @@ object chnTagger extends Tagger
    
     def main(args:Array[String]):Unit = 
     {
-      val tagged = tag("Je ben een ezel die zijn verstand kwijt is. Zwijg!")
-      tagged.foreach({ case (p,a) => println(p + " -> " + a.toList.mkString(" "))})
+      val tagged = tag("""Je ben een ezel die zijn verstand kwijt is. Zwijg!""" )
+      val c = Concordance(0,0,tagged,Map.empty)
+      println(c.vertical)
     }
 }
    

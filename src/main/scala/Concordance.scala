@@ -23,6 +23,11 @@ case class Concordance(hitS: Int, hitE: Int, tokenProp:  Map[String,Array[String
     this.copy(tokenProp=newProperties)
   }
   
+  def vertical =
+  {
+    val keys = tokenProperties.keys
+    (0 to tokenProperties("word").size-1).map(i => keys.map(k => tokenProperties(k)(i)).mkString("\t")).mkString("\n")
+  }
   def tag(implicit tagger:Any):Concordance = ???
   
   override def toString() = (f"${left}%80s") + " \u169b"  + hit + "\u169c " + right + " metadata: " + meta
