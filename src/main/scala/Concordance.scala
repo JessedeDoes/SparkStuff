@@ -26,7 +26,7 @@ case class Concordance(hitS: Int, hitE: Int, tokenProp:  Map[String,Array[String
   def vertical =
   {
     val keys = tokenProperties.keys
-    (0 to tokenProperties("word").size-1).map(i => keys.map(k => tokenProperties(k)(i)).mkString("\t")).mkString("\n")
+    (0 to tokenProperties("word").size-1).map( i => keys.map(k => tokenProperties(k)(i)).mkString("\t") ).mkString("\n")
   }
   def tag(implicit tagger:Any):Concordance = ???
   
