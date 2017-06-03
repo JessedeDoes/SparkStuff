@@ -14,7 +14,7 @@ class Concordance(hitS: Int, hitE: Int, tokenProp:  Map[String,Array[String]], m
   lazy val hit = words.slice(hitStart, hitEnd).mkString(" ")
   
   
-  override def toString() = (f"${left}%80s") + " \u169b"  + hit + "\u169c " + right
+  override def toString() = (f"${left}%80s") + " \u169b"  + hit + "\u169c " + right + " metadata: " + meta
 }
 
 

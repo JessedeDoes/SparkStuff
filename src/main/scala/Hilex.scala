@@ -41,13 +41,11 @@ case class Attestation(wordform: Wordform, quote:String, start_pos: Int, end_pos
    {
      val tokens = TokenizerWithOffsets.tokenize(quote)(really=false)
      val probableHit = tokens.toList.zipWithIndex.minBy(x => sillyCriterium(x._1))
-     //println(probableHit)
+
      val tokenStream = tokens.toStream
      
-     val c = new Concordance(probableHit._2, probableHit._2+1, List(("word",tokens.map( t =>  entities.substitute(t.token.token) ))).toMap, Map.empty)
+     val c = new Concordance(probableHit._2, probableHit._2+1, List(("word",tokens.map( t =>  entities.substitute(t.token.token) ))).toMap, document.properties)
      c
-     //println(c.toString())
-     // hm... 
    }
 }
 
@@ -209,13 +207,19 @@ object queries
     {
       val ids = senses.map(_.persistent_id)
       val senseMap = senses.map(l => (l.persistent_id,l)).toMap
-      implicit val makeAttestation =   GetResult[Attestation](
-            r => getAttestation(r) )
+      implicit val makeAttestation =   GetResult[Attestation]( r => getAttestation(r) )
   
      concat(sql"""
       select 
            analyzed_wordform_id,
-           quote, start_pos,end_pos, d.eg_id
+           quote, start_pos,
+           end_pos, 
+           d.eg_id,
+           d.author,
+           d.title,
+           d.year_from,
+           d.year_to,
+           d.dictionary
       from
             #${dataSchema}.token_attestations t, #${senseSchema}.eg_sense e, #${senseSchema}.documents d
       where
