@@ -15,6 +15,8 @@ case class Concordance(hitS: Int, hitE: Int, tokenProp:  Map[String,Array[String
   
   def retokenize(t:Tokenizer):Concordance = ???
   
+  def tag(implicit tagger:Any):Concordance = ???
+  
   override def toString() = (f"${left}%80s") + " \u169b"  + hit + "\u169c " + right + " metadata: " + meta
  }
 
