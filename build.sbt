@@ -30,6 +30,7 @@ libraryDependencies += "org.ivdnt.wordvectors"  % "WordVectors" % "0.0.1-SNAPSHO
 libraryDependencies += "org.ivdnt.wsd" % "JustWSD" % "0.0.1-SNAPSHOT" 
 libraryDependencies += "org.ivdnt.tagging" % "DutchTagger" % "0.0.1-SNAPSHOT"
 libraryDependencies += "org.ivdnt.clariah" % "QueryNederlab" % "0.0.1-SNAPSHOT"
+libraryDependencies += "org.scala-lang.modules" %% "scala-pickling" % "0.10.1"
 
 libraryDependencies ++= Seq(
   "com.typesafe.slick" %% "slick" % "3.0.0",

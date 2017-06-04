@@ -351,9 +351,9 @@ object Hilex
     val romans = senses.filter(s => s.parent_sense_id == null)
     romans.foreach(println)
     
-    val groups = romans.flatMap(s => queries.getAttestationsBelow(s).map(s => s.toConcordance).map(c =>  c.copy(metadata=c.metadata ++ List("senseId" ->  s.persistent_id, "lempos" -> "zin:n")  ) ))
-    println(groups)
-    
+    val groups = romans.flatMap(s => queries.getAttestationsBelow(s).map(s => s.toConcordance).map(c =>  c.copy(metadata=c.metadata ++ List("senseId" ->  s.persistent_id, "lempos" -> "zin:n")) .tag(babTagger)  ))
+    groups.foreach(println)
+    println(groups.size)
     return
     
     

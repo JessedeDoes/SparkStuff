@@ -46,7 +46,9 @@ case class Concordance(hitStart: Int, hitEnd: Int, tokenProperties:  Map[String,
     val findMe = retokenized("word")(hitStart)
     val indexes = (0 to tagged("word").size -1).filter(tagged("word")(_) == findMe)
     val bestIndex = indexes.minBy(i => Math.abs(hitStart - i))
-    this.copy(hitStart=bestIndex,hitEnd=bestIndex+1,tokenProperties=tagged)
+    val r = this.copy(hitStart=bestIndex,hitEnd=bestIndex+1,tokenProperties=tagged)
+    println(".")
+    r
   }
   
   override def toString() = (f"${left}%80s") + " \u169b"  + hit + "\u169c " + right + " metadata: " + metadata
