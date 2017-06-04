@@ -51,11 +51,11 @@ case class Attestation(wordform: Wordform, quote:String, start_pos: Int, end_pos
 
 case class DocumentMetadata(persistent_id: String, properties:Map[String,String])
 
-case class Sense(lemma: Lemma, persistent_id: String, lemma_id:String, parent_id: String, definition: String)
+case class Sense(lemma: Lemma, persistent_id: String, lemma_id:String, parent_sense_id: String, definition: String)
 {
   lazy val attestations = Hilex.slurp(queries.getAttestationsForSense(List(this)))
-  lazy val parentSense = ???
-  lazy val subSenses = ???
+  lazy val parentSense = Hilex.slurp(queries.getParentSenses(List(this)))
+  lazy val subSenses = Hilex.slurp(queries.getSubSenses(List(this)))
 }
 
 private object util
@@ -136,7 +136,32 @@ object queries
            from #${senseSchema}.senses 
            where lemma_id in """, values(ids)).as[Sense]
      }
+     
+     def getSubSenses(senses: List[Sense]) = 
+     {
+      val ids = senses.map(_.persistent_id)
     
+      implicit val makeSense = GetResult[Sense](
+          r => Sense(getLemma(r.nextInt), r.nextString, r.nextString, r.nextString, r.nextString)
+      )
+      concat(sql"""
+          select lemma_id, persistent_id, lemma_id, parent_sense_id , definition
+           from #${senseSchema}.senses 
+           where parent_sense_id in """, values(ids)).as[Sense]
+     }
+    
+     def getParentSenses(senses: List[Sense]) = 
+     {
+      val ids = senses.map(_.parent_sense_id)
+   
+      implicit val makeSense = GetResult[Sense](
+          r => Sense(getLemma(r.nextInt), r.nextString, r.nextString, r.nextString, r.nextString)
+      )
+      concat(sql"""
+          select lemma_id, persistent_id, lemma_id, parent_sense_id , definition
+           from #${senseSchema}.senses 
+           where persistent_id in """, values(ids)).as[Sense]
+     }
       def getDocument(r:PositionedResult):DocumentMetadata =
       {
          val items =
