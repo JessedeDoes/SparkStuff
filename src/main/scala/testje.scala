@@ -56,7 +56,7 @@ object tester
     var c = 0;
     df1.foreachPartition(i => c += 1)
     Console.err.println("Aantal partities: " + c)
-    df1.foreachPartition(r => leaveOneOut(wsd,r))
+    // df1.foreachPartition(r => leaveOneOut(wsd,r))
 		
 		val totalAccuracy = (totalItems - totalErrors -totalFailures) / totalItems.asInstanceOf[Double];
 		val mfs = 100; // MFSScore(ib);
@@ -73,14 +73,14 @@ object tester
       avgPerSense > minAvgPerSense
   }
     
-  def leaveOneOut(wsd:Swsd,instanceIterator:Iterator[Concordance]):Unit = 
+  def leaveOneOut(wsd:Swsd,instances:List[Concordance]):Unit = 
 	{
-    val instances = instanceIterator.toList // Hm niet leuk, maar ja
+   
     val grouped = instances.groupBy(_.meta("lempos"))
-    grouped.par.foreach( { case (lempos,group) => if (lempos.endsWith(":n")) leaveOneOut(wsd,group) }) // oops .. kan dat wel...
+    grouped.par.foreach( { case (lempos,group) => if (lempos.endsWith(":n")) leaveOneOutPerLempos(wsd,group) }) // oops .. kan dat wel...
 	}
   
-  def leaveOneOut(wsd:Swsd, all_Instances: List[Concordance]):Unit = 
+  def leaveOneOutPerLempos(wsd:Swsd, all_Instances: List[Concordance]):Unit = 
 	{  
     var errors = 0;
 		var total = 0;
