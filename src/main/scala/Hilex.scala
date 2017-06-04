@@ -365,7 +365,7 @@ object Hilex
     val groups = romans.flatMap(
         s => queries.getAttestationsBelow(s)
         .map(s => s.toConcordance)
-        .map(c =>  c.copy(metadata=c.metadata ++ List("senseId" ->  s.persistent_id, "lempos" -> "zin:n")) 
+        .map(c =>  c.copy(metadata=c.metadata ++ List("senseId" ->  s.persistent_id, "lempos" -> "zin:n", ("id", uuid))) 
                           .tag(babTagger) ))
         .filter(_.hitStart > -1)
     groups.foreach(println)
