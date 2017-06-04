@@ -23,7 +23,7 @@ trait Tagger
    def tag(text:String):Map[String,Array[String]] =
    {
      val d = taggedDocument(text)
-     println(d)
+    
      val z = (d \\ "w").map(w => 
        List(
            ("word", getTextButNotIn(w,"interp")), 
@@ -61,6 +61,7 @@ object chnTagger extends Tagger
     {
       val tagged = tag("""Je ben een ezel die zijn verstand kwijt is. Zwijg!""" )
       val c = Concordance(0,0,tagged,Map.empty)
+      println(c.tokenProperties("lemma").toList)
       println(c.vertical)
     }
 }
