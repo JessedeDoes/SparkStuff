@@ -13,13 +13,13 @@ import org.apache.log4j.Level
 
 object ConvertOldInstanceBase 
 {
-   val sparkSession:SparkSession = SparkSession.builder
+   lazy val sparkSession:SparkSession = SparkSession.builder
 			    .master("local")
 			    .appName("My App")
 			    .getOrCreate()
 
 			//val sc0 = new SparkContext(conf)
-	 val sc = sparkSession.sparkContext
+	 lazy val sc = sparkSession.sparkContext
    val tokenFields = List("word", "lemma" , "pos")
    
    
@@ -86,10 +86,13 @@ object ConvertOldInstanceBase
    
    def main(args: Array[String]) = 
    {
+     /*
      lazy val sparkSession:SparkSession = SparkSession.builder
 			    .master("local")
 			    .appName("My App")
 			    .getOrCreate()
+			    *
+			    */
 		 Logger.getLogger("org").setLevel(Level.WARN)
      Logger.getLogger("akka").setLevel(Level.WARN)
      Logger.getRootLogger.setLevel(Level.WARN)
