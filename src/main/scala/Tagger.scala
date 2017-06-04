@@ -55,7 +55,7 @@ Ende Godt sach het Licht, dat het goet was: ende Godt maeckte scheydinge tussche
 
 object chnTagger extends Tagger
 {
-   override def urlFor(text:String) = s"http://openconvert.clarin.inl.nl/openconvert/text?input=${text}&format=text&tagger=chn-tagger&output=raw&to=tei" 
+   override def urlFor(text:String) = s"http://openconvert.clarin.inl.nl/openconvert/text?input=${java.net.URLEncoder.encode(text)}&format=text&tagger=chn-tagger&output=raw&to=tei" 
    
     def main(args:Array[String]):Unit = 
     {
