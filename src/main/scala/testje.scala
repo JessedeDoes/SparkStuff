@@ -77,14 +77,17 @@ object tester
 	{
    
     val grouped = instances.groupBy(_.meta("lempos"))
-    grouped.par.foreach( { case (lempos,group) => if (lempos.endsWith(":n")) leaveOneOutPerLempos(wsd,group) }) // oops .. kan dat wel...
+    grouped.par.foreach( 
+        { 
+          case (lempos,group) => if (lempos.endsWith(":n")) leaveOneOutPerLempos(wsd,group) 
+        }) 
 	}
   
   def leaveOneOutPerLempos(wsd:Swsd, all_Instances: List[Concordance]):Unit = 
 	{  
-    var errors = 0;
-		var total = 0;
-		var failures = 0;
+    var errors = 0
+		var total = 0
+		var failures = 0
 		
 		val instancesX = all_Instances.filter(r => { val x = r("word"); x.size >= minWordsinExample} )
 		val senseDistribX = senseDistribution(instancesX)
@@ -116,14 +119,14 @@ object tester
 			try
 			{
 				val classify = wsd.train(instances, Set(w.meta("id")))
-				errors += test(Set(w), classify);
+				errors += test(Set(w), classify)
 			} catch 
 			{ case e:Exception =>
 	
-				e.printStackTrace();
-				failures += 1;
+				e.printStackTrace()
+				failures += 1
 			}
-			total += 1;
+			total += 1
 		}
 		
 		val accuracy = (total- errors -failures) / (total + 0.0)
@@ -140,10 +143,10 @@ object tester
 		
 		synchronized
 		{
-		totalItems += total
-		totalErrors += errors
-		totalMfsErrors += mfsErrors
-		totalFailures += failures
+	  	totalItems += total
+		  totalErrors += errors
+		  totalMfsErrors += mfsErrors
+		  totalFailures += failures
 		}
 	}  
   
