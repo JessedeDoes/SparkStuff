@@ -1,9 +1,8 @@
 
 
-case class Concordance(hitS: Int, hitE: Int, tokenProp:  Map[String,Array[String]], meta: Map[String,String])
+case class Concordance(hitStart: Int, hitEnd: Int, tokenProp:  Map[String,Array[String]], meta: Map[String,String])
 {
-  val hitStart = hitS
-  val hitEnd = hitE
+
   val tokenProperties: Map[String,Array[String]] = tokenProp
   val metadata: Map[String,String] = meta
   val defaultProperty = "word"
@@ -12,6 +11,8 @@ case class Concordance(hitS: Int, hitE: Int, tokenProp:  Map[String,Array[String
   lazy val left = words.slice(0,hitStart).mkString(" ")
   lazy val right = words.slice(hitEnd, words.length).mkString(" ")
   lazy val hit = words.slice(hitStart, hitEnd).mkString(" ")
+  
+  def apply(field: String) = tokenProperties(field)
   
   def retokenize(t:Tokenizer) = 
   {
@@ -27,13 +28,23 @@ case class Concordance(hitS: Int, hitE: Int, tokenProp:  Map[String,Array[String
   {
     val keys = tokenProperties.keys.toList
     //val triples = (0 to tokenProperties("word").size-1).map( i => keys.map(k => tokenProperties(k)(i)))
-    
-    (0 to tokenProperties("word").size-1).map( i => keys.map(k => tokenProperties(k)(i)).mkString("\t") ).mkString("\n")
+    def prefix(i:Int) = if (i==hitStart) ">" else ""
+    (0 to tokenProperties("word").size-1).map( 
+        i => prefix(i) + keys.map(k => tokenProperties(k)(i)).mkString("\t") 
+     ).mkString("\n")
   }
+  
+  /**
+   * Problem: tagger will retokenize, so we have to match back the best match
+   */
   def tag(implicit tagger:Tagger):Concordance = 
   {
-    val tagged = tagger.tag(this.retokenize(Tokenizer).tokenProperties("word").mkString(" "))
-    this.copy(tokenProp=tagged)
+    val retokenized = this.retokenize(Tokenizer)
+    val tagged = tagger.tag(retokenized("word").mkString(" "))
+    val findMe = retokenized("word")(hitStart)
+    val indexes = (0 to tagged("word").size -1).filter(tagged("word")(_) == findMe)
+    val bestIndex = indexes.minBy(i => Math.abs(hitStart - i))
+    this.copy(tokenProp=tagged,hitStart=bestIndex, hitEnd=bestIndex+1)
   }
   
   override def toString() = (f"${left}%80s") + " \u169b"  + hit + "\u169c " + right + " metadata: " + meta
