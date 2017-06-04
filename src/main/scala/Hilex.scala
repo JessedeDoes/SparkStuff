@@ -16,6 +16,8 @@ import slick.jdbc.GetResult
 import slick.jdbc.{SQLActionBuilder,SetParameter,PositionedParameters, PositionedResult}
 import scala.util.{Try, Success, Failure}
 import scala.reflect._
+import scala.pickling.Defaults._
+import scala.pickling.json._
 
 case class Lemma(modern_lemma: String, lemma_id:Int, persistent_id:String, pos:String) 
 {
@@ -335,7 +337,16 @@ object Hilex
        }
     }
   
-    
+   import java.io._
+        
+   def pickleTo(l:List[Concordance], fileName:String) = 
+  {
+
+    val pw = new PrintWriter(new File(fileName ))
+    val z = l.toArray.pickle.toString
+    pw.write(z)
+    pw.close
+  }
   
   def findSomeLemmata:List[Lemma] =
   {
@@ -351,9 +362,19 @@ object Hilex
     val romans = senses.filter(s => s.parent_sense_id == null)
     romans.foreach(println)
     
-    val groups = romans.flatMap(s => queries.getAttestationsBelow(s).map(s => s.toConcordance).map(c =>  c.copy(metadata=c.metadata ++ List("senseId" ->  s.persistent_id, "lempos" -> "zin:n")) .tag(babTagger)  ))
+    val groups = romans.flatMap(
+        s => queries.getAttestationsBelow(s)
+        .map(s => s.toConcordance)
+        .map(c =>  c.copy(metadata=c.metadata ++ List("senseId" ->  s.persistent_id, "lempos" -> "zin:n")) 
+                          .tag(babTagger) ))
+        .filter(_.hitStart > -1)
     groups.foreach(println)
     println(groups.size)
+    pickleTo(groups,s"Data/${myLemma}.pickle")
+    
+    
+   
+  
     return
     
     

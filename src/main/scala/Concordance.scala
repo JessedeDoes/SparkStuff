@@ -2,9 +2,7 @@
 
 case class Concordance(hitStart: Int, hitEnd: Int, tokenProperties:  Map[String,Array[String]], metadata: Map[String,String])
 {
-
-
- 
+   val minEen:Int  = -1
   val defaultProperty = "word"
   
   lazy val words = tokenProperties(defaultProperty)
@@ -45,13 +43,22 @@ case class Concordance(hitStart: Int, hitEnd: Int, tokenProperties:  Map[String,
     val tagged = tagger.tag(retokenized("word").mkString(" "))
     val findMe = retokenized("word")(hitStart)
     val indexes = (0 to tagged("word").size -1).filter(tagged("word")(_) == findMe)
+    if (indexes.isEmpty)
+    {
+        this.copy(hitStart=minEen,hitEnd=minEen,tokenProperties=tagged)
+    }
+    else
+    {
     val bestIndex = indexes.minBy(i => Math.abs(hitStart - i))
     val r = this.copy(hitStart=bestIndex,hitEnd=bestIndex+1,tokenProperties=tagged)
     println(".")
     r
+    }
   }
   
   override def toString() = (f"${left}%80s") + " \u169b"  + hit + "\u169c " + right + " metadata: " + metadata
+  
+   
  }
 
 
