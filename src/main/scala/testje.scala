@@ -63,9 +63,9 @@ object tester
 		System.err.println("overall:  " + totalErrors + " of " + totalItems + " failures: "  + totalFailures  + " score: " + totalAccuracy + " (mfs " + mfs + ")");
 	}
 
-  def senseDistribution(instances: Seq[Row]) = instances.groupBy(_.getAs[String]("senseId")).mapValues(_.size).toList.sortWith((a,b) => a._2 > b._2)
+  def senseDistribution(instances: Seq[Concordance]) = instances.groupBy(_.meta("senseId")).mapValues(_.size).toList.sortWith((a,b) => a._2 > b._2)
   
-  def enoughData(instances: Seq[Row]):Boolean =
+  def enoughData(instances: Seq[Concordance]):Boolean =
   {
       val sd = senseDistribution(instances)
       val minPerSense = sd.map(_._2).reduce( (a,b) => Math.min(a,b))
@@ -73,33 +73,33 @@ object tester
       avgPerSense > minAvgPerSense
   }
     
-  def leaveOneOut(wsd:Swsd,instanceIterator:Iterator[Row]):Unit = 
+  def leaveOneOut(wsd:Swsd,instanceIterator:Iterator[Concordance]):Unit = 
 	{
     val instances = instanceIterator.toList // Hm niet leuk, maar ja
-    val grouped = instances.groupBy(_.getAs[String]("lempos"))
+    val grouped = instances.groupBy(_.meta("lempos"))
     grouped.par.foreach( { case (lempos,group) => if (lempos.endsWith(":n")) leaveOneOut(wsd,group) }) // oops .. kan dat wel...
 	}
   
-  def leaveOneOut(wsd:Swsd, all_Instances: List[Row]):Unit = 
+  def leaveOneOut(wsd:Swsd, all_Instances: List[Concordance]):Unit = 
 	{  
     var errors = 0;
 		var total = 0;
 		var failures = 0;
 		
-		val instancesX = all_Instances.filter(r => { val x = r.getAs[Seq[String]]("word"); x.size >= minWordsinExample} )
+		val instancesX = all_Instances.filter(r => { val x = r("word"); x.size >= minWordsinExample} )
 		val senseDistribX = senseDistribution(instancesX)
 		val senseDistribMap = senseDistribX.toMap
 		
-		val instances = instancesX.filter(r => { val sid = r.getAs[String]("senseId"); senseDistribMap(sid) >= minExamplesInSense} )
+		val instances = instancesX.filter(r => { val sid = r.meta("senseId"); senseDistribMap(sid) >= minExamplesInSense} )
 		
 		val senseDistrib = senseDistribution(instances)
-    val senses = instances.map(_.getAs[String]("senseId")).distinct
-    val lempossen = instances.map(_.getAs[String]("lempos")).distinct
+    val senses = instances.map(_.meta("senseId")).distinct
+    val lempossen = instances.map(_.meta("lempos")).distinct
   
     if (senses.size < 2 || !enoughData(instances))
       return;
     
-    val lempos = instances.head.getAs[String]("lempos")
+    val lempos = instances.head.meta("lempos")
     
     // if (!(lempos == "ezel:n")) return
     Console.err.println("#### Working on " + lempossen)
@@ -110,10 +110,10 @@ object tester
 		
 		for (w <- instances)
 		{
-		  System.err.println("Holding out for instance:" + w.getAs[String]("id") + " " + w);
+		  System.err.println("Holding out for instance:" + w.meta("id") + " " + w);
 			try
 			{
-				val classify = wsd.train(instances, Set(w.getAs[String]("id")))
+				val classify = wsd.train(instances, Set(w.meta("id")))
 				errors += test(Set(w), classify);
 			} catch 
 			{ case e:Exception =>
@@ -145,14 +145,14 @@ object tester
 		}
 	}  
   
-  	def test(instances: Set[Row], classify: Row=>String):Int =
+  	def test(instances: Set[Concordance], classify: Concordance=>String):Int =
   		{
   				val t = new Dataset("test");
   				var errors = 0;
   				for (w <- instances)
   				{
   					val label = classify(w)
-  					val truth = w.getAs[String]("senseId")
+  					val truth = w.meta("senseId")
   					
   					val isOK = label.equalsIgnoreCase(truth)
   					Console.err.println(isOK + " " + label + "\ttruth:" + truth + "\t" + w)

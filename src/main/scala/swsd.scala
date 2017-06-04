@@ -35,43 +35,43 @@ object featureStuff
 {
     @volatile var vectorz = Vectors.readFromFile("/home/jesse/workspace/Diamant/Vectors/dbnl.vectors.bin")
     
-    class MyFeature(n: String, f: Row=>String) extends Feature with Serializable
+    class MyFeature(n: String, f: Concordance=>String) extends Feature with Serializable
   	{
   	  this.name = n
   	  val fun = f
   	  
-  	  override def getValue(o:Any) = o match { case r:Row => fun(r) }
+  	  override def getValue(o:Any) = o match { case r:Concordance => fun(r) }
   	}
   	
-  	class MyStochasticFeature(n:String, f:Row=>Distribution) extends StochasticFeature with Serializable
+  	class MyStochasticFeature(n:String, f:Concordance=>Distribution) extends StochasticFeature with Serializable
   	{
   	  this.name = n
   	  val fun = f
-  	  override def getValue(o:Any):Distribution = o match { case r:Row => fun(r) }
+  	  override def getValue(o:Any):Distribution = o match { case r:Concordance => fun(r) }
   	}
   	
-  	def fieldAt(f:String,i:Int)(r:Row):String = 
+  	def fieldAt(f:String,i:Int)(r:Concordance):String = 
   	{
-  	  val tokens = r.getAs[Seq[String]](f)
-  	  val p = r.getAs[Int]("hitStart")+i
+  	  val tokens = r.apply(f)
+  	  val p = r.hitStart+i
   	  if (p > 0 && p < tokens.length) tokens(p) else "#"
   	}
   	
   	def fieldFeature(n:String, f:String, i:Int) = new MyFeature(n,fieldAt(f,i))
   	
-  	def fieldAtMultiple(f:String, l:List[Int])(r:Row): String =
+  	def fieldAtMultiple(f:String, l:List[Int])(r:Concordance): String =
   	{
-  	  val tokens = r.getAs[Seq[String]](f)
-  	  val hs = r.getAs[Int]("hitStart")
+  	  val tokens = r.apply(f)
+  	  val hs = r.hitStart
   	  val ps = l.map( hs +_ ).map(p =>  { if (p > 0 && p < tokens.length) tokens(p) else "#"} ) 
   	  ps.mkString("_")
   	}
   	
-  	def bowFeature(k:Int)(r:Row):Distribution =
+  	def bowFeature(k:Int)(r:Concordance):Distribution =
   	{
   	  
-  	  val tokens = r.getAs[Seq[String]]("word")
-  	  val p = r.getAs[Int]("hitStart")
+  	  val tokens = r.apply("word")
+  	  val p = r.hitStart
   	  val l = ((p-k to p-1).toList ++ (p+1 to p+k).toList).filter(i => i>0 && i < tokens.length)
   	  
   	  val d = new Distribution
@@ -80,11 +80,11 @@ object featureStuff
   	  d
   	}
   	
-  	def vectorFeature(vectors:Vectors)(r:Row):Distribution =
+  	def vectorFeature(vectors:Vectors)(r:Concordance):Distribution =
   	{
   	   val window=2
-  	   val tokens = r.getAs[Seq[String]]("word").asJava
-  	   val focus = r.getAs[Int]("hitStart")
+  	   val tokens = r.apply("word").asJava
+  	   val focus = r.hitStart
   	   val posFrom = Math.max(focus-window,0)
   	   val posTo = Math.min(focus+window+1,tokens.size)
   	   val vector = word2vec.Util.getRankedAndDistanceWeightedAverageVector(vectors, tokens, focus, posFrom, posTo)
@@ -121,20 +121,20 @@ object featureStuff
   	    }
   	}
   	
-  	def centroidFeature(vectors:Vectors,training: List[Row], heldOutIds:Set[String]): Row => Distribution = 
+  	def centroidFeature(vectors:Vectors,training: List[Concordance], heldOutIds:Set[String]): Concordance => Distribution = 
   	{
   	  val window = 4
   	  
-  	  def avg(r:Row):Array[Float] = 
+  	  def avg(r:Concordance):Array[Float] = 
   	  { 
-  	    val focus = r.getAs[Int]("hitStart")
+  	    val focus = r.hitStart
   	    val posFrom = Math.max(focus-window,0)
-  	    val tokens = r.getAs[Seq[String]]("word").asJava 
+  	    val tokens = r.apply("word").asJava 
   	    val posTo = Math.min(focus+window+1,tokens.size)
   	    word2vec.Util.getRankedAndDistanceWeightedAverageVector(vectors,  tokens, focus, posFrom, posTo) 
   	  }
   	  
-  	  val quotationVectors = training.map(r => (r.getAs[String]("id"), r.getAs[String]("senseId"), avg(r))) // we want to cache this
+  	  val quotationVectors = training.map(r => (r.meta("id"), r.meta("senseId"), avg(r))) // we want to cache this
   	  
   	  val filtered = quotationVectors.filter(x => !heldOutIds.contains(x._1)) // .toMap
   	  
@@ -146,10 +146,10 @@ object featureStuff
   	  // println("Group centers:"  + groupCenters)
   	  
   	  
-  	  def f(r:Row):Distribution = 
+  	  def f(r:Concordance):Distribution = 
   	  {
   	    val qavg = avg(r)
-  	    val id = r.getAs[String]("id")
+  	    val id = r.meta("id")
   	  
   	    val distances = groupCenters.mapValues(x => x.distance(qavg,id))
   	    val nonZero = distances.filter(_._2 > 0)
@@ -162,9 +162,9 @@ object featureStuff
   	    val d = new Distribution
   	    distances.foreach( { case (k,v) => d.addOutcome(k, v / N) } )
   	    
-  	   //  println("Before normalization true sense id =" +r.getAs[String]("senseId") +  ", D=" + d + " for r= " + r)
+  	   //  println("Before normalization true sense id =" +r.meta("senseId") +  ", D=" + d + " for r= " + r)
   	   
-  	   //  println("true sense id =" +r.getAs[String]("senseId") +  ", D=" + d + " for r= " + r)
+  	   //  println("true sense id =" +r.meta("senseId") +  ", D=" + d + " for r= " + r)
   	    d
   	  }
   	  f
@@ -207,7 +207,7 @@ class Swsd extends Serializable
   	  features
   	}
   	
-   def train(instances: List[Row], heldout: Set[String]): Row=>String = 
+   def train(instances: List[Concordance], heldout: Set[String]): Concordance=>String = 
 	 {
      val df:DataFrame = null;
      val features = makeFeatures
@@ -222,14 +222,14 @@ class Swsd extends Serializable
 		 
 		 for (w <- instances)
 		 {
-		   val id = w.getAs[String]("id")
+		   val id = w.meta("id")
 		   if (!heldout.contains(id))
-				 d.addInstance(w, w.getAs[String]("senseId"))
+				 d.addInstance(w, w.meta("senseId"))
 			 else
 			   Console.err.println("Held out: " + id + " " + w)
 		 }
 		 classifier.train(d)
 		
-		 return (r:Row) => classifier.classifyInstance(features.makeTestInstance(r))
+		 return (r:Concordance) => classifier.classifyInstance(features.makeTestInstance(r))
 	 }
 }

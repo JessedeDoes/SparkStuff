@@ -13,6 +13,7 @@ case class Concordance(hitStart: Int, hitEnd: Int, tokenProp:  Map[String,Array[
   lazy val hit = words.slice(hitStart, hitEnd).mkString(" ")
   
   def apply(field: String) = tokenProperties(field)
+  def meta(field:String) = metadata(field)
   
   def retokenize(t:Tokenizer) = 
   {
@@ -35,8 +36,9 @@ case class Concordance(hitStart: Int, hitEnd: Int, tokenProp:  Map[String,Array[
   }
   
   /**
-   * Problem: tagger will retokenize, so we have to match back the best match
+   * Problem: tagger will retokenize, so we have to match back the hit position. Rather ugly, and might not always work
    */
+  
   def tag(implicit tagger:Tagger):Concordance = 
   {
     val retokenized = this.retokenize(Tokenizer)
