@@ -1,10 +1,10 @@
 
 
-case class Concordance(hitStart: Int, hitEnd: Int, tokenProp:  Map[String,Array[String]], meta: Map[String,String])
+case class Concordance(hitStart: Int, hitEnd: Int, tokenProperties:  Map[String,Array[String]], metadata: Map[String,String])
 {
 
-  val tokenProperties: Map[String,Array[String]] = tokenProp
-  val metadata: Map[String,String] = meta
+
+ 
   val defaultProperty = "word"
   
   lazy val words = tokenProperties(defaultProperty)
@@ -12,7 +12,7 @@ case class Concordance(hitStart: Int, hitEnd: Int, tokenProp:  Map[String,Array[
   lazy val right = words.slice(hitEnd, words.length).mkString(" ")
   lazy val hit = words.slice(hitStart, hitEnd).mkString(" ")
   
-  def apply(field: String) = tokenProperties(field)
+  def apply(field: String):Array[String] = tokenProperties(field)
   def meta(field:String) = metadata(field)
   
   def retokenize(t:Tokenizer) = 
@@ -22,7 +22,7 @@ case class Concordance(hitStart: Int, hitEnd: Int, tokenProp:  Map[String,Array[
     val postpunct = tokens.map(t => t.trailing)
     val words = tokens.map(t => t.token)
     val newProperties = tokenProperties -- List("words","prepunctuation","postpunctuation") ++ List("word" -> words, "prepunctuation" -> prepunct, "postpunctuation" -> postpunct)
-    this.copy(tokenProp=newProperties)
+    this.copy(tokenProperties=newProperties)
   }
   
   def vertical =
@@ -46,10 +46,10 @@ case class Concordance(hitStart: Int, hitEnd: Int, tokenProp:  Map[String,Array[
     val findMe = retokenized("word")(hitStart)
     val indexes = (0 to tagged("word").size -1).filter(tagged("word")(_) == findMe)
     val bestIndex = indexes.minBy(i => Math.abs(hitStart - i))
-    this.copy(tokenProp=tagged,hitStart=bestIndex, hitEnd=bestIndex+1)
+    this.copy(hitStart=bestIndex,hitEnd=bestIndex+1,tokenProperties=tagged)
   }
   
-  override def toString() = (f"${left}%80s") + " \u169b"  + hit + "\u169c " + right + " metadata: " + meta
+  override def toString() = (f"${left}%80s") + " \u169b"  + hit + "\u169c " + right + " metadata: " + metadata
  }
 
 

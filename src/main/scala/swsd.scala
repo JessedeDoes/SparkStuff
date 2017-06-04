@@ -83,7 +83,7 @@ object featureStuff
   	def vectorFeature(vectors:Vectors)(r:Concordance):Distribution =
   	{
   	   val window=2
-  	   val tokens = r.apply("word").asJava
+  	   val tokens = r.apply("word").toList.asJava
   	   val focus = r.hitStart
   	   val posFrom = Math.max(focus-window,0)
   	   val posTo = Math.min(focus+window+1,tokens.size)
@@ -129,7 +129,7 @@ object featureStuff
   	  { 
   	    val focus = r.hitStart
   	    val posFrom = Math.max(focus-window,0)
-  	    val tokens = r.apply("word").asJava 
+  	    val tokens = r.apply("word").toList.asJava 
   	    val posTo = Math.min(focus+window+1,tokens.size)
   	    word2vec.Util.getRankedAndDistanceWeightedAverageVector(vectors,  tokens, focus, posFrom, posTo) 
   	  }

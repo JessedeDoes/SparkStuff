@@ -47,7 +47,30 @@ object ConvertOldInstanceBase
             yield i
      	session.createDataFrame(session.sparkContext.parallelize(rows.toList, 4), schema)
    }
-   
+ 
+   def convertToConcordances(fileName:String):List[Concordance] =
+   {
+     val w:WSDInstanceBase = WSDInstanceBase.loadFromFile(fileName)
+     val rows =
+       for (e <- w.entrySet().asScala;
+          i <- e.getValue.asScala.map(x => instanceToConcordance(x,e.getKey)))
+            yield i
+      rows.toList
+   }
+ 
+   def instanceToConcordance(i:WSDInstance,lempos:String):Concordance =
+   {
+      val t = i.tokens.asScala
+
+     val lemmata = t.map(_ getLemma).toArray
+     val words = t.map(_ getWord).toArray
+     val pos = t.map(_ getPoS).toArray
+
+     val tokenFieldMap = List((lemmata,"lemma"), (words,"word"), (pos,"pos") ).map({ case (x,y) => y->x }).toMap
+     val meta  = Map( ("senseId" -> i.senseId), ("lempos", lempos), ("id", uuid))
+     Concordance(i.targetPosition, i.targetPosition+1, tokenFieldMap, meta)
+   } 
+
    def convertInstance(i:WSDInstance, lempos:String):Row =
    {
      val t = i.tokens.asScala
@@ -63,17 +86,18 @@ object ConvertOldInstanceBase
    
    def main(args: Array[String]) = 
    {
-     val sparkSession:SparkSession = SparkSession.builder
+     lazy val sparkSession:SparkSession = SparkSession.builder
 			    .master("local")
 			    .appName("My App")
 			    .getOrCreate()
 		 Logger.getLogger("org").setLevel(Level.WARN)
      Logger.getLogger("akka").setLevel(Level.WARN)
      Logger.getRootLogger.setLevel(Level.WARN)
-     val frames = convert(args(0), sparkSession)
+     //val frames = convert(args(0), sparkSession)
+     val concordances = convertToConcordances(args(0))
      Console.err.println("Instance based loaded")
 
-     tester.leaveOneOut(new Swsd, frames)
+     tester.leaveOneOut(new Swsd, concordances)
      //frames.write.format("parquet").save("Data/wsdInstanceBase.parquet") // SaveMode.Overwrite
      //frames.rdd.saveAsTextFile("Data/aapje.framez")
    }
