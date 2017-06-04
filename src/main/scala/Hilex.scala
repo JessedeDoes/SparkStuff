@@ -142,12 +142,22 @@ object queries
       val ids = senses.map(_.persistent_id)
     
       implicit val makeSense = GetResult[Sense](
-          r => Sense(getLemma(r.nextInt), r.nextString, r.nextString, r.nextString, r.nextString)
+          r => Sense(
+              getLemmaByPersistentId(r.nextString), 
+              r.nextString, 
+              r.nextString, 
+              r.nextString, 
+              r.nextString)
       )
-      concat(sql"""
+      
+     
+      val z= concat(sql"""
           select lemma_id, persistent_id, lemma_id, parent_sense_id , definition
            from #${senseSchema}.senses 
-           where parent_sense_id in """, values(ids)).as[Sense]
+           where parent_sense_id in """, values(ids))
+           
+      
+       z.as[Sense]
      }
     
      def getParentSenses(senses: List[Sense]) = 
@@ -162,6 +172,10 @@ object queries
            from #${senseSchema}.senses 
            where persistent_id in """, values(ids)).as[Sense]
      }
+     
+     def getAttestationsBelow(s: Sense):List[Attestation] =
+       s.attestations ++  s.subSenses.flatMap(s => getAttestationsBelow(s))
+     
       def getDocument(r:PositionedResult):DocumentMetadata =
       {
          val items =
@@ -218,6 +232,15 @@ object queries
          l.head
     }
     
+    def getLemmaByPersistentId(lemma_id: String):Lemma =
+    {
+        val l = Hilex.slurp(queries.lemmaQueryWhere(s"persistent_id='${lemma_id}'" ))
+        if (l.isEmpty)
+         null
+       else
+         l.head
+    }
+    
     implicit def getWordform(analyzed_wordform_id: Int):Wordform = 
     {
       implicit val makeWordform = GetResult[Wordform](
@@ -244,7 +267,7 @@ object queries
     {
       val ids = senses.map(_.persistent_id)
       val senseMap = senses.map(l => (l.persistent_id,l)).toMap
-      implicit val makeAttestation =   GetResult[Attestation]( r => getAttestation(r) )
+      implicit val makeAttestation =   GetResult[Attestation]( r => getAttestation(r))
   
      concat(sql"""
       select 
@@ -321,10 +344,19 @@ object Hilex
   
   def main(args:Array[String]):Unit = 
   { 
-    val l = findSomeLemmata
-    println("lemmata gevonden")
-    l.foreach(println)
-    println("betekenissen gevonden")
+    val myLemma = "M089253"
+    val l = slurp(queries.lemmaQueryWhere(s"persistent_id='${myLemma}'"))
+    val zin = l.head
+    val senses = zin.senses
+    val romans = senses.filter(s => s.parent_sense_id == null)
+    romans.foreach(println)
+    
+    val groups = romans.flatMap(s => queries.getAttestationsBelow(s).map(s => s.toConcordance).map(c =>  c.copy(metadata=c.metadata ++ List("senseId" ->  s.persistent_id, "lempos" -> "zin:n")  ) ))
+    println(groups)
+    
+    return
+    
+    
     l.foreach(x => x.senses.foreach(println))
     l.foreach(_.senses.foreach(s => 
       { println(s"\nAttestaties voor ${s}"); s.attestations.foreach( a => println(a.toConcordance.tag(babTagger).vertical)) }))
