@@ -302,7 +302,7 @@ object Hilex
     println("betekenissen gevonden")
     l.foreach(x => x.senses.foreach(println))
     l.foreach(_.senses.foreach(s => 
-      { println(s"\nAttestaties voor ${s}"); s.attestations.foreach( a => println(a.toConcordance.retokenize(Tokenizer))) }))
+      { println(s"\nAttestaties voor ${s}"); s.attestations.foreach( a => println(a.toConcordance.tag(babTagger).vertical)) }))
     val qs = queries.getSenses(l)
   
     val q = queries.getWordforms(l)
