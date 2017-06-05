@@ -32,10 +32,13 @@ import scala.pickling.Defaults._
 import scala.pickling.json._
 
 import scala.collection.JavaConverters._
+
+import Hilex.hilexDB
+
 case class Lemma(modern_lemma: String, lemma_id:Int, persistent_id:String, pos:String) 
 {
-   lazy val wordforms = Hilex.slurp(queries.getWordforms(List(this)))(Hilex.hilexDB)
-   lazy val senses = Hilex.slurp(queries.getSenses(List(this)))(Hilex.hilexDB)
+   lazy val wordforms = Hilex.slurp(queries.getWordforms(List(this)))
+   lazy val senses = Hilex.slurp(queries.getSenses(List(this)))
 }
 
 case class SynonymDefinition(sense_id: String, synonym: String)
@@ -70,9 +73,10 @@ case class DocumentMetadata(persistent_id: String, properties:Map[String,String]
 
 case class Sense(lemma: Lemma, persistent_id: String, lemma_id:String, parent_sense_id: String, definition: String)
 {
-  lazy val attestations = Hilex.slurp(queries.getAttestationsForSense(List(this)))(Hilex.hilexDB)
-  lazy val parentSense = Hilex.slurp(queries.getParentSenses(List(this)))(Hilex.hilexDB)
-  lazy val subSenses = Hilex.slurp(queries.getSubSenses(List(this)))(Hilex.hilexDB)
+  lazy val attestations = Hilex.slurp(queries.getAttestationsForSense(List(this)))
+  lazy val parentSense = Hilex.slurp(queries.getParentSenses(List(this)))
+  lazy val subSenses = Hilex.slurp(queries.getSubSenses(List(this)))
+  lazy val synonymDefinitions = queries.getSynonymDefinitions(this)
 }
 
 private object util
@@ -248,7 +252,7 @@ object queries
     
     def getLemma(lemma_id: Int):Lemma =
     {
-        val l = Hilex.slurp(queries.lemmaQueryWhere(s"lemma_id='${lemma_id}'" ))(Hilex.hilexDB)
+        val l = Hilex.slurp(queries.lemmaQueryWhere(s"lemma_id='${lemma_id}'" ))
         if (l.isEmpty)
          null
        else
@@ -257,7 +261,7 @@ object queries
     
     def getLemmaByPersistentId(lemma_id: String):Lemma =
     {
-        val l = Hilex.slurp(queries.lemmaQueryWhere(s"persistent_id='${lemma_id}'" ))(Hilex.hilexDB)
+        val l = Hilex.slurp(queries.lemmaQueryWhere(s"persistent_id='${lemma_id}'" ))
         if (l.isEmpty)
          null
        else
@@ -279,14 +283,14 @@ object queries
        
        val a =  (db:Handle) => db.createQuery(q).map(makeWordform) 
       
-       val l:List[Wordform] = Hilex.slurp(a)(Hilex.hilexDB)
+       val l:List[Wordform] = Hilex.slurp(a)
        if (l.isEmpty)
          null
        else
          l.head
     }
     
-    def getSynonymDefinitions(sense: Sense) =
+    def getSynonymDefinitions(sense: Sense):List[SynonymDefinition] =
     {
       
        implicit val makeSynonymDefinition = GetResult[SynonymDefinition](r => SynonymDefinition(r.getString("persistent_id"), r.getString("syn")))
@@ -299,7 +303,7 @@ object queries
            sense_id=${sense.persistent_id}
         """
        val a =  (db:Handle) => db.createQuery(q).map(makeSynonymDefinition)
-       val l:List[SynonymDefinition] = Hilex.slurp(a)(Hilex.hilexDB)
+       val l:List[SynonymDefinition] = Hilex.slurp(a,Hilex.diamantRuwDB)
        l
     }
     
@@ -381,16 +385,18 @@ object Hilex
   lazy val diamantRuwDB = makeHandle(diamantAtHome)
     
   
-  lazy val hilexDB = makeHandle(hilexAtHome)
+  implicit lazy val hilexDB = makeHandle(hilexAtHome)
   
 
   
   
-   def slurp[A] (a: queries.AlmostQuery[A])(implicit db: Handle):List[A] =
+   def slurp[A] (a: queries.AlmostQuery[A], db: Handle):List[A] =
     { 
        a(db).list().asScala.toList
     } 
-  
+   
+  def slurp[A] (a: queries.AlmostQuery[A]):List[A] = slurp(a,hilexDB)
+    
    import java.io._
         
   def pickleTo(l:List[Concordance], fileName:String) = 
@@ -404,13 +410,13 @@ object Hilex
   
   def findSomeLemmata:List[Lemma] =
   {
-     slurp(queries.lemmaQueryWhere("modern_lemma ~ '^zin$'"))(Hilex.hilexDB)
+     slurp(queries.lemmaQueryWhere("modern_lemma ~ '^zin$'"))
   }
   
   def main(args:Array[String]):Unit = 
   { 
     val myLemma = "M089253"
-    val l = slurp(queries.lemmaQueryWhere(s"persistent_id='${myLemma}'"))(Hilex.hilexDB)
+    val l = slurp(queries.lemmaQueryWhere(s"persistent_id='${myLemma}'"))
     val zin = l.head
     println(zin)
     val senses = zin.senses
@@ -440,10 +446,10 @@ object Hilex
     val qs = queries.getSenses(l)
   
     val q = queries.getWordforms(l)
-    val l1 = slurp(q)(Hilex.hilexDB)
+    val l1 = slurp(q,Hilex.hilexDB)
     l1.foreach(println)
     val q2 = queries.getAttestations(l1)
-    val l2 = slurp(q2)(Hilex.hilexDB)
+    val l2 = slurp(q2,Hilex.hilexDB)
     l2.foreach(println)
   }
 }

@@ -4,10 +4,12 @@ import scala.collection.mutable.ArrayBuffer
 
 import scala.io.Source
 
-case class Token(leading:String, token:String, trailing:String)
+
 
 trait Tokenizer
 {
+  case class Token(leading:String, token:String, trailing:String)
+  
    def tokenize(s:String): Array[Token] 
 }
 
