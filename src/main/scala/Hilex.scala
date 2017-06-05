@@ -362,16 +362,17 @@ object Hilex
     val romans = senses.filter(s => s.parent_sense_id == null)
     romans.foreach(println)
     
-    val groups = romans.flatMap(
+    val attestationsAsConcordances  = romans.flatMap(
         s => queries.getAttestationsBelow(s)
-        .map(s => s.toConcordance)
-        .map(c =>  c.copy(metadata=c.metadata ++ List("senseId" ->  s.persistent_id, "lempos" -> "zin:n", ("id", ConvertOldInstanceBase.uuid))) 
-                          .tag(babTagger) ))
-        .filter(_.hitStart > -1)
-    groups.foreach(println)
-    println(groups.size)
-    pickleTo(groups,s"Data/${myLemma}.pickle")
-    tester.leaveOneOut(new Swsd, groups)
+          .map(s => s.toConcordance)
+          .map(c =>  c.copy(metadata=c.metadata ++ List("senseId" ->  s.persistent_id, "lempos" -> "zin:n", ("id", ConvertOldInstanceBase.uuid))) 
+          .tag(babTagger) )
+      ).filter(_.hitStart > -1)
+      
+    attestationsAsConcordances.foreach(println)
+    println(attestationsAsConcordances.size)
+    pickleTo(attestationsAsConcordances,s"Data/${myLemma}.pickle")
+    tester.leaveOneOut(new Swsd, attestationsAsConcordances)
     
    
   
