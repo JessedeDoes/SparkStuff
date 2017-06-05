@@ -31,6 +31,7 @@ import scala.reflect._
 import scala.pickling.Defaults._
 import scala.pickling.json._
 
+import scala.collection.JavaConverters._
 case class Lemma(modern_lemma: String, lemma_id:Int, persistent_id:String, pos:String) 
 {
    lazy val wordforms = Hilex.slurp(queries.getWordforms(List(this)))(Hilex.hilexDB)
@@ -109,12 +110,13 @@ object queries
     def lemmaQueryWhere(where:String):AlmostQuery[Lemma] = 
     {
       
-      db => db.createQuery("""
+      db => db.createQuery(s"""
       select modern_lemma, lemma_id,persistent_id, lemma_part_of_speech from ${dataSchema}.lemmata 
         where ${where}""").map(getLemma)
     }
     
-    def values(l:List[Any]) = "knoep"
+    def intValues(l:List[Int]) = "(" + l.mkString(",") + ")"
+    def stringValues(l:List[String]) = "('" + l.mkString("','") + "')"
     
     def getWordforms(lemmata: List[Lemma]):AlmostQuery[Wordform]  = 
     {
@@ -127,9 +129,10 @@ object queries
         select 
                        lemma_id, analyzed_wordform_id, wordform 
         from 
-            #${dataSchema}.analyzed_wordforms a, 
-            #${dataSchema}.wordforms w 
-        where a.wordform_id=w.wordform_id and lemma_id in """ + values(ids)
+            ${dataSchema}.analyzed_wordforms a, 
+            ${dataSchema}.wordforms w 
+        where a.wordform_id=w.wordform_id and lemma_id in """ + intValues(ids)
+        
         db => db.createQuery(q).map(makeWordform)
     }
      
@@ -144,7 +147,7 @@ object queries
       val q = s"""
           select lemma_id, persistent_id, lemma_id, parent_sense_id , definition
            from ${senseSchema}.senses 
-           where lemma_id in """ + values(ids)
+           where lemma_id in """ + stringValues(ids)
        db => db.createQuery(q).map(makeSense)
      }
      
@@ -165,7 +168,7 @@ object queries
       val q = s"""
           select lemma_id, persistent_id, lemma_id, parent_sense_id , definition
            from ${senseSchema}.senses 
-           where parent_sense_id in """ + values(ids)
+           where parent_sense_id in """ + stringValues(ids)
            
        db => db.createQuery(q).map(makeSense) 
      }
@@ -185,7 +188,7 @@ object queries
       val q =  s"""
           select lemma_id, persistent_id, lemma_id, parent_sense_id , definition
            from ${senseSchema}.senses 
-           where persistent_id in """ +  values(ids)
+           where persistent_id in """ +  stringValues(ids)
         db => db.createQuery(q).map(makeSense)
      }
      
@@ -205,7 +208,7 @@ object queries
            DocumentMetadata("bla", items)
       }
       
-      def getAttestation(r:PositionedResult):Attestation = 
+      def getAttestation(r:ResultSet):Attestation = 
       {
          val a =  Attestation(getWordform(r.getInt("analyzed_wordform_id")), 
               r.getString("quote"),  
@@ -239,7 +242,7 @@ object queries
       where
              d.document_id=t.document_id
             and a.analyzed_wordform_id=t.analyzed_wordform_id 
-            and t.analyzed_wordform_id in """ +  values(ids)
+            and t.analyzed_wordform_id in """ +  intValues(ids)
        db => db.createQuery(q).map(makeAttestation)
     } 
     
@@ -266,11 +269,11 @@ object queries
       implicit val makeWordform = GetResult[Wordform](
           r => Wordform(getLemma(r.getInt("lemma_id")), r.getInt("analyzed_wordform_id"), r.getString("wordform"))
       )
-      val a = sql"""
+      val q = s"""
         select 
           lemma_id, analyzed_wordform_id, wordform 
         from 
-            ${dataSchema}.analyzed_wordforms a, #${dataSchema}.wordforms w 
+            ${dataSchema}.analyzed_wordforms a, ${dataSchema}.wordforms w 
         where 
         a.wordform_id=w.wordform_id and analyzed_wordform_id=${analyzed_wordform_id} """
        
@@ -322,8 +325,9 @@ object queries
       where
             d.eg_id = e.eg_id
             and t.document_id=d.document_id
-            and e.sense_id in """ + values(ids)
+            and e.sense_id in """ + stringValues(ids)
       val a =  (db:Handle) => db.createQuery(q).map(makeAttestation)
+      a
     } 
     
    // as in: concat(sql"select id from USERS where id in ", values(Seq(1,2))).as[Int]
@@ -332,6 +336,16 @@ object queries
 object Hilex 
 {
  
+  case class Configuration(name: String, server: String, database: String, user:String, password: String)
+  
+  val hilexAtHome = Configuration(
+        name="gigant_hilex", 
+        server="svowdb02", 
+        database="gigant_hilex_dev", 
+        user="postgres", 
+        password="inl")
+        
+  val diamantAtHome = hilexAtHome.copy(database="diamant_vuilnisbak")
   
   implicit lazy val ec = new ExecutionContext
   {
@@ -347,35 +361,35 @@ object Hilex
   
   val dev=true
   
-  def makeHandle =
+  def makeHandle(conf:  Configuration) =
   {
-    val source = new PGPoolingDataSource
+     val source = new PGPoolingDataSource
 
-    source.setDataSourceName("gigant_hilex")
-    source.setServerName(if (dev) "svowdb02.inl.loc" else "svowdb06.inl.loc")
-    source.setDatabaseName(if (dev) "gigant_hilex_dev" else "gig_pro")
-    source.setUser(if (dev) "postgres" else "fannee")
-    source.setPassword(if (dev) "inl" else "Cric0topus")
-    source.setMaxConnections(10)
-    val dbi = new DBI(source)
-    val gigmolHandle: Handle = dbi.open
-    gigmolHandle
+     source.setDataSourceName(conf.name)
+     source.setServerName(conf.server)
+     source.setDatabaseName(conf.database)
+     source.setUser(conf.user)
+     source.setPassword(conf.password)
+     source.setMaxConnections(10)
+     val dbi = new DBI(source)
+     val gigmolHandle: Handle = dbi.open
+     gigmolHandle
   }
   
   
   
-  lazy val diamantRuwDB = makeHandle
+  lazy val diamantRuwDB = makeHandle(diamantAtHome)
     
   
-  lazy val hilexDB = makeHandle
+  lazy val hilexDB = makeHandle(hilexAtHome)
   
 
   
   
-    def slurp[A] (a: Query[A])(implicit db: Handle):List[A] =
+   def slurp[A] (a: queries.AlmostQuery[A])(implicit db: Handle):List[A] =
     { 
-       a.list
-    }
+       a(db).list().asScala.toList
+    } 
   
    import java.io._
         
@@ -398,6 +412,7 @@ object Hilex
     val myLemma = "M089253"
     val l = slurp(queries.lemmaQueryWhere(s"persistent_id='${myLemma}'"))(Hilex.hilexDB)
     val zin = l.head
+    println(zin)
     val senses = zin.senses
     val romans = senses.filter(s => s.parent_sense_id == null)
     romans.foreach(println)
@@ -411,8 +426,8 @@ object Hilex
       
     attestationsAsConcordances.foreach(println)
     println(attestationsAsConcordances.size)
-    pickleTo(attestationsAsConcordances,s"Data/${myLemma}.pickle")
-    tester.leaveOneOut(new Swsd, attestationsAsConcordances)
+    //pickleTo(attestationsAsConcordances,s"Data/${myLemma}.pickle")
+    //tester.leaveOneOut(new Swsd, attestationsAsConcordances)
     
    
   
