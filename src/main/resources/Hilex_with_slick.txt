@@ -1,31 +1,26 @@
 
+// Slick 3.2.0 afgedankt
+// Het lukt niet meer de code goed te krijgen omdat het volstrekt niet duidelijk was
+// hoe jes moest importeren....
+
 // http://slick.lightbend.com/doc/3.0.0/sql.html
 // http://queirozf.com/entries/slick-3-reference-and-examples
+
 // https://github.com/slick/slick/issues/1161 voor samenstellen queries
 
 //import slick.driver.H2Driver.api._
 //import slick.driver.JdbcDriver.api._
-
-import org.postgresql.ds.PGPoolingDataSource
-
-import org.skife.jdbi._
-import v2.DBI
-import v2.Handle
-import v2.Query
-import v2.StatementContext
-import v2.tweak.ResultSetMapper
-import java.sql.ResultSet
-import java.sql.SQLException
-
-
+import slick.jdbc.JdbcBackend._
 import java.util.concurrent.Executors
 import scala.concurrent._
 import scala.concurrent.Future
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.concurrent.forkjoin._
-
-
+import org.apache.log4j.Logger
+import org.apache.log4j.Level
+import slick.jdbc.GetResult
+import slick.jdbc.{SQLActionBuilder,SetParameter,PositionedParameters, PositionedResult}
 import scala.util.{Try, Success, Failure}
 import scala.reflect._
 import scala.pickling.Defaults._
@@ -76,117 +71,117 @@ case class Sense(lemma: Lemma, persistent_id: String, lemma_id:String, parent_se
 
 private object util
 {
-  
+   def concat(a: SQLActionBuilder, b: SQLActionBuilder): SQLActionBuilder = 
+  {
+		SQLActionBuilder(a.queryParts ++ b.queryParts, new SetParameter[Unit] {
+				def apply(p: Unit, pp: PositionedParameters): Unit = {
+						a.unitPConv.apply(p, pp)
+						b.unitPConv.apply(p, pp)
+				}
+		})
+  }
+    
+   def values[T](xs: TraversableOnce[T])(implicit sp: SetParameter[T]): SQLActionBuilder = {
+      var b = sql"("
+      var first = true
+      xs.foreach { x =>
+        if(first) first = false
+        else b = concat(b, sql",")
+        b = concat(b, sql"$x")
+      }
+      concat(b, sql")")
+    }
 }
 
 object queries
-{  
-     case class GetResult[T](f: ResultSet => T) extends ResultSetMapper[T]
-     {
-     	 override def map(arg0: Int, r: ResultSet, arg2: StatementContext): T =
-     	 {
-     	    val w  = f(r)
-     	     w
-     	  }
-     }
-     
-    val getLemma = GetResult[Lemma](r => Lemma(r.getString("modern_lemma"), r.getInt("lemma_id"),  r.getString("persistent_id"), r.getString("lemma_part_of_speech")))
-    type AlmostQuery[T] = (Handle => Query[T])
-    
+{   
+  
     import util._
     val pos = "ADP"
     
     val dataSchema = if (TestSpark.atHome) "data" else "gigant_hilex_data"
     val senseSchema = "wnt_ids"
     
-    def lemmaQueryExample():AlmostQuery[Lemma] = 
+    val lemmaQueryExample = 
     {
-      db => db.createQuery(s"""
+      implicit val getLemma = GetResult[Lemma](r => Lemma(r.nextString, r.nextInt, r.nextString,r.nextString))
+      sql"""
       select modern_lemma, lemma_id,persistent_id, lemma_part_of_speech from data.lemmata 
-        where lemma_part_of_speech ~ '${pos}'""").map(getLemma)
+        where lemma_part_of_speech ~ ${pos}""".as[Lemma]
     }
     
-    def lemmaQueryWhere(where:String):AlmostQuery[Lemma] = 
+    def lemmaQueryWhere(where:String) = 
     {
-      
-      db => db.createQuery("""
-      select modern_lemma, lemma_id,persistent_id, lemma_part_of_speech from ${dataSchema}.lemmata 
-        where ${where}""").map(getLemma)
+      implicit val getLemma = GetResult[Lemma](r => Lemma(r.nextString, r.nextInt, r.nextString,r.nextString))
+      sql"""
+      select modern_lemma, lemma_id,persistent_id, lemma_part_of_speech from #${dataSchema}.lemmata 
+        where #${where}""".as[Lemma]
     }
     
-    def values(l:List[Any]) = "knoep"
-    
-    def getWordforms(lemmata: List[Lemma]):AlmostQuery[Wordform]  = 
+    def getWordforms(lemmata: List[Lemma]) = 
     {
       val ids = lemmata.map(_.lemma_id)
       val lemmaMap = lemmata.map(l => (l.lemma_id,l)).toMap
       implicit val makeWordform = GetResult[Wordform](
-          r => Wordform(lemmaMap(r.getInt("lemma_id")), r.getInt("analyzed_wordform_id"), r.getString("wordform"))
+          r => Wordform(lemmaMap(r.nextInt), r.nextInt, r.nextString)
       )
-      val q = s"""
+      concat(sql"""
         select 
                        lemma_id, analyzed_wordform_id, wordform 
         from 
             #${dataSchema}.analyzed_wordforms a, 
             #${dataSchema}.wordforms w 
-        where a.wordform_id=w.wordform_id and lemma_id in """ + values(ids)
-        db => db.createQuery(q).map(makeWordform)
+        where a.wordform_id=w.wordform_id and lemma_id in """, values(ids)).as[Wordform]
     }
      
-     def getSenses(lemmata: List[Lemma]):AlmostQuery[Sense] = 
+     def getSenses(lemmata: List[Lemma]) = 
      {
       val ids = lemmata.map(_.persistent_id)
       val lemmaMap = lemmata.map(l => (l.persistent_id,l)).toMap
       println(lemmaMap.toList)
       implicit val makeSense = GetResult[Sense](
-          r => Sense(lemmaMap(r.getString(""), r.getString(""), r.getString(""), r.getString(""), r.getString(""))
+          r => Sense(lemmaMap(r.nextString), r.nextString, r.nextString, r.nextString, r.nextString)
       )
-      val q = s"""
+      concat(sql"""
           select lemma_id, persistent_id, lemma_id, parent_sense_id , definition
-           from ${senseSchema}.senses 
-           where lemma_id in """ + values(ids)
-       db => db.createQuery(q).map(makeSense)
+           from #${senseSchema}.senses 
+           where lemma_id in """, values(ids)).as[Sense]
      }
      
-     def getSubSenses(senses: List[Sense]):AlmostQuery[Sense] = 
+     def getSubSenses(senses: List[Sense]) = 
      {
       val ids = senses.map(_.persistent_id)
     
       implicit val makeSense = GetResult[Sense](
           r => Sense(
-              getLemmaByPersistentId(r.getString("lemma_id")), 
-              r.getString("persistent_id"), 
-              r.getString("lemma_id"), 
-              r.getString("parent_sense_id"), 
-              r.getString("definition"))
+              getLemmaByPersistentId(r.nextString), 
+              r.nextString, 
+              r.nextString, 
+              r.nextString, 
+              r.nextString)
       )
       
      
-      val q = s"""
+      val z= concat(sql"""
           select lemma_id, persistent_id, lemma_id, parent_sense_id , definition
-           from ${senseSchema}.senses 
-           where parent_sense_id in """ + values(ids)
+           from #${senseSchema}.senses 
+           where parent_sense_id in """, values(ids))
            
-       db => db.createQuery(q).map(makeSense) 
+      
+       z.as[Sense]
      }
     
-     def getParentSenses(senses: List[Sense]):AlmostQuery[Sense] = 
+     def getParentSenses(senses: List[Sense]) = 
      {
       val ids = senses.map(_.parent_sense_id)
    
       implicit val makeSense = GetResult[Sense](
-          r => Sense(
-              getLemmaByPersistentId(r.getString("lemma_id")), 
-              r.getString("persistent_id"), 
-              r.getString("lemma_id"), 
-              r.getString("parent_sense_id"), 
-              r.getString("definition"))
+          r => Sense(getLemma(r.nextInt), r.nextString, r.nextString, r.nextString, r.nextString)
       )
-      val q =  s"""
+      concat(sql"""
           select lemma_id, persistent_id, lemma_id, parent_sense_id , definition
-           from ${senseSchema}.senses 
-           where persistent_id in """ +  values(ids)
-        db => db.createQuery(q).map(makeSense)
+           from #${senseSchema}.senses 
+           where persistent_id in """, values(ids)).as[Sense]
      }
      
      def getAttestationsBelow(s: Sense):List[Attestation] =
@@ -196,25 +191,22 @@ object queries
       {
          val items =
           List(
-              ("author", r.getString("author")),
-              ("title", r.getString("title")),
-              ("year_from", r.getInt("year_from").toString),
-              ("year_to", r.getInt("year_to").toString),
-              ("dictionary", r.getString("dictionary"))
+              ("author", r.nextString),
+              ("title", r.nextString),
+              ("year_from", r.nextInt.toString),
+              ("year_to", r.nextInt.toString),
+              ("dictionary", r.nextString)
            ).toMap
            DocumentMetadata("bla", items)
       }
       
       def getAttestation(r:PositionedResult):Attestation = 
       {
-         val a =  Attestation(getWordform(r.getInt("analyzed_wordform_id")), 
-              r.getString("quote"),  
-              r.getInt("start_pos"), 
-              r.getInt("end_pos"), r.getString("eg_id"),getDocument(r))
+         val a =  Attestation(getWordform(r.nextInt),r.nextString, r.nextInt, r.nextInt, r.nextString,getDocument(r))
          a.copy(document=a.document.copy(persistent_id=a.eg_id))
       }
       
-    def getAttestations(wordforms: List[Wordform]):AlmostQuery[Attestation] =
+    def getAttestations(wordforms: List[Wordform]) =
     {
       val ids = wordforms.map(_.analyzed_wordform_id)
       val wordformMap = wordforms.map(l => (l.analyzed_wordform_id,l)).toMap
@@ -222,7 +214,7 @@ object queries
       implicit val makeAttestation =   GetResult[Attestation](
             r => getAttestation(r))
   
-      val q = s"""
+     concat(sql"""
       select 
            a.analyzed_wordform_id,
            quote, 
@@ -239,8 +231,7 @@ object queries
       where
              d.document_id=t.document_id
             and a.analyzed_wordform_id=t.analyzed_wordform_id 
-            and t.analyzed_wordform_id in """ +  values(ids)
-       db => db.createQuery(q).map(makeAttestation)
+            and t.analyzed_wordform_id in """, values(ids)).as[Attestation]
     } 
     
     def getLemma(lemma_id: Int):Lemma =
@@ -264,49 +255,48 @@ object queries
     implicit def getWordform(analyzed_wordform_id: Int):Wordform = 
     {
       implicit val makeWordform = GetResult[Wordform](
-          r => Wordform(getLemma(r.getInt("lemma_id")), r.getInt("analyzed_wordform_id"), r.getString("wordform"))
+          r => Wordform(getLemma(r.nextInt), r.nextInt, r.nextString)
       )
       val a = sql"""
         select 
           lemma_id, analyzed_wordform_id, wordform 
         from 
-            ${dataSchema}.analyzed_wordforms a, #${dataSchema}.wordforms w 
+            #${dataSchema}.analyzed_wordforms a, #${dataSchema}.wordforms w 
         where 
         a.wordform_id=w.wordform_id and analyzed_wordform_id=${analyzed_wordform_id} """
-       
-       val a =  (db:Handle) => db.createQuery(q).map(makeWordform) 
+        .as[Wordform]
       
        val l:List[Wordform] = Hilex.slurp(a)(Hilex.hilexDB)
        if (l.isEmpty)
          null
        else
          l.head
+       //if (l.
     }
     
     def getSynonymDefinitions(sense: Sense) =
     {
       
-       implicit val makeSynonymDefinition = GetResult[SynonymDefinition](r => SynonymDefinition(r.getString("persistent_id"), r.getString("syn")))
-       val q = s""" 
+       implicit val makeSynonymDefinition = GetResult[SynonymDefinition](r => SynonymDefinition(r.nextString, r.nextString))
+       val q = sql""" 
          select
             persistent_id, syn
          from
            wnt.modsyn
           where
            sense_id=${sense.persistent_id}
-        """
-       val a =  (db:Handle) => db.createQuery(q).map(makeSynonymDefinition)
-       val l:List[SynonymDefinition] = Hilex.slurp(a)(Hilex.hilexDB)
+        """.as[SynonymDefinition]
+       val l:List[SynonymDefinition] = Hilex.slurp(q)(Hilex.hilexDB)
        l
     }
     
-    def getAttestationsForSense(senses: List[Sense]):AlmostQuery[Attestation] =
+    def getAttestationsForSense(senses: List[Sense]) =
     {
       val ids = senses.map(_.persistent_id)
       val senseMap = senses.map(l => (l.persistent_id,l)).toMap
-      implicit val makeAttestation =   GetResult[Attestation](r => getAttestation(r))
+      implicit val makeAttestation =   GetResult[Attestation]( r => getAttestation(r))
   
-      val q = s"""
+     concat(sql"""
       select 
            analyzed_wordform_id,
            quote, start_pos,
@@ -318,12 +308,11 @@ object queries
            d.year_to,
            d.dictionary
       from
-            ${dataSchema}.token_attestations t, ${senseSchema}.eg_sense e, ${senseSchema}.documents d
+            #${dataSchema}.token_attestations t, #${senseSchema}.eg_sense e, #${senseSchema}.documents d
       where
             d.eg_id = e.eg_id
             and t.document_id=d.document_id
-            and e.sense_id in """ + values(ids)
-      val a =  (db:Handle) => db.createQuery(q).map(makeAttestation)
+            and e.sense_id in """, values(ids)).as[Attestation]
     } 
     
    // as in: concat(sql"select id from USERS where id in ", values(Seq(1,2))).as[Int]
@@ -331,7 +320,7 @@ object queries
 
 object Hilex 
 {
- 
+  Logger.getRootLogger.setLevel(Level.ERROR)
   
   implicit lazy val ec = new ExecutionContext
   {
@@ -345,36 +334,34 @@ object Hilex
     def reportFailure(t: Throwable) {}
   }
   
-  val dev=true
+  lazy val dbAtWork = 
+    Database.forURL("jdbc:postgresql://svprre02/diamant_prototype?user=postgres&password=inl", driver="org.postgresql.Driver")
+  lazy val dbAtHome = 
+    Database.forURL("jdbc:postgresql://svowdb02/gigant_hilex_dev?user=postgres&password=inl", driver="org.postgresql.Driver")
+  lazy val diamantRuwDB = 
+     Database.forURL("jdbc:postgresql://svowdb02/diamant_vuilnisbak?user=postgres&password=inl", driver="org.postgresql.Driver")
   
-  def makeHandle =
+  implicit val hilexDB = if (TestSpark.atHome) dbAtHome else dbAtWork
+  
+  def test =
   {
-    val source = new PGPoolingDataSource
-
-    source.setDataSourceName("gigant_hilex")
-    source.setServerName(if (dev) "svowdb02.inl.loc" else "svowdb06.inl.loc")
-    source.setDatabaseName(if (dev) "gigant_hilex_dev" else "gig_pro")
-    source.setUser(if (dev) "postgres" else "fannee")
-    source.setPassword(if (dev) "inl" else "Cric0topus")
-    source.setMaxConnections(10)
-    val dbi = new DBI(source)
-    val gigmolHandle: Handle = dbi.open
-    gigmolHandle
+ 
+    val s = hilexDB.stream(queries.lemmaQueryExample)
+    
+    val r = s.foreach(x => println(x))
+    Await.result(r, 10.seconds)
+    println("done")
   }
   
   
-  
-  lazy val diamantRuwDB = makeHandle
-    
-  
-  lazy val hilexDB = makeHandle
-  
-
-  
-  
-    def slurp[A] (a: Query[A])(implicit db: Handle):List[A] =
+    def slurp[A] (a:DBIOAction[Vector[A], NoStream, Nothing])(implicit db: jdbcBackend.DatabaseDef):List[A] =
     { 
-       a.list
+       val r = db.run(a)
+       Await.result(r,120.seconds)
+       r.value match
+      {
+        case Some(Success(x)) => x.toList
+       }
     }
   
    import java.io._

@@ -32,10 +32,12 @@ libraryDependencies += "org.ivdnt.tagging" % "DutchTagger" % "0.0.1-SNAPSHOT"
 libraryDependencies += "org.ivdnt.clariah" % "QueryNederlab" % "0.0.1-SNAPSHOT"
 libraryDependencies += "org.scala-lang.modules" %% "scala-pickling" % "0.10.1"
 
-libraryDependencies ++= Seq(
-  "com.typesafe.slick" %% "slick" % "3.0.0",
-  "org.slf4j" % "slf4j-nop" % "1.6.4"
-)
+libraryDependencies += "org.jdbi" % "jdbi" % "2.78"
+
+//libraryDependencies ++= Seq(
+//  "com.typesafe.slick" %% "slick" % "3.2.0",
+//  "org.slf4j" % "slf4j-nop" % "1.6.4"
+//)
 
 resolvers ++= Seq(
   "tpolecat" at "http://dl.bintray.com/tpolecat/maven",
