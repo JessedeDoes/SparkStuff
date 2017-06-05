@@ -139,7 +139,7 @@ object queries
       val lemmaMap = lemmata.map(l => (l.persistent_id,l)).toMap
       println(lemmaMap.toList)
       implicit val makeSense = GetResult[Sense](
-          r => Sense(lemmaMap(r.getString(""), r.getString(""), r.getString(""), r.getString(""), r.getString(""))
+          r => Sense(lemmaMap(r.getString("lemma_id")), r.getString("persistent_id"), r.getString("lemma_id"), r.getString("parent_sense_id"), r.getString("definition"))
       )
       val q = s"""
           select lemma_id, persistent_id, lemma_id, parent_sense_id , definition
@@ -192,7 +192,7 @@ object queries
      def getAttestationsBelow(s: Sense):List[Attestation] =
        s.attestations ++  s.subSenses.flatMap(s => getAttestationsBelow(s))
      
-      def getDocument(r:PositionedResult):DocumentMetadata =
+      def getDocument(r:ResultSet):DocumentMetadata =
       {
          val items =
           List(
