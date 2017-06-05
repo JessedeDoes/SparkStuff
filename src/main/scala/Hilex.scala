@@ -339,7 +339,7 @@ object Hilex
   
    import java.io._
         
-   def pickleTo(l:List[Concordance], fileName:String) = 
+  def pickleTo(l:List[Concordance], fileName:String) = 
   {
 
     val pw = new PrintWriter(new File(fileName ))
