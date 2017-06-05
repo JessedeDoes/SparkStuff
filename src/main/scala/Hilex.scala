@@ -37,8 +37,8 @@ import Hilex.hilexDB
 
 case class Lemma(modern_lemma: String, lemma_id:Int, persistent_id:String, pos:String) 
 {
-   lazy val wordforms = Hilex.slurp(queries.getWordforms(List(this)))
-   lazy val senses = Hilex.slurp(queries.getSenses(List(this)))
+   lazy val wordforms = Hilex.slurp(hilexQueries.getWordforms(List(this)))
+   lazy val senses = Hilex.slurp(hilexQueries.getSenses(List(this)))
 }
 
 case class SynonymDefinition(sense_id: String, synonym: String)
@@ -73,10 +73,10 @@ case class DocumentMetadata(persistent_id: String, properties:Map[String,String]
 
 case class Sense(lemma: Lemma, persistent_id: String, lemma_id:String, parent_sense_id: String, definition: String)
 {
-  lazy val attestations = Hilex.slurp(queries.getAttestationsForSense(List(this)))
-  lazy val parentSense = Hilex.slurp(queries.getParentSenses(List(this)))
-  lazy val subSenses = Hilex.slurp(queries.getSubSenses(List(this)))
-  lazy val synonymDefinitions = queries.getSynonymDefinitions(this)
+  lazy val attestations = Hilex.slurp(hilexQueries.getAttestationsForSense(List(this)))
+  lazy val parentSense = Hilex.slurp(hilexQueries.getParentSenses(List(this)))
+  lazy val subSenses = Hilex.slurp(hilexQueries.getSubSenses(List(this)))
+  lazy val synonymDefinitions = hilexQueries.getSynonymDefinitions(this)
 }
 
 private object util
@@ -84,7 +84,7 @@ private object util
   
 }
 
-object queries
+object hilexQueries
 {  
      case class GetResult[T](f: ResultSet => T) extends ResultSetMapper[T]
      {
@@ -252,7 +252,7 @@ object queries
     
     def getLemma(lemma_id: Int):Lemma =
     {
-        val l = Hilex.slurp(queries.lemmaQueryWhere(s"lemma_id='${lemma_id}'" ))
+        val l = Hilex.slurp(hilexQueries.lemmaQueryWhere(s"lemma_id='${lemma_id}'" ))
         if (l.isEmpty)
          null
        else
@@ -261,7 +261,7 @@ object queries
     
     def getLemmaByPersistentId(lemma_id: String):Lemma =
     {
-        val l = Hilex.slurp(queries.lemmaQueryWhere(s"persistent_id='${lemma_id}'" ))
+        val l = Hilex.slurp(hilexQueries.lemmaQueryWhere(s"persistent_id='${lemma_id}'" ))
         if (l.isEmpty)
          null
        else
@@ -389,13 +389,12 @@ object Hilex
   
 
   
-  
-   def slurp[A] (a: queries.AlmostQuery[A], db: Handle):List[A] =
+   def slurp[A] (a: hilexQueries.AlmostQuery[A], db: Handle):List[A] =
     { 
        a(db).list().asScala.toList
     } 
    
-  def slurp[A] (a: queries.AlmostQuery[A]):List[A] = slurp(a,hilexDB)
+  def slurp[A] (a: hilexQueries.AlmostQuery[A]):List[A] = slurp(a,hilexDB)
     
    import java.io._
         
@@ -410,13 +409,13 @@ object Hilex
   
   def findSomeLemmata:List[Lemma] =
   {
-     slurp(queries.lemmaQueryWhere("modern_lemma ~ '^zin$'"))
+     slurp(hilexQueries.lemmaQueryWhere("modern_lemma ~ '^zin$'"))
   }
   
   def main(args:Array[String]):Unit = 
   { 
     val myLemma = "M089253"
-    val l = slurp(queries.lemmaQueryWhere(s"persistent_id='${myLemma}'"))
+    val l = slurp(hilexQueries.lemmaQueryWhere(s"persistent_id='${myLemma}'"))
     val zin = l.head
     println(zin)
     val senses = zin.senses
@@ -424,7 +423,7 @@ object Hilex
     romans.foreach(println)
     
     val attestationsAsConcordances  = romans.flatMap(
-        s => queries.getAttestationsBelow(s)
+        s => hilexQueries.getAttestationsBelow(s)
           .map(s => s.toConcordance)
           .map(c =>  c.copy(metadata=c.metadata ++ List("senseId" ->  s.persistent_id, "lempos" -> "zin:n", ("id", ConvertOldInstanceBase.uuid))) 
           .tag(babTagger) )
@@ -443,12 +442,12 @@ object Hilex
     l.foreach(x => x.senses.foreach(println))
     l.foreach(_.senses.foreach(s => 
       { println(s"\nAttestaties voor ${s}"); s.attestations.foreach( a => println(a.toConcordance.tag(babTagger).vertical)) }))
-    val qs = queries.getSenses(l)
+    val qs = hilexQueries.getSenses(l)
   
-    val q = queries.getWordforms(l)
+    val q = hilexQueries.getWordforms(l)
     val l1 = slurp(q,Hilex.hilexDB)
     l1.foreach(println)
-    val q2 = queries.getAttestations(l1)
+    val q2 = hilexQueries.getAttestations(l1)
     val l2 = slurp(q2,Hilex.hilexDB)
     l2.foreach(println)
   }
