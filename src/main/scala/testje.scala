@@ -61,8 +61,6 @@ object tester
     df1.foreachPartition(i => c += 1)
     Console.err.println("Aantal partities: " + c)
     // df1.foreachPartition(r => leaveOneOut(wsd,r))
-		
-	
 	}
 
   def senseDistribution(instances: Seq[Concordance]) = instances.groupBy(_.meta("senseId")).mapValues(_.size).toList.sortWith((a,b) => a._2 > b._2)
@@ -85,21 +83,25 @@ object tester
         }) 
 	}
   
+  def filterABit(all_Instances: List[Concordance]) = 
+  {
+    val instancesX = all_Instances.filter(r => { val x = r("word"); x.size >= minWordsinExample} )
+		val senseDistribMap = senseDistribution(instancesX).toMap
+		instancesX.filter(r => { senseDistribMap( r.meta("senseId")) >= minExamplesInSense} ) 
+  }
+  
   def leaveOneOutPerLempos(wsd:Swsd, all_Instances: List[Concordance]):Unit = 
 	{  
     var errors = 0
 		var total = 0
 		var failures = 0
 		
-		val instancesX = all_Instances.filter(r => { val x = r("word"); x.size >= minWordsinExample} )
-		val senseDistribMap = senseDistribution(instancesX).toMap
 		
-		
-		val instances = instancesX.filter(r => { senseDistribMap( r.meta("senseId")) >= minExamplesInSense} ) 
+		val instances = filterABit(all_Instances)
 		
 		val senseDistrib = senseDistribution(instances)
     val senses = instances.map(_.meta("senseId")).distinct
-    val lempossen = instances.map(_.meta("lempos")).distinct
+ 
   
     if (senses.size < 2 || !enoughData(instances))
       return;
@@ -107,7 +109,7 @@ object tester
     val lempos = instances.head.meta("lempos")
     
 
-    Console.err.println("#### Working on " + lempossen)
+    Console.err.println("#### Working on " + lempos)
     
     
 		System.err.println("starting work on: " + lempos + " " + senses)
