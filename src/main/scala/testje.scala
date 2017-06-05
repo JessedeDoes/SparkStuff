@@ -34,6 +34,10 @@ import org.apache.spark.sql.functions._
 import org.apache.log4j.Logger
 import org.apache.log4j.Level
 
+case class TestResult(nItems:Int, nErrors:Int, nMfsErrors:Int)
+{
+  def +(other:TestResult):TestResult = TestResult(nItems + other.nItems, nErrors + other.nErrors, nMfsErrors + other.nMfsErrors)
+}
 
 object tester
 {
@@ -58,9 +62,7 @@ object tester
     Console.err.println("Aantal partities: " + c)
     // df1.foreachPartition(r => leaveOneOut(wsd,r))
 		
-		val totalAccuracy = (totalItems - totalErrors -totalFailures) / totalItems.asInstanceOf[Double];
-		val mfs = 100; // MFSScore(ib);
-		System.err.println("overall:  " + totalErrors + " of " + totalItems + " failures: "  + totalFailures  + " score: " + totalAccuracy + " (mfs " + mfs + ")");
+	
 	}
 
   def senseDistribution(instances: Seq[Concordance]) = instances.groupBy(_.meta("senseId")).mapValues(_.size).toList.sortWith((a,b) => a._2 > b._2)
@@ -90,10 +92,10 @@ object tester
 		var failures = 0
 		
 		val instancesX = all_Instances.filter(r => { val x = r("word"); x.size >= minWordsinExample} )
-		val senseDistribX = senseDistribution(instancesX)
-		val senseDistribMap = senseDistribX.toMap
+		val senseDistribMap = senseDistribution(instancesX).toMap
 		
-		val instances = instancesX.filter(r => { val sid = r.meta("senseId"); senseDistribMap(sid) >= minExamplesInSense} )
+		
+		val instances = instancesX.filter(r => { senseDistribMap( r.meta("senseId")) >= minExamplesInSense} ) 
 		
 		val senseDistrib = senseDistribution(instances)
     val senses = instances.map(_.meta("senseId")).distinct
@@ -104,12 +106,9 @@ object tester
     
     val lempos = instances.head.meta("lempos")
     
-    // if (!(lempos == "ezel:n")) return
+
     Console.err.println("#### Working on " + lempossen)
     
-    instances.foreach(Console.err.println(_))
-    
-    //return
     
 		System.err.println("starting work on: " + lempos + " " + senses)
 		
@@ -154,6 +153,7 @@ object tester
   		{
   				val t = new Dataset("test");
   				var errors = 0;
+  				// instances.foldLeft(0)( (a,w) => a +  (if (classify(w) == w.meta("senseId")) 0 else 1))
   				for (w <- instances)
   				{
   					val label = classify(w)

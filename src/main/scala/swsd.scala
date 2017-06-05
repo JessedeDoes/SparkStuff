@@ -212,7 +212,7 @@ class Swsd extends Serializable
      val df:DataFrame = null;
      val features = makeFeatures
      if (addCentroids) features.addStochasticFeature(new MyStochasticFeature("centerDistances", centroidFeature(vectorz,instances,heldout) ))
-		 val classifier = new LibSVMClassifier();
+		 val classifier = new LibLinearClassifier();
 		
 		
 		 val d = new Dataset("trainingData")
