@@ -303,16 +303,17 @@ object hilexQueries
     def getSynonymDefinitions(sense: Sense):List[SynonymDefinition] =
     {
       
-       implicit val makeSynonymDefinition = GetResult[SynonymDefinition](r => SynonymDefinition(r.getString("persistent_id"), r.getString("syn")))
+       implicit val makeSynonymDefinition = GetResult[SynonymDefinition](
+         r => SynonymDefinition(r.getString("sense_id"), r.getString("syn")))
        val q = s""" 
          select
-            persistent_id, syn
+            sense_id, syn
          from
            wnt.modsyn
           where
-           sense_id=${sense.persistent_id}
+           sense_id=:sense_id
         """
-       val a =  (db:Handle) => db.createQuery(q).map(makeSynonymDefinition)
+       val a =  (db:Handle) => db.createQuery(q).bind("sense_id",sense.persistent_id).map(makeSynonymDefinition)
        val l:List[SynonymDefinition] = Hilex.slurp(a,Hilex.diamantRuwDB)
        l
     }
@@ -359,7 +360,7 @@ object Hilex
         user="postgres", 
         password="inl")
         
-  val diamantAtHome = hilexAtHome.copy(database="diamant_vuilnisbak")
+  val diamantAtHome = hilexAtHome.copy(name="diamantRow", database="diamant_vuilnisbak")
   
   implicit lazy val ec = new ExecutionContext
   {
