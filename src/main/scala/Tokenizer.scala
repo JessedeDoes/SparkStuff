@@ -15,7 +15,7 @@ trait Tokenizer
 
 trait EntityReplacer
 {
-   def substitute(s:String)(implicit mapping:Map[String,String]):String
+   def substitute(s:String, mapping:Map[String,String]):String
 }
 
 object entities extends EntityReplacer
@@ -34,8 +34,9 @@ object entities extends EntityReplacer
   implicit lazy val defaultMapping = readMappingFile
   
   def replaceNumericEntities = ???
-    
-  override def substitute(s:String)(implicit mapping:Map[String,String]):String =
+
+  def substitute(s:String):String = substitute(s,defaultMapping)
+  override def substitute(s:String, mapping:Map[String,String]):String =
   {
     val replaceOne = (s:String) => if (mapping.contains(s)) mapping(s) else s
     val s1 = entityPattern.replaceAllIn(s, m => replaceOne(m.group(0)))

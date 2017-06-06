@@ -75,7 +75,7 @@ case class Attestation(wordform: Wordform, quote:String, start_pos: Int, end_pos
 
 case class DocumentMetadata(persistent_id: String, properties:Map[String,String])
 
-case class Sense(lemma: Lemma, persistent_id: String, lemma_id:String, parent_sense_id: String, definition: String)
+case class Sense(lemma: Lemma, persistent_id: String, lemma_id:String, parent_sense_id: String, definition: String, sense_type: String)
 {
   lazy val attestations = Hilex.slurp(hilexQueries.getAttestationsForSense(List(this)))
   lazy val parentSense = Hilex.slurp(hilexQueries.getParentSenses(List(this)))
@@ -165,10 +165,11 @@ object hilexQueries
             r.getString("persistent_id"),
             r.getString("lemma_id"),
             r.getString("parent_sense_id"),
-            r.getString("definition"))
+            r.getString("definition"),
+            r.getString("type"))
       )
       val q = s"""
-          select distinct lemma_id, persistent_id, lemma_id, parent_sense_id , definition
+          select distinct lemma_id, persistent_id, lemma_id, parent_sense_id , definition, type
            from ${senseSchema}.senses 
            where lemma_id in """ + stringValues(ids)
        db => db.createQuery(q).map(makeSense)
@@ -176,11 +177,12 @@ object hilexQueries
 
       val makeSense = GetResult[Sense](
         r => Sense(
-        getLemmaByPersistentId(r.getString("lemma_id")),
-        r.getString("persistent_id"),
-        r.getString("lemma_id"),
-        r.getString("parent_sense_id"),
-        r.getString("definition"))
+          getLemmaByPersistentId(r.getString("lemma_id")),
+          r.getString("persistent_id"),
+          r.getString("lemma_id"),
+          r.getString("parent_sense_id"),
+          r.getString("definition"),
+          r.getString("type"))
       )
 
      def getSubSenses(senses: List[Sense]):AlmostQuery[Sense] = 
@@ -188,7 +190,7 @@ object hilexQueries
       val ids = senses.map(_.persistent_id)
 
       val q = s"""
-          select lemma_id, persistent_id, lemma_id, parent_sense_id , definition
+          select lemma_id, persistent_id, lemma_id, parent_sense_id , definition, type
            from ${senseSchema}.senses 
            where parent_sense_id in """ + stringValues(ids)
            
@@ -198,17 +200,9 @@ object hilexQueries
      def getParentSenses(senses: List[Sense]):AlmostQuery[Sense] = 
      {
       val ids = senses.map(_.parent_sense_id)
-   
-      implicit val makeSense = GetResult[Sense](
-          r => Sense(
-              getLemmaByPersistentId(r.getString("lemma_id")), 
-              r.getString("persistent_id"), 
-              r.getString("lemma_id"), 
-              r.getString("parent_sense_id"), 
-              r.getString("definition"))
-      )
+
       val q =  s"""
-          select lemma_id, persistent_id, lemma_id, parent_sense_id , definition
+          select lemma_id, persistent_id, lemma_id, parent_sense_id , definition, type
            from ${senseSchema}.senses 
            where persistent_id in """ +  stringValues(ids)
         db => db.createQuery(q).map(makeSense)
@@ -290,7 +284,7 @@ object hilexQueries
     {
 
       val q = s"""
-          select distinct lemma_id, persistent_id, lemma_id, parent_sense_id , definition
+          select distinct lemma_id, persistent_id, lemma_id, parent_sense_id , definition, type
            from ${senseSchema}.senses
            where persistent_id='${sense_id}' """
 
