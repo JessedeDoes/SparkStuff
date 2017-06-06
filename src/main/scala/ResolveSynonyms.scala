@@ -8,6 +8,9 @@ trait VectorSpace
       Distance.cosineSimilarity(v1,v2)
    def embedding(word: String) = vectors.getVector(word)
    def norm(v: vector):Double = Math.sqrt(v.map(x => x*x).sum)
+   def normalized(v: vector): vector = v.map(f => f / norm(v).asInstanceOf[Float]) // gaat de optimizer deze herhaling weghalen ?
+   def sum(v1: vector, v2:vector):vector = v1.zipWithIndex.map(p => p._1 + v2(p._2)) // silly
+   def average(l: Seq[vector]):vector = l.reduce(sum)
 }
 
 object DbnlVectors extends VectorSpace
