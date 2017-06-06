@@ -168,7 +168,7 @@ object hilexQueries
             r.getString("definition"))
       )
       val q = s"""
-          select lemma_id, persistent_id, lemma_id, parent_sense_id , definition
+          select distinct lemma_id, persistent_id, lemma_id, parent_sense_id , definition
            from ${senseSchema}.senses 
            where lemma_id in """ + stringValues(ids)
        db => db.createQuery(q).map(makeSense)
@@ -290,7 +290,7 @@ object hilexQueries
     {
 
       val q = s"""
-          select lemma_id, persistent_id, lemma_id, parent_sense_id , definition
+          select distinct lemma_id, persistent_id, lemma_id, parent_sense_id , definition
            from ${senseSchema}.senses
            where persistent_id='${sense_id}' """
 
@@ -336,7 +336,7 @@ object hilexQueries
        implicit val makeSynonymDefinition = GetResult[SynonymDefinition](
          r => SynonymDefinition(r.getString("sense_id"), r.getString("syn")))
        val q = s""" 
-         select
+         select distinct
             sense_id, syn
          from
            wnt.modsyn
@@ -355,7 +355,7 @@ object hilexQueries
       implicit val makeAttestation =   GetResult[Attestation](r => getAttestation(r))
   
       val q = s"""
-      select 
+      select distinct
            analyzed_wordform_id,
            quote, start_pos,
            end_pos, 
