@@ -6,18 +6,18 @@ trait VectorSpace
    type vector = Array[Float]
    def similarity(v1: Array[Float], v2: Array[Float]):Double =
       Distance.cosineSimilarity(v1,v2)
-   def embedding(word: String) = vectors.getVector(word)
+   def embedding(word: String):Option[vector] = { val v = vectors.getVector(word); if (v == null) None else Some(v) }
    def norm(v: vector):Double = Math.sqrt(v.map(x => x*x).sum)
    def normalized(v: vector): vector = v.map(f => f / norm(v).asInstanceOf[Float]) // gaat de optimizer deze herhaling weghalen ?
    def sum(v1: vector, v2:vector):vector = v1.zipWithIndex.map(p => p._1 + v2(p._2)) // silly
-   def average(l: Seq[vector]):vector = l.reduce(sum)
+   def average(l: Seq[vector]):vector = normalized(l.reduce(sum))
+   def averageVector(l: Seq[String]):vector = average(l.map(embedding).filter(_ != None).map(_.get))
+   def averageVector(s: String):vector = averageVector(Tokenizer.tokenize(s).map(t => t.token))
 }
 
 object DbnlVectors extends VectorSpace
 {
-   lazy val vectors = Vectors.readFromFile("/home/jesse/workspace/Diamant/Vectors/dbnl.vectors.bin")
-
-
+   override lazy val vectors = Vectors.readFromFile("/home/jesse/workspace/Diamant/Vectors/dbnl.vectors.bin")
 }
 object ResolveSynonyms
 {
