@@ -7,7 +7,6 @@
 //import slick.driver.JdbcDriver.api._
 
 import org.postgresql.ds.PGPoolingDataSource
-
 import org.skife.jdbi._
 import v2.DBI
 import v2.Handle
@@ -16,23 +15,18 @@ import v2.StatementContext
 import v2.tweak.ResultSetMapper
 import java.sql.ResultSet
 import java.sql.SQLException
-
-
 import java.util.concurrent.Executors
+
 import scala.concurrent._
 import scala.concurrent.Future
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.concurrent.forkjoin._
-
-
-import scala.util.{Try, Success, Failure}
+import scala.util.{Failure, Success, Try}
 import scala.reflect._
 import scala.pickling.Defaults._
 import scala.pickling.json._
-
 import scala.collection.JavaConverters._
-
 import Hilex.hilexDB
 
 case class Lemma(modern_lemma: String, lemma_id:Int, persistent_id:String, pos:String) 
@@ -89,6 +83,66 @@ private object util
   
 }
 
+object ietsMinderRedundant
+{
+  object FieldType extends Enumeration
+  {
+    type FieldType = Value
+    val StringT, IntT = Value
+  }
+  def s(str:String):Field = Field(str, FieldType.StringT)
+  def i(str:String):Field = Field(str, FieldType.IntT)
+  case class Field(name: String, fieldType: FieldType.FieldType)
+
+  case class Select[T](f: Diamond => T, from: String)
+  {
+
+  }
+  case class Voedsel(beest:String, voedsel:Int)
+
+  trait Diamond
+  {
+    def getString(s:String):String
+    def getInt(s:String):Int
+  }
+
+  case class Mocky1(resultSet:ResultSet) extends Diamond
+  {
+    def getString(s:String) = resultSet.getString(s)
+    def getInt(s:String)  = resultSet.getInt(s)
+  }
+
+  class Mocky2 extends Diamond
+  {
+    val fieldNames: scala.collection.mutable.ListBuffer[String] = new scala.collection.mutable.ListBuffer[String]()
+    def getString(s:String) = { fieldNames.append(s); "wereldvrede"}
+    def getInt(s:String) = {fieldNames.append(s); 42}
+  }
+
+  val example =
+    Select(
+      r => Voedsel(r.getString("modern_lemma"), r.getInt("lemma_id")),
+      "data.lemmata")
+
+  import hilexQueries._
+
+  def doeHet[T](s:Select[T]): AlmostQuery[T] =
+  {
+    val m = new Mocky2
+    s.f(m)
+    val gr = GetResult[T](r => s.f(Mocky1(r)))
+    val query = "select " + m.fieldNames.mkString(", ") + " from " + s.from
+    db => db.createQuery(query).map(gr)
+  }
+
+   def main(args:Array[String]):Unit =
+   {
+     val aq = doeHet(example)
+     println(Hilex.slurp(aq))
+   }
+}
+
+
 object hilexQueries
 {  
      case class GetResult[T](f: ResultSet => T) extends ResultSetMapper[T]
@@ -99,7 +153,8 @@ object hilexQueries
      	     w
      	  }
      }
-     
+
+
     val getLemma = GetResult[Lemma](r => Lemma(r.getString("modern_lemma"),
       r.getInt("lemma_id"),
       r.getString("persistent_id"),
