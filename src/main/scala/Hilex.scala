@@ -94,7 +94,7 @@ object ietsMinderRedundant
   def i(str:String):Field = Field(str, FieldType.IntT)
   case class Field(name: String, fieldType: FieldType.FieldType)
 
-  case class Select[T](f: Diamond => T, from: String)
+  case class Select[T](mapping: Diamond => T, from: String)
   {
 
   }
@@ -119,26 +119,29 @@ object ietsMinderRedundant
     def getInt(s:String) = {fieldNames.append(s); 42}
   }
 
-  val example =
-    Select(
-      r => Voedsel(r.getString("modern_lemma"), r.getInt("lemma_id")),
-      "data.lemmata")
+
 
   import hilexQueries._
 
   def doeHet[T](s:Select[T]): AlmostQuery[T] =
   {
     val m = new Mocky2
-    s.f(m)
-    val gr = GetResult[T](r => s.f(Mocky1(r)))
+    s.mapping(m)
+    val gr = GetResult[T](r => s.mapping(Mocky1(r)))
     val query = "select " + m.fieldNames.mkString(", ") + " from " + s.from
     db => db.createQuery(query).map(gr)
   }
 
    def main(args:Array[String]):Unit =
    {
-     val aq = doeHet(example)
-     println(Hilex.slurp(aq))
+     case class Woordje(lemma:String, pos:String, id:String)
+     val exampleQuery =
+       Select(
+         mapping = r => { sleep(1000); Woordje(r.getString("modern_lemma"), r.getString("lemma_part_of_speech"), r.getString("persistent_id"))},
+         from = "data.lemmata where lemma_part_of_speech ~ 'VRB'")
+
+     val q = doeHet(exampleQuery)
+     Hilex.stream(q).sortBy(_.lemma).foreach(println)
    }
 }
 
@@ -484,11 +487,17 @@ object Hilex
   lazy val diamantRuwDB = makeHandle(diamantAtHome)
     
   
-  implicit lazy val hilexDB = if (TestSpark.atHome) makeHandle(hilexAtHome) else makeHandle(hilexAtWork) 
-  
+  implicit lazy val hilexDB = if (TestSpark.atHome) makeHandle(hilexAtHome) else makeHandle(hilexAtWork)
 
-  
-   def slurp[A] (a: hilexQueries.AlmostQuery[A], db: Handle):List[A] =
+  def stream[A] (a: hilexQueries.AlmostQuery[A], db: Handle):Stream[A] =
+  {
+    a(db).iterator().asScala.toStream
+  }
+
+  def stream[A] (a: hilexQueries.AlmostQuery[A]):Stream[A] = stream(a,hilexDB)
+
+
+  def slurp[A] (a: hilexQueries.AlmostQuery[A], db: Handle):List[A] =
     { 
        a(db).list().asScala.toList
     } 
