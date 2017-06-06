@@ -137,11 +137,11 @@ object ietsMinderRedundant
      case class Woordje(lemma:String, pos:String, id:String)
      val exampleQuery =
        Select(
-         mapping = r => { sleep(1000); Woordje(r.getString("modern_lemma"), r.getString("lemma_part_of_speech"), r.getString("persistent_id"))},
+         mapping = r => Woordje(r.getString("modern_lemma"), r.getString("lemma_part_of_speech"), r.getString("persistent_id")),
          from = "data.lemmata where lemma_part_of_speech ~ 'VRB'")
 
      val q = doeHet(exampleQuery)
-     Hilex.stream(q).sortBy(_.lemma).foreach(println)
+     Hilex.stream(q).foreach(println)
    }
 }
 
