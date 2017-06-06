@@ -60,19 +60,20 @@ object ResolveSynonyms
 
    case class Scored[T](s1: T, score: Double)
 
-   def distanceByDefinition(s1: Sense, s2: Sense):Scored[Sense] =
-      DbnlVectors.similarityByAverage(s1.definition, s2.definition) match
-         {
-           case Some(d) => Scored(s2,d)
-           case None =>  Scored(s2, -666)
+   def withScore(f:(Sense,Sense)=>Option[Double]):(Sense,Sense)=>Scored[Sense] = {
+      (s1, s2) =>
+         f(s1, s2) match {
+            case Some(d) => Scored(s2, d)
+            case None => Scored(s2, -666)
          }
+   }
 
-   def distanceByQuotation(s1: Sense, s2: Sense):Scored[Sense] =
+   def distanceByDefinition(s1: Sense, s2: Sense):Option[Double] = DbnlVectors.similarityByAverage(s1.definition, s2.definition)
+
+
+   def distanceByQuotation(s1: Sense, s2: Sense):Option[Double] =
       DbnlVectors.similarityByAverage(s1.definition + " " + s1.quotationText, s2.definition + " " + s2.quotationText) match
-      {
-         case Some(d) => Scored(s2,d)
-         case None =>  Scored(s2,-666)
-      }
+
 
    def main(args:Array[String]):Unit =
    {
@@ -88,7 +89,7 @@ object ResolveSynonyms
          possibleResolutions.map(
             {
                case (syn, l) => (syn, syn.sense,
-                                    l.map(s => distanceByDefinition(syn.sense, s)).sortBy(-1 * _.score))
+                                    l.map(s => withScore(distanceByDefinition)(syn.sense, s)).sortBy(-1 * _.score))
             }
       )
       withSimilarities.foreach(
