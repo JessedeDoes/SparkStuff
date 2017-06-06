@@ -42,6 +42,10 @@ case class Lemma(modern_lemma: String, lemma_id:Int, persistent_id:String, pos:S
 }
 
 case class SynonymDefinition(sense_id: String, synonym: String)
+{
+  lazy val sense = hilexQueries.getSense(sense_id)
+  lazy val lemma = sense.lemma
+}
 
 case class Wordform(lemma: Lemma, analyzed_wordform_id:Int, wordform: String)
 
@@ -168,21 +172,20 @@ object hilexQueries
            where lemma_id in """ + stringValues(ids)
        db => db.createQuery(q).map(makeSense)
      }
-     
+
+      val makeSense = GetResult[Sense](
+        r => Sense(
+        getLemmaByPersistentId(r.getString("lemma_id")),
+        r.getString("persistent_id"),
+        r.getString("lemma_id"),
+        r.getString("parent_sense_id"),
+        r.getString("definition"))
+      )
+
      def getSubSenses(senses: List[Sense]):AlmostQuery[Sense] = 
      {
       val ids = senses.map(_.persistent_id)
-    
-      implicit val makeSense = GetResult[Sense](
-          r => Sense(
-              getLemmaByPersistentId(r.getString("lemma_id")), 
-              r.getString("persistent_id"), 
-              r.getString("lemma_id"), 
-              r.getString("parent_sense_id"), 
-              r.getString("definition"))
-      )
-      
-     
+
       val q = s"""
           select lemma_id, persistent_id, lemma_id, parent_sense_id , definition
            from ${senseSchema}.senses 
@@ -281,12 +284,23 @@ object hilexQueries
        else
          l.head
     }
-    
+
+    def getSense(sense_id: String):Sense =
+    {
+
+      val q = s"""
+          select lemma_id, persistent_id, lemma_id, parent_sense_id , definition
+           from ${senseSchema}.senses
+           where persistent_id='${sense_id}' """
+
+      Hilex.slurp(db => db.createQuery(q).map(makeSense)).head
+    }
+
     def getLemmaWithPoS(lemma: String, pos: String):List[Lemma] =
     {
       val q:AlmostQuery[Lemma] = db => db.createQuery(s"""
       select modern_lemma, lemma_id,persistent_id, lemma_part_of_speech from ${dataSchema}.lemmata
-        where modern_lemma=:lemma and lemma_part_of_speech=:pos""")
+        where modern_lemma=:lemma and lemma_part_of_speech ~ :pos""")
         .bind("lemma",lemma)
         .bind("pos",pos)
         .map(getLemma)

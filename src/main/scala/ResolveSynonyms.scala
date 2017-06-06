@@ -6,7 +6,10 @@ object ResolveSynonyms
    {
       val zin = hilexQueries.getLemmaByPersistentId(idZin)
       val zinonyms = zin.senses.flatMap(s => s.synonymDefinitions)
-      println(zinonyms)
+      zinonyms.foreach(println)
+      val possibleResolutions = zinonyms.map(
+         z => (z, hilexQueries.getLemmaWithPoS(z.synonym,"NOU").flatMap(e =>e.senses)))
+      possibleResolutions.foreach(println)
       val z = hilexQueries.getLemmaWithPoS("manier", "NOU")
       z.foreach(println)
    }
