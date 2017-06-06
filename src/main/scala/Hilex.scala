@@ -102,6 +102,10 @@ object hilexQueries
 
     type AlmostQuery[T] = (Handle => Query[T])
     
+    
+    def bind[T](q: AlmostQuery[T], n: String, v:String): AlmostQuery[T]  = db => this(db).bind(n,v)
+    
+    
     import util._
     val pos = "ADP"
     
@@ -278,6 +282,13 @@ object hilexQueries
          l.head
     }
     
+    def getLemma(lemma: String, pos: String):List[Lemma] =
+    {
+        val lq = hilexQueries.lemmaQueryWhere(s"modern_lemma=:modern_lemma and lemma_part_of_speech=:pos" )
+        bind( bind(lq,":modern_lemma",lemma),  ":pos", pos) 
+        Hilex.
+    }
+    
     implicit def getWordform(analyzed_wordform_id: Int):Wordform = 
     {
       implicit val makeWordform = GetResult[Wordform](
@@ -359,6 +370,13 @@ object Hilex
         database="gigant_hilex_dev", 
         user="postgres", 
         password="inl")
+  
+  val hilexAtWork = Configuration(
+        name="gigant_hilex", 
+        server="svprre02", 
+        database="diamant_prototype", 
+        user="postgres", 
+        password="inl")
         
   val diamantAtHome = hilexAtHome.copy(name="diamantRow", database="diamant_vuilnisbak")
   
@@ -396,7 +414,7 @@ object Hilex
   lazy val diamantRuwDB = makeHandle(diamantAtHome)
     
   
-  implicit lazy val hilexDB = makeHandle(hilexAtHome)
+  implicit lazy val hilexDB = if (TestSpark.atHome) makeHandle(hilexAtHome) else makeHandle(hilexAtWork) 
   
 
   
