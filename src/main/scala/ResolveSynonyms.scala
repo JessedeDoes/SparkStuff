@@ -72,7 +72,7 @@ object ResolveSynonyms
 
 
    def distanceByQuotation(s1: Sense, s2: Sense):Option[Double] =
-      DbnlVectors.similarityByAverage(s1.definition + " " + s1.quotationText, s2.definition + " " + s2.quotationText) match
+      DbnlVectors.similarityByAverage(s1.definition + " " + s1.quotationText, s2.definition + " " + s2.quotationText)
 
 
    def main(args:Array[String]):Unit =
