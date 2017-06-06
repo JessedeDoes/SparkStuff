@@ -95,7 +95,11 @@ object hilexQueries
      	  }
      }
      
-    val getLemma = GetResult[Lemma](r => Lemma(r.getString("modern_lemma"), r.getInt("lemma_id"),  r.getString("persistent_id"), r.getString("lemma_part_of_speech")))
+    val getLemma = GetResult[Lemma](r => Lemma(r.getString("modern_lemma"),
+      r.getInt("lemma_id"),
+      r.getString("persistent_id"),
+      r.getString("lemma_part_of_speech")))
+
     type AlmostQuery[T] = (Handle => Query[T])
     
     import util._
@@ -127,7 +131,9 @@ object hilexQueries
       val ids = lemmata.map(_.lemma_id)
       val lemmaMap = lemmata.map(l => (l.lemma_id,l)).toMap
       implicit val makeWordform = GetResult[Wordform](
-          r => Wordform(lemmaMap(r.getInt("lemma_id")), r.getInt("analyzed_wordform_id"), r.getString("wordform"))
+          r => Wordform(lemmaMap(r.getInt("lemma_id")),
+            r.getInt("analyzed_wordform_id"),
+            r.getString("wordform"))
       )
       val q = s"""
         select 
@@ -146,7 +152,11 @@ object hilexQueries
       val lemmaMap = lemmata.map(l => (l.persistent_id,l)).toMap
       println(lemmaMap.toList)
       implicit val makeSense = GetResult[Sense](
-          r => Sense(lemmaMap(r.getString("lemma_id")), r.getString("persistent_id"), r.getString("lemma_id"), r.getString("parent_sense_id"), r.getString("definition"))
+          r => Sense(lemmaMap(r.getString("lemma_id")),
+            r.getString("persistent_id"),
+            r.getString("lemma_id"),
+            r.getString("parent_sense_id"),
+            r.getString("definition"))
       )
       val q = s"""
           select lemma_id, persistent_id, lemma_id, parent_sense_id , definition
