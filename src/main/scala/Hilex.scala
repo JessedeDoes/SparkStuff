@@ -144,7 +144,9 @@ object ietsMinderRedundant
 
 
 object hilexQueries
-{  
+{
+  import ietsMinderRedundant._
+
      case class GetResult[T](f: ResultSet => T) extends ResultSetMapper[T]
      {
      	 override def map(arg0: Int, r: ResultSet, arg2: StatementContext): T =
@@ -214,8 +216,8 @@ object hilexQueries
      {
       val ids = lemmata.map(_.persistent_id)
       val lemmaMap = lemmata.map(l => (l.persistent_id,l)).toMap
-      println(lemmaMap.toList)
-      implicit val makeSense = GetResult[Sense](
+
+      val makeSense = GetResult[Sense](
           r => Sense(lemmaMap(r.getString("lemma_id")),
             r.getString("persistent_id"),
             r.getString("lemma_id"),
