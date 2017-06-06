@@ -88,7 +88,7 @@ object ResolveSynonyms
          possibleResolutions.map(
             {
                case (syn, l) => (syn, syn.sense,
-                                    l.map(s => distanceByQuotation(syn.sense, s)).sortBy(-1 * _.score))
+                                    l.map(s => distanceByDefinition(syn.sense, s)).sortBy(-1 * _.score))
             }
       )
       withSimilarities.foreach(
