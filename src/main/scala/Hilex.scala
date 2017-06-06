@@ -462,7 +462,7 @@ object Hilex
   
   def main(args:Array[String]):Unit = 
   { 
-    val myLemma = "M089253"
+    val myLemma = "M016273" // ezel
     val l = slurp(hilexQueries.lemmaQueryWhere(s"persistent_id='${myLemma}'"))
     val zin = l.head
     println(zin)
@@ -477,26 +477,6 @@ object Hilex
           .tag(babTagger) )
       ).filter(_.hitStart > -1)
       
-    attestationsAsConcordances.foreach(println)
-    println(attestationsAsConcordances.size)
-    //pickleTo(attestationsAsConcordances,s"Data/${myLemma}.pickle")
-    //tester.leaveOneOut(new Swsd, attestationsAsConcordances)
-    
-   
-  
-    return
-    
-    
-    l.foreach(x => x.senses.foreach(println))
-    l.foreach(_.senses.foreach(s => 
-      { println(s"\nAttestaties voor ${s}"); s.attestations.foreach( a => println(a.toConcordance.tag(babTagger).vertical)) }))
-    val qs = hilexQueries.getSenses(l)
-  
-    val q = hilexQueries.getWordforms(l)
-    val l1 = slurp(q,Hilex.hilexDB)
-    l1.foreach(println)
-    val q2 = hilexQueries.getAttestations(l1)
-    val l2 = slurp(q2,Hilex.hilexDB)
-    l2.foreach(println)
+    attestationsAsConcordances.foreach(c =>println(c.vertical))
   }
 }
