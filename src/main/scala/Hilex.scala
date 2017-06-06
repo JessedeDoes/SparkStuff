@@ -103,7 +103,7 @@ object hilexQueries
     type AlmostQuery[T] = (Handle => Query[T])
     
     
-    def bind[T](q: AlmostQuery[T], n: String, v:String): AlmostQuery[T]  = db => this(db).bind(n,v)
+    def bind[T](q: AlmostQuery[T], n: String, v:String): AlmostQuery[T]  = db => q(db).bind(n,v)
     
     
     import util._
@@ -282,11 +282,15 @@ object hilexQueries
          l.head
     }
     
-    def getLemma(lemma: String, pos: String):List[Lemma] =
+    def getLemmaWithPoS(lemma: String, pos: String):List[Lemma] =
     {
-        val lq = hilexQueries.lemmaQueryWhere(s"modern_lemma=:modern_lemma and lemma_part_of_speech=:pos" )
-        bind( bind(lq,":modern_lemma",lemma),  ":pos", pos) 
-        Hilex.
+      val q:AlmostQuery[Lemma] = db => db.createQuery(s"""
+      select modern_lemma, lemma_id,persistent_id, lemma_part_of_speech from ${dataSchema}.lemmata
+        where modern_lemma=:lemma and lemma_part_of_speech=:pos""")
+        .bind("lemma",lemma)
+        .bind("pos",pos)
+        .map(getLemma)
+      Hilex.slurp(q)
     }
     
     implicit def getWordform(analyzed_wordform_id: Int):Wordform = 
