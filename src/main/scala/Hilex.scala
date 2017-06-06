@@ -85,14 +85,16 @@ private object util
 
 object ietsMinderRedundant
 {
-  object FieldType extends Enumeration
+  type AlmostQuery[T] = (Handle => Query[T])
+
+  case class GetResult[T](f: ResultSet => T) extends ResultSetMapper[T]
   {
-    type FieldType = Value
-    val StringT, IntT = Value
+    override def map(arg0: Int, r: ResultSet, arg2: StatementContext): T =
+    {
+      val w  = f(r)
+      w
+    }
   }
-  def s(str:String):Field = Field(str, FieldType.StringT)
-  def i(str:String):Field = Field(str, FieldType.IntT)
-  case class Field(name: String, fieldType: FieldType.FieldType)
 
   case class Select[T](mapping: Diamond => T, from: String)
   {
@@ -119,11 +121,17 @@ object ietsMinderRedundant
     def getInt(s:String) = {fieldNames.append(s); 42}
   }
 
+  def slurp[A] (a: AlmostQuery[A], db: Handle):List[A] =
+  {
+    a(db).list().asScala.toList
+  }
 
+  def stream[A] (a: AlmostQuery[A], db: Handle):Stream[A] =
+  {
+    a(db).iterator().asScala.toStream
+  }
 
-  import hilexQueries._
-
-  def doeHet[T](s:Select[T]): AlmostQuery[T] =
+  implicit def doeHet[T](s:Select[T]): AlmostQuery[T] =
   {
     val m = new Mocky2
     s.mapping(m)
@@ -138,10 +146,10 @@ object ietsMinderRedundant
      val exampleQuery =
        Select(
          mapping = r => Woordje(r.getString("modern_lemma"), r.getString("lemma_part_of_speech"), r.getString("persistent_id")),
-         from = "data.lemmata where lemma_part_of_speech ~ 'VRB'")
+         from = "data.lemmata where lemma_part_of_speech ~ 'NOU'")
 
-     val q = doeHet(exampleQuery)
-     Hilex.stream(q).foreach(println)
+
+     Hilex.stream(exampleQuery).filter(w => w.lemma.length > 3 && w.lemma.reverse == w.lemma).foreach(println)
    }
 }
 
@@ -150,24 +158,12 @@ object hilexQueries
 {
   import ietsMinderRedundant._
 
-     case class GetResult[T](f: ResultSet => T) extends ResultSetMapper[T]
-     {
-     	 override def map(arg0: Int, r: ResultSet, arg2: StatementContext): T =
-     	 {
-     	    val w  = f(r)
-     	     w
-     	  }
-     }
-
-
     val getLemma = GetResult[Lemma](r => Lemma(r.getString("modern_lemma"),
       r.getInt("lemma_id"),
       r.getString("persistent_id"),
       r.getString("lemma_part_of_speech")))
 
-    type AlmostQuery[T] = (Handle => Query[T])
-    
-    
+
     def bind[T](q: AlmostQuery[T], n: String, v:String): AlmostQuery[T]  = db => q(db).bind(n,v)
     
     
@@ -398,7 +394,7 @@ object hilexQueries
            sense_id=:sense_id
         """
        val a =  (db:Handle) => db.createQuery(q).bind("sense_id",sense.persistent_id).map(makeSynonymDefinition)
-       val l:List[SynonymDefinition] = Hilex.slurp(a,Hilex.diamantRuwDB)
+       val l:List[SynonymDefinition] = ietsMinderRedundant.slurp(a,Hilex.diamantRuwDB)
        l
     }
     
@@ -434,7 +430,8 @@ object hilexQueries
 
 object Hilex 
 {
- 
+  import ietsMinderRedundant._
+
   case class Configuration(name: String, server: String, database: String, user:String, password: String)
   
   val hilexAtHome = Configuration(
@@ -489,20 +486,12 @@ object Hilex
   
   implicit lazy val hilexDB = if (TestSpark.atHome) makeHandle(hilexAtHome) else makeHandle(hilexAtWork)
 
-  def stream[A] (a: hilexQueries.AlmostQuery[A], db: Handle):Stream[A] =
-  {
-    a(db).iterator().asScala.toStream
-  }
-
-  def stream[A] (a: hilexQueries.AlmostQuery[A]):Stream[A] = stream(a,hilexDB)
 
 
-  def slurp[A] (a: hilexQueries.AlmostQuery[A], db: Handle):List[A] =
-    { 
-       a(db).list().asScala.toList
-    } 
+  def stream[A] (a: AlmostQuery[A]):Stream[A] = ietsMinderRedundant.stream(a,hilexDB)
+
    
-  def slurp[A] (a: hilexQueries.AlmostQuery[A]):List[A] = slurp(a,hilexDB)
+  def slurp[A] (a: AlmostQuery[A]):List[A] = ietsMinderRedundant.slurp(a,hilexDB)
     
    import java.io._
         
