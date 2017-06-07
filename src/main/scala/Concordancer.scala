@@ -1,4 +1,4 @@
-import nl.inl.blacklab.search.{Kwic,Hit,Hits,Searcher,Span}
+import nl.inl.blacklab.search.{Kwic,Hit,Hits,HitsWindow, Searcher,Span}
 import nl.inl.blacklab.search.grouping._
 import nl.inl.blacklab.queryParser.corpusql.CorpusQueryLanguageParser
 
@@ -145,8 +145,35 @@ class Concordancer {
 				}
 				iterator.toStream
 		}
+		val portion = 10
+		def concordancesWindowed(searcher: Searcher, corpusQlQuery: String):  Stream[Concordance] =
+		{
+			val hits = filteredSearch(searcher, corpusQlQuery, null)
 
-			
+			println(s"hits created for ${corpusQlQuery}!")
+			hits.settings.setContextSize(50)
+			hits.settings.setMaxHitsToRetrieve(Int.MaxValue)
+
+			val metaFields = searcher.getIndexStructure.getMetadataFields.asScala.toList.sorted
+
+			val z = Stream.from(0).map(x => portion*x) // wat gebeurt er als hits op zijn??
+			val zz = z.flatMap(k =>
+				{
+					try {
+						Console.err.println(s"at ${k}")
+						val hw = hits.window(k, portion - 1);
+						val iterator: Iterator[Concordance] =
+							for {h <- hw.iterator().asScala; kwic = hits.getKwic(h)}
+								yield {
+									val meta = getMetadata(searcher.document(h.doc), metaFields)
+									createConcordance(kwic, meta)
+								}
+						iterator.toStream
+					} catch {case ex: Exception => Stream.empty}
+				}
+			)
+			zz
+		}
 
 	def createSchema(hits:Hits, metaFields: List[String]):StructType = 
 		{
@@ -261,15 +288,34 @@ object Conc
               
        enhanced.map( { case (t,f,f2) => (t,f,f2,Collocation.salience(f, f1, f2, corpSize.asInstanceOf[Int]))} )
 	}
-	val ezel = "/media/jesse/Data/Diamant/CorpusEzel/"
-	val zin = "/mnt/DiskStation/homes/jesse/work/Diamant/Data/CorpusZinIndex/"
 
-	
-	def main(args: Array[String]):Unit = 
+
+
+	def collocationExample(searcher: Searcher) =
+	{
+		val concordancer = new Concordancer
+		val q0 = "[lemma='zin' & word='(?c)zin' & pos='N.*']"
+		val c0 = concordancer.concordances(searcher, q0) // dit is veel te langzaam zoals ik het doe. Hoe komt dat?
+	  val f1 = c0.count(( x => true))
+
+		println(s"Hits for ${q0} : ${f1}")
+
+
+
+		val scored = collocations(searcher,c0)
+
+		for (s <- scored.sortWith({ case (a,b) => a._4 < b._4 } ))
+			println(s)
+	}
+	val corpusEzel = "/media/jesse/Data/Diamant/CorpusEzel/"
+	val corpusZin = "/mnt/DiskStation/homes/jesse/work/Diamant/Data/CorpusZinIndex/"
+
+	def main(args: Array[String]):Unit =
   {
-     val indexDirectory = if (TestSpark.atHome) zin else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
+
+     val indexDirectory = if (TestSpark.atHome) corpusEzel else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
 		 val searcher = Searcher.open(new java.io.File(indexDirectory))
-		 val concordancer = new Concordancer
+
      val struct = searcher.getIndexStructure
      val allAvailableFieldNames = struct.getComplexFields.asScala.toList.map( f => struct.getComplexFieldDesc(f).getProperties.asScala.toList)
      
@@ -278,19 +324,9 @@ object Conc
      val corpSize =  corpusSize(searcher)
      
      println("corpus Size: " + corpSize)
-     
-     val q0 = "[lemma='zin' & word='(?c)zin' & pos='N.*']"
-     val c0 = concordancer.concordances(searcher, q0) // dit is veel te langzaam zoals ik het doe. Hoe komt dat?
-     val f1 = c0.count(( x => true))
-     
-     println(s"Hits for ${q0} : ${f1}")  
-     
-
-     
-     val scored = collocations(searcher,c0)
-    
-     for (s <- scored.sortWith({ case (a,b) => a._4 < b._4 } ))
-      			println(s)
+		 val concordancer = new Concordancer
+		 val cw = concordancer.concordancesWindowed(searcher, "[word='ezel']")
+		 cw.foreach(println)
      println()
   }
 }
