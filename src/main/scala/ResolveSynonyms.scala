@@ -80,7 +80,8 @@ object ResolveSynonyms
    def main(args:Array[String]):Unit =
    {
       val zin = hilexQueries.getLemmaByPersistentId(idZin)
-      val zinonyms = zin.senses.flatMap(s => s.synonymDefinitions)
+      val romansAndArabs = zin.senses.filter(s => List("roman", "arabic").contains(s.sense_type))
+      val zinonyms = romansAndArabs.flatMap(s => s.synonymDefinitions)
       zinonyms.foreach(println)
       val possibleResolutions = zinonyms.map(
          z => (z, hilexQueries.getLemmaWithPoS(z.synonym,"NOU").flatMap(e =>e.senses)  )) // of senses.filter(s => List("roman", "arabic").contains(s.sense_type))
