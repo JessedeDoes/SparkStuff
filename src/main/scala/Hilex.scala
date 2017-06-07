@@ -83,75 +83,6 @@ private object util
   
 }
 
-object ietsMinderRedundant
-{
-  type AlmostQuery[T] = (Handle => Query[T])
-
-  case class GetResult[T](f: ResultSet => T) extends ResultSetMapper[T]
-  {
-    override def map(arg0: Int, r: ResultSet, arg2: StatementContext): T =
-    {
-      val w  = f(r)
-      w
-    }
-  }
-
-  case class Select[T](mapping: Diamond => T, from: String)
-  {
-
-  }
-  case class Voedsel(beest:String, voedsel:Int)
-
-  trait Diamond
-  {
-    def getString(s:String):String
-    def getInt(s:String):Int
-  }
-
-  case class Mocky1(resultSet:ResultSet) extends Diamond
-  {
-    def getString(s:String) = resultSet.getString(s)
-    def getInt(s:String)  = resultSet.getInt(s)
-  }
-
-  class Mocky2 extends Diamond
-  {
-    val fieldNames: scala.collection.mutable.ListBuffer[String] = new scala.collection.mutable.ListBuffer[String]()
-    def getString(s:String) = { fieldNames.append(s); "wereldvrede"}
-    def getInt(s:String) = {fieldNames.append(s); 42}
-  }
-
-  def slurp[A] (a: AlmostQuery[A], db: Handle):List[A] =
-  {
-    a(db).list().asScala.toList
-  }
-
-  def stream[A] (a: AlmostQuery[A], db: Handle):Stream[A] =
-  {
-    a(db).iterator().asScala.toStream
-  }
-
-  implicit def doeHet[T](s:Select[T]): AlmostQuery[T] =
-  {
-    val m = new Mocky2
-    s.mapping(m)
-    val gr = GetResult[T](r => s.mapping(Mocky1(r)))
-    val query = "select " + m.fieldNames.mkString(", ") + " from " + s.from
-    db => db.createQuery(query).map(gr)
-  }
-
-   def main(args:Array[String]):Unit =
-   {
-     case class Woordje(lemma:String, pos:String, id:String)
-     val exampleQuery =
-       Select(
-         mapping = r => Woordje(r.getString("modern_lemma"), r.getString("lemma_part_of_speech"), r.getString("persistent_id")),
-         from = "data.lemmata where lemma_part_of_speech ~ 'NOU'")
-
-
-     Hilex.stream(exampleQuery).filter(w => w.lemma.length > 3 && w.lemma.reverse == w.lemma).foreach(println)
-   }
-}
 
 
 object hilexQueries
@@ -464,7 +395,7 @@ object Hilex
   
   val dev=true
   
-  def makeHandle(conf:  Configuration) =
+  def makeHandle(conf:  Configuration):Handle =
   {
      val source = new PGPoolingDataSource
 
@@ -481,10 +412,10 @@ object Hilex
   
   
   
-  lazy val diamantRuwDB = makeHandle(diamantAtHome)
+  lazy val diamantRuwDB:Handle = makeHandle(diamantAtHome)
     
   
-  implicit lazy val hilexDB = if (TestSpark.atHome) makeHandle(hilexAtHome) else makeHandle(hilexAtWork)
+  implicit lazy val hilexDB:Handle = if (TestSpark.atHome) makeHandle(hilexAtHome) else makeHandle(hilexAtWork)
 
 
 
@@ -493,9 +424,9 @@ object Hilex
    
   def slurp[A] (a: AlmostQuery[A]):List[A] = ietsMinderRedundant.slurp(a,hilexDB)
     
-   import java.io._
+  import java.io._
         
-  def pickleTo(l:List[Concordance], fileName:String) = 
+  def pickleTo(l:List[Concordance], fileName:String):Unit =
   {
 
     val pw = new PrintWriter(new File(fileName ))
