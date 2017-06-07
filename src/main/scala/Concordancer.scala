@@ -157,10 +157,11 @@ class Concordancer {
 			val metaFields = searcher.getIndexStructure.getMetadataFields.asScala.toList.sorted
 
 			val z = Stream.from(0).map(x => portion*x) // wat gebeurt er als hits op zijn??
-			val zz = z.flatMap(k =>
+			z.flatMap(k =>
 				{
 					try {
 						Console.err.println(s"at ${k}")
+
 						val hw = hits.window(k, portion - 1);
 						val iterator: Iterator[Concordance] =
 							for {h <- hw.iterator().asScala; kwic = hits.getKwic(h)}
@@ -172,7 +173,6 @@ class Concordancer {
 					} catch {case ex: Exception => List(null).toStream }
 				}
 			).takeWhile(_ != null)
-			zz
 		}
 
 	def createSchema(hits:Hits, metaFields: List[String]):StructType = 
@@ -308,12 +308,13 @@ object Conc
 			println(s)
 	}
 	val corpusEzel = "/media/jesse/Data/Diamant/CorpusEzel/"
+	val corpusWolf = "/media/jesse/Data/Diamant/CorpusWolf/"
 	val corpusZin = "/mnt/DiskStation/homes/jesse/work/Diamant/Data/CorpusZinIndex/"
 
 	def main(args: Array[String]):Unit =
   {
 
-     val indexDirectory = if (TestSpark.atHome) corpusZin else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
+     val indexDirectory = if (TestSpark.atHome) corpusWolf else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
 		 val searcher = Searcher.open(new java.io.File(indexDirectory))
 
      val struct = searcher.getIndexStructure
@@ -325,7 +326,7 @@ object Conc
      
      println("corpus Size: " + corpSize)
 		 val concordancer = new Concordancer
-		 val cw = concordancer.concordancesWindowed(searcher, "[word='ezel']")
+		 val cw = concordancer.concordancesWindowed(searcher, "[word='paard']")
 		 cw.foreach(println)
      println()
   }
