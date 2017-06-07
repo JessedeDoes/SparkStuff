@@ -29,9 +29,10 @@ trait VectorSpace
    {
       val okeetjes =  l.map(embedding).filter(_ != None).map(_.get)
       if (okeetjes.isEmpty)
-         { Console.err.println("!No words found for:" + l.toList); None }
+         { //Console.err.println("!No words found for:" + l.toList);
+             None }
       else {
-         Console.err.println(s"${okeetjes.size} for " + l.toList)
+         // Console.err.println(s"${okeetjes.size} for " + l.toList)
          Some(average(okeetjes))
       }
    }
@@ -57,7 +58,8 @@ object DbnlVectors extends VectorSpace
 object ResolveSynonyms
 {
    val idZin = "M089253"
-
+   val idEzel = "M016273"
+   val idGramschap = "M021496"
    case class Scored[T](s1: T, score: Double)
 
    def withScore(f:(Sense,Sense)=>Option[Double]):(Sense,Sense)=>Scored[Sense] = {
@@ -81,7 +83,7 @@ object ResolveSynonyms
       val zinonyms = zin.senses.flatMap(s => s.synonymDefinitions)
       zinonyms.foreach(println)
       val possibleResolutions = zinonyms.map(
-         z => (z, hilexQueries.getLemmaWithPoS(z.synonym,"NOU").flatMap(e =>e.senses.filter(s => List("roman", "arabic").contains(s.sense_type))  )))
+         z => (z, hilexQueries.getLemmaWithPoS(z.synonym,"NOU").flatMap(e =>e.senses)  )) // of senses.filter(s => List("roman", "arabic").contains(s.sense_type))
 
       possibleResolutions.foreach({ case (z,l) => println(s"\n\n${z}"); l.foreach(println) } )
 

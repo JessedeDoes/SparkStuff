@@ -151,7 +151,7 @@ class Concordancer {
 			val hits = filteredSearch(searcher, corpusQlQuery, null)
 
 			println(s"hits created for ${corpusQlQuery}!")
-			hits.settings.setContextSize(50)
+			hits.settings.setContextSize(10)
 			hits.settings.setMaxHitsToRetrieve(Int.MaxValue)
 
 			val metaFields = searcher.getIndexStructure.getMetadataFields.asScala.toList.sorted
@@ -160,9 +160,9 @@ class Concordancer {
 			z.flatMap(k =>
 				{
 					try {
-						Console.err.println(s"at ${k}")
+						Console.out.println(s"at ${k}")
 
-						val hw = hits.window(k, portion - 1);
+						val hw = hits.window(k, portion);
 						val iterator: Iterator[Concordance] =
 							for {h <- hw.iterator().asScala; kwic = hits.getKwic(h)}
 								yield {
