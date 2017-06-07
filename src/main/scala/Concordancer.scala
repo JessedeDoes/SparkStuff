@@ -169,9 +169,9 @@ class Concordancer {
 									createConcordance(kwic, meta)
 								}
 						iterator.toStream
-					} catch {case ex: Exception => Stream.empty}
+					} catch {case ex: Exception => List(null).toStream }
 				}
-			)
+			).takeWhile(_ != null)
 			zz
 		}
 
@@ -208,7 +208,7 @@ class Concordancer {
 				Row.fromSeq(kwic.getHitStart :: kwic.getHitEnd :: tokenValues ++ metaValues)
 		} 
 	
-	def createConcordance(kwic:Kwic, meta:Map[String,String]): Concordance = 
+	def createConcordance(kwic:Kwic, meta:Map[String, String]): Concordance =
 		{
 				val tokenProperties  = kwic.getProperties().asScala.toList.map(
 						s => (s -> 
@@ -313,7 +313,7 @@ object Conc
 	def main(args: Array[String]):Unit =
   {
 
-     val indexDirectory = if (TestSpark.atHome) corpusEzel else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
+     val indexDirectory = if (TestSpark.atHome) corpusZin else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
 		 val searcher = Searcher.open(new java.io.File(indexDirectory))
 
      val struct = searcher.getIndexStructure
