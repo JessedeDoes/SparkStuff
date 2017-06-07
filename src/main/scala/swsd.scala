@@ -120,7 +120,8 @@ object featureStuff
   	         word2vec.Distance.cosineSimilarity(qavg,average)
   	    }
   	}
-  	
+
+	  // dit werkt (nog?) niet zo erg....
   	def centroidFeature(vectors:Vectors,training: List[Concordance], heldOutIds:Set[String]): Concordance => Distribution = 
   	{
   	  val window = 4
