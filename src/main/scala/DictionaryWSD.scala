@@ -5,6 +5,12 @@ import Hilex.slurp
   */
 object  DictionaryWSD
 {
+  def attestationToTaggedConcordance(a: Attestation, sense_id: String):Concordance =
+  {
+    val c = a.toConcordance
+    c.copy(metadata=c.metadata ++ List("senseId" ->  sense_id, "lempos" -> "zin:n", ("id", ConvertOldInstanceBase.uuid))).tag(babTagger)
+  }
+
   def main(args:Array[String]):Unit =
   {
     val myLemma = "M089253"
@@ -16,10 +22,7 @@ object  DictionaryWSD
     romans.foreach(println)
 
     val attestationsAsConcordances  = romans.flatMap(
-      s => hilexQueries.getAttestationsBelow(s)
-        .map(s => s.toConcordance)
-        .map(c =>  c.copy(metadata=c.metadata ++ List("senseId" ->  s.persistent_id, "lempos" -> "zin:n", ("id", ConvertOldInstanceBase.uuid)))
-          .tag(babTagger) )
+      s => hilexQueries.getAttestationsBelow(s).map(a => attestationToTaggedConcordance(a,s.persistent_id))
     ).filter(_.hitStart > -1)
 
     attestationsAsConcordances.foreach(println)
