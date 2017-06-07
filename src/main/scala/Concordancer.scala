@@ -264,6 +264,7 @@ object Conc
 	val ezel = "/media/jesse/Data/Diamant/CorpusEzel/"
 	val zin = "/mnt/DiskStation/homes/jesse/work/Diamant/Data/CorpusZinIndex/"
 
+	
 	def main(args: Array[String]):Unit = 
   {
      val indexDirectory = if (TestSpark.atHome) zin else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
