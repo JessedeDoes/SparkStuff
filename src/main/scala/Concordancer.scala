@@ -214,7 +214,7 @@ object Conc
 	  	for { conc <- 
 				  df.filter("pos[hitStart-1]='ADV()' and pos[hitEnd]='ADV()'").sort(desc("date")).selectExpr("date", "word", "lemma[hitStart] as lemma")   } 
 		  {
-		      println(conc.getAs[String]("date") + " <"  + conc.getAs[String]("lemma") + "> " + conc.getAs[Array[_]]("word"))
+		      // println(conc.getAs[String]("date") + " <"  + conc.getAs[String]("lemma") + "> " + conc.getAs[Array[_]]("word"))
 		  }
 		  df
 	}
@@ -229,7 +229,7 @@ object Conc
 	{
 	  //Log.set(Log.LEVEL_ERROR)
 	
-	  val indexDirectory = if (TestSpark.atHome) "/media/jesse/Data/Diamant/CorpusWolf/" else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
+	  val indexDirectory = if (TestSpark.atHome) "/mnt/DiskStation/homes/jesse/work/Diamant/Data/CorpusZinIndex/" else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
 		val searcher = Searcher.open(new java.io.File(indexDirectory))
 				println("searcher open...")
 		val concordances = testBlacklabQuery(searcher).selectExpr("date", "word", "lemma[hitStart] as lemma", "pos[hitStart] as pos") 
@@ -261,10 +261,12 @@ object Conc
               
        enhanced.map( { case (t,f,f2) => (t,f,f2,Collocation.salience(f, f1, f2, corpSize.asInstanceOf[Int]))} )
 	}
-	
+	val ezel = "/media/jesse/Data/Diamant/CorpusEzel/"
+	val zin = "/mnt/DiskStation/homes/jesse/work/Diamant/Data/CorpusZinIndex/"
+
 	def main(args: Array[String]):Unit = 
   {
-     val indexDirectory = if (TestSpark.atHome) "/media/jesse/Data/Diamant/CorpusEzel/" else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
+     val indexDirectory = if (TestSpark.atHome) zin else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
 		 val searcher = Searcher.open(new java.io.File(indexDirectory))
 		 val concordancer = new Concordancer
      val struct = searcher.getIndexStructure
@@ -276,7 +278,7 @@ object Conc
      
      println("corpus Size: " + corpSize)
      
-     val q0 = "[lemma='ezel' & word='(?c)ez.*' & pos='N.*']"
+     val q0 = "[lemma='zin' & word='(?c)zin' & pos='N.*']"
      val c0 = concordancer.concordances(searcher, q0) // dit is veel te langzaam zoals ik het doe. Hoe komt dat?
      val f1 = c0.count(( x => true))
      
@@ -287,7 +289,7 @@ object Conc
      val scored = collocations(searcher,c0)
     
      for (s <- scored.sortWith({ case (a,b) => a._4 < b._4 } ))
-      println(s)
+      			println(s)
      println()
   }
 }
