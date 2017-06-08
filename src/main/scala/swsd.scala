@@ -206,7 +206,7 @@ class Swsd extends Serializable
 		
 		 val d = new Dataset("trainingData")
 		 d.features = features
-		 features.finalize // only necessary for continuous feats ......
+		 features.finalize() // only necessary for continuous feats ......
 		
 		 
 		 for (w <- instances)
