@@ -179,7 +179,7 @@ class Concordancer {
 		{
 	    val kwic = hits.getKwic(hits.get(0))
 	   
-			val fields = kwic.getProperties().asScala.toList
+			val fields = kwic.getProperties.asScala.toList
 			
 			val tokenFields = fields.map(StructField(_, new ArrayType(StringType,false), nullable = true))
 			val metaFieldz = metaFields.map(StructField(_, StringType, nullable = true))
@@ -199,20 +199,20 @@ class Concordancer {
 
 	def createRow(kwic:Kwic, meta:Map[String,String]): Row = 
 		{
-				val tokenValues  = kwic.getProperties().asScala.toList.map(
+				val tokenValues  = kwic.getProperties.asScala.toList.map(
 						s => (kwic.getLeft(s).asScala.toList ++ kwic.getMatch(s).asScala.toList 
 						    ++ kwic.getRight(s).asScala.toList).toArray);
 
-				val metaKeys = (meta.keys.toList.sorted)
+				val metaKeys = meta.keys.toList.sorted
 				val metaValues = metaKeys.map(s => meta(s))
 				Row.fromSeq(kwic.getHitStart :: kwic.getHitEnd :: tokenValues ++ metaValues)
 		} 
 	
 	def createConcordance(kwic:Kwic, meta:Map[String, String]): Concordance =
 		{
-				val tokenProperties  = kwic.getProperties().asScala.toList.map(
-						s => (s -> 
-						(kwic.getLeft(s).asScala.toList ++ kwic.getMatch(s).asScala.toList ++ kwic.getRight(s).asScala.toList).toArray)).toMap;
+				val tokenProperties  = kwic.getProperties.asScala.toList.map(
+						s => s ->
+						(kwic.getLeft(s).asScala.toList ++ kwic.getMatch(s).asScala.toList ++ kwic.getRight(s).asScala.toList).toArray).toMap
 
 				val metaKeys = meta.keys.toList.sorted
 				val metaValues = metaKeys.map(s => meta(s))
