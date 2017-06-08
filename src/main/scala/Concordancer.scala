@@ -214,7 +214,7 @@ class Concordancer {
 						s => (s -> 
 						(kwic.getLeft(s).asScala.toList ++ kwic.getMatch(s).asScala.toList ++ kwic.getRight(s).asScala.toList).toArray)).toMap;
 
-				val metaKeys = (meta.keys.toList.sorted)
+				val metaKeys = meta.keys.toList.sorted
 				val metaValues = metaKeys.map(s => meta(s))
 				new Concordance(kwic.getHitStart, kwic.getHitEnd, tokenProperties, meta)
 		} 
@@ -225,16 +225,16 @@ class Concordancer {
 
 object Conc
 {
-	lazy val sparkSession = SparkSession.builder
+	lazy val sparkSession:SparkSession = SparkSession.builder
 			    .master("local")
 			    .appName("My App")
 			    .getOrCreate()
 
 			//val sc0 = new SparkContext(conf)
-	lazy val sc = sparkSession.sparkContext
+	lazy val sc:SparkContext = sparkSession.sparkContext
 	
 	
-	def testBlacklabQuery(searcher: Searcher) =
+	def testBlacklabQuery(searcher: Searcher):DataFrame =
 	{
 	  	val c = new Concordancer
 	  	val df = c.collectConcordances(searcher, "[pos='AA.*'][lemma='gezindheid']", sparkSession)
