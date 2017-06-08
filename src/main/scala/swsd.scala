@@ -107,17 +107,17 @@ object featureStuff
   	
   	case class SenseGroup(memberIds: Set[String] , average: Array[Float], norm:Double)
   	{
-  	    def distance(qavg: Array[Float], id: String):Double = 
+  	    def distance(v: Array[Float], id: String):Double =
   	    { 
   	        // Console.err.println(s"SenseGroup: Situation = ${memberIds.contains(id)} Similarity between ${qavg.toList} and ${average.toList}")
   	        if (memberIds.contains(id))
   	            {
   	    	  	     val x1 =  average.map(norm * _)
-  	    		       val x2 = (0 to x1.length-1).map(i => x1(i).asInstanceOf[Float] - qavg(i)).toArray
+  	    		       val x2 = x1.indices.map(i => x1(i).asInstanceOf[Float] - v(i)).toArray
   	    		       word2vec.Util.normalize(x2)
-  	    		       word2vec.Distance.cosineSimilarity(qavg,x2)
+  	    		       word2vec.Distance.cosineSimilarity(v,x2)
   	    	     } else
-  	         word2vec.Distance.cosineSimilarity(qavg,average)
+  	         word2vec.Distance.cosineSimilarity(v,average)
   	    }
   	}
 
@@ -126,7 +126,7 @@ object featureStuff
   	{
   	  val window = 4
   	  
-  	  def avg(r:Concordance):Array[Float] = 
+  	  def weightedAverage(r:Concordance):Array[Float] =
   	  { 
   	    val focus = r.hitStart
   	    val posFrom = Math.max(focus-window,0)
@@ -135,13 +135,10 @@ object featureStuff
   	    word2vec.Util.getRankedAndDistanceWeightedAverageVector(vectors,  tokens, focus, posFrom, posTo) 
   	  }
   	  
-  	  val quotationVectors = training.map(r => (r.meta("id"), r.meta("senseId"), avg(r))) // we want to cache this
+  	  val quotationVectors = training.map(r => (r.meta("id"), r.meta("senseId"), weightedAverage(r))) // we want to cache this
   	  
-  	  val filtered = quotationVectors.filter(x => !heldOutIds.contains(x._1)) // .toMap
-  	  
-  	  val removeMe = filtered.size < quotationVectors.size;
-  	 // println("quotation Vectors:"  + quotationVectors.length)
-  	  
+  	  val filtered = quotationVectors.filter(x => !heldOutIds.contains(x._1))
+
  
   	  val groupCenters = filtered.groupBy(_._2).mapValues(l => averageVector(l.map(_._3)) match { case (v,n) => SenseGroup(l.map(_._1).toSet, v, n ) })
   	  // println("Group centers:"  + groupCenters)
@@ -149,23 +146,14 @@ object featureStuff
   	  
   	  def f(r:Concordance):Distribution = 
   	  {
-  	    val qavg = avg(r)
+  	    val a = weightedAverage(r)
   	    val id = r.meta("id")
   	  
-  	    val distances = groupCenters.mapValues(x => x.distance(qavg,id))
-  	    val nonZero = distances.filter(_._2 > 0)
-  	    if (nonZero.size == 0)
-  	    {
-  	       Console.err.println(s"!!!!!!!!!!!!!!!!!!!!!!!!! Huh: alles is nul voor ${qavg.toList}: ${distances} ${r}")
-  	    }
+  	    val distances = groupCenters.mapValues(x => x.distance(a,id))
   	    val N = distances.values.sum
   	    // Console.err.println("Distances:" + distances)
   	    val d = new Distribution
   	    distances.foreach( { case (k,v) => d.addOutcome(k, v / N) } )
-  	    
-  	   //  println("Before normalization true sense id =" +r.meta("senseId") +  ", D=" + d + " for r= " + r)
-  	   
-  	   //  println("true sense id =" +r.meta("senseId") +  ", D=" + d + " for r= " + r)
   	    d
   	  }
   	  f
