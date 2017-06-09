@@ -79,7 +79,7 @@ object tester
     val grouped = instances.groupBy(_.meta("lempos"))
     grouped.par.foreach( 
         { 
-          case (lempos,group) => if (lempos.endsWith(":n")) leaveOneOutPerLempos(wsd,group) 
+          case (lempos,group) => if (lempos.endsWith(":n")) leaveOneOutOneLempos(wsd,group)
         }) 
 	}
   
@@ -89,13 +89,15 @@ object tester
 		val senseDistribMap = senseDistribution(instancesX).toMap
 		instancesX.filter(r => { senseDistribMap( r.meta("senseId")) >= minExamplesInSense} ) 
   }
-  
-  def leaveOneOutPerLempos(wsd:Swsd, all_Instances: List[Concordance]):Unit = 
+
+
+
+  def leaveOneOutOneLempos(wsd: wsd, all_Instances: List[Concordance]):Unit =
 	{  
     var errors = 0
 		var total = 0
 		var failures = 0
-		
+		val retrain = !wsd.isInstanceOf[DistributionalOnly]
 		
 		val instances = filterABit(all_Instances)
 		
@@ -113,13 +115,15 @@ object tester
     
     
 		System.err.println("starting work on: " + lempos + " " + senses)
-		
+
+		var classify: Concordance => String = null
 		for (w <- instances)
 		{
 		  System.err.println("Holding out for instance:" + w.meta("id") + " " + w);
 			try
 			{
-				val classify = wsd.train(instances, Set(w.meta("id")))
+				if (retrain || classify == null)
+					classify = wsd.train(instances, Set(w.meta("id")))
 				errors += test(Set(w), classify)
 			} catch 
 			{ case e:Exception =>

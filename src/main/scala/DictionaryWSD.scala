@@ -11,6 +11,12 @@ object  DictionaryWSD
     c.copy(metadata=c.metadata ++ List("senseId" ->  sense_id, "lempos" -> "zin:n", ("id", ConvertOldInstanceBase.uuid))).tag(babTagger)
   }
 
+  def attestationToConcordance(a: Attestation, sense_id: String):Concordance =
+  {
+    val c = a.toConcordance
+    c.copy(metadata=c.metadata ++ List("senseId" ->  sense_id, "lempos" -> "zin:n", ("id", ConvertOldInstanceBase.uuid)))
+  }
+
   def main(args:Array[String]):Unit =
   {
     val myLemma = "M089253"

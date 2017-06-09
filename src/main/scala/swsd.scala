@@ -31,6 +31,11 @@ import org.apache.spark.sql._
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.functions._
 
+trait wsd
+{
+	def train(instances: List[Concordance], heldout: Set[String]): Concordance=>String
+}
+
 object featureStuff
 {
     @volatile var vectorz = Vectors.readFromFile("/home/jesse/workspace/Diamant/Vectors/dbnl.vectors.bin")
@@ -141,6 +146,7 @@ object featureStuff
 
  
   	  val groupCenters = filtered.groupBy(_._2).mapValues(l => averageVector(l.map(_._3)) match { case (v,n) => SenseGroup(l.map(_._1).toSet, v, n ) })
+			/* Now, groupCenters maps sense id's to SenseGroups */
   	  // println("Group centers:"  + groupCenters)
   	  
   	  
@@ -160,7 +166,22 @@ object featureStuff
   	}
 }
 
-class Swsd extends Serializable
+class DistributionalOnly extends wsd
+{
+	import featureStuff._
+	def train(instances: List[Concordance], heldout: Set[String]): Concordance=>String =
+	{
+		val cf = centroidFeature(vectorz, instances, heldout)
+		c =>
+			{
+				val D:Distribution = cf(c)
+				val oMax =  D.outcomes.asScala.maxBy(o => o.p)
+				oMax.label
+			}
+	}
+}
+
+class Swsd extends wsd with Serializable
 {
     import featureStuff._
   
@@ -189,8 +210,6 @@ class Swsd extends Serializable
   	  features.addStochasticFeature(new MyStochasticFeature("bow8", bowFeature(8)))
   	  if (addVectors)
   	  {
-  	    //Console.err.println("Adding vectors!")
-  	    //Console.err.println("Dimension: " + vectorz.vectorSize)
   	    features.addStochasticFeature(new MyStochasticFeature("contextVector", vectorFeature(vectorz))) 
   	  }
   	  features
