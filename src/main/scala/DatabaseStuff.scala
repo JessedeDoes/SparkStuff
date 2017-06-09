@@ -16,7 +16,7 @@ class DatabaseStuff {
 
 }
 
-object ietsMinderRedundant
+object DatabaseUtilities
 {
   type AlmostQuery[T] = (Handle => Query[T])
 

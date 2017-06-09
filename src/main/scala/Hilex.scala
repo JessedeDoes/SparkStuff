@@ -87,7 +87,7 @@ private object util
 
 object hilexQueries
 {
-  import ietsMinderRedundant._
+  import DatabaseUtilities._
 
     val getLemma = GetResult[Lemma](r => Lemma(r.getString("modern_lemma"),
       r.getInt("lemma_id"),
@@ -325,7 +325,7 @@ object hilexQueries
            sense_id=:sense_id
         """
        val a =  (db:Handle) => db.createQuery(q).bind("sense_id",sense.persistent_id).map(makeSynonymDefinition)
-       val l:List[SynonymDefinition] = ietsMinderRedundant.slurp(a,Hilex.diamantRuwDB)
+       val l:List[SynonymDefinition] = DatabaseUtilities.slurp(a,Hilex.diamantRuwDB)
        l
     }
     
@@ -361,7 +361,7 @@ object hilexQueries
 
 object Hilex 
 {
-  import ietsMinderRedundant._
+  import DatabaseUtilities._
 
   case class Configuration(name: String, server: String, database: String, user:String, password: String)
   
@@ -419,10 +419,10 @@ object Hilex
 
 
 
-  def stream[A] (a: AlmostQuery[A]):Stream[A] = ietsMinderRedundant.stream(a,hilexDB)
+  def stream[A] (a: AlmostQuery[A]):Stream[A] = DatabaseUtilities.stream(a,hilexDB)
 
    
-  def slurp[A] (a: AlmostQuery[A]):List[A] = ietsMinderRedundant.slurp(a,hilexDB)
+  def slurp[A] (a: AlmostQuery[A]):List[A] = DatabaseUtilities.slurp(a,hilexDB)
     
   import java.io._
         
