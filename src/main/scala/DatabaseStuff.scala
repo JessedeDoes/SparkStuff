@@ -85,3 +85,25 @@ object DatabaseUtilities
     Hilex.stream(exampleQuery).filter(w => w.lemma.length > 3 && w.lemma.reverse == w.lemma).foreach(println)
   }
 }
+
+/**
+  * import java.sql.PreparedStatement
+  * val sql: String = "insert into employee (name, city, phone) values (?, ?, ?)"
+  * val connection: Nothing = new Nothing
+  * val ps: PreparedStatement = connection.prepareStatement(sql)
+  * *
+  * val batchSize: Int = 1000
+  * var count: Int = 0
+  * *
+  * import scala.collection.JavaConversions._
+  * for (employee <- employees)  { ps.setString(1, employee.getName)
+  *ps.setString(2, employee.getCity)
+  *ps.setString(3, employee.getPhone)
+  *ps.addBatch()
+  * if ({count += 1; count} % batchSize == 0)  { ps.executeBatch
+  * }
+  * }
+  *ps.executeBatch// insert remaining records
+  * *
+  *ps.close()
+  */
