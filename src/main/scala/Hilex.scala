@@ -325,7 +325,7 @@ object hilexQueries
            sense_id=:sense_id
         """
        val a =  (db:Handle) => db.createQuery(q).bind("sense_id",sense.persistent_id).map(makeSynonymDefinition)
-       val l:List[SynonymDefinition] = DatabaseUtilities.slurp(a,Hilex.diamantRuwDB)
+       val l:List[SynonymDefinition] = DatabaseUtilities.slurp(Hilex.diamantRuwDB, a)
        l
     }
     
@@ -419,10 +419,10 @@ object Hilex
 
 
 
-  def stream[A] (a: AlmostQuery[A]):Stream[A] = DatabaseUtilities.stream(a,hilexDB)
+  def stream[A] (a: AlmostQuery[A]):Stream[A] = DatabaseUtilities.stream(hilexDB, a)
 
    
-  def slurp[A] (a: AlmostQuery[A]):List[A] = DatabaseUtilities.slurp(a,hilexDB)
+  def slurp[A] (a: AlmostQuery[A]):List[A] = DatabaseUtilities.slurp(hilexDB, a)
     
   import java.io._
         
