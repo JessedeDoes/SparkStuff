@@ -6,7 +6,7 @@ import DatabaseUtilities._
 object SimpleTextStats
 {
   case class Woordje(lemma:String, pos:String, id:String, wordform: String)
-  def hilexHas : String => Boolean =
+  def hilexHas() : String => Boolean =
   {
 
     val exampleQuery =
@@ -26,7 +26,7 @@ object SimpleTextStats
      s => { val b  =  allWords.contains(s.toLowerCase); /* if (!b) println(s); */ b}
   }
 
-  val f1:String => Boolean = hilexHas
+  lazy val f1:String => Boolean = hilexHas()
 
   def stats(text: String): Map[String,Any] =
   {
@@ -35,10 +35,11 @@ object SimpleTextStats
      val n = tokens.length
      val n2 = tokens.count(t => f1(t.token))
      val nn = tokens.count(t => t.token.matches("^[0-9\\.,;]+$")) // getallen etc doen niet mee
+     val nUc = tokens.count(t => t.token.matches("^[A-Z].*"))
      val p = n2 / (n - nn ).asInstanceOf[Double]
      if (n > 50 && p < 0.75)
        Console.err.println(text)
-     Map("N" -> n, "n2" -> n2, "p" -> p, "nn" -> nn)
+     Map("N" -> n, "nFound" -> n2, "p" -> p, "nNumerical" -> nn, "nUc" -> nUc)
   }
 
   def main(args:Array[String]):Unit =
@@ -47,7 +48,7 @@ object SimpleTextStats
       {
         val fields:Array[String] = l.split("\\t")
         val s = stats(fields(2))
-        val nf  = List(fields(0), fields(1)) ++ List(s("N").toString, s("p").toString)
+        val nf  = fields ++ List(s("N").toString, s("p").toString)
         println (nf.mkString("\t"))
       }
     )
