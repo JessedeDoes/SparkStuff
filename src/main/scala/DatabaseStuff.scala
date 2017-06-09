@@ -54,12 +54,12 @@ object DatabaseUtilities
     def getInt(s:String):Int = {fieldNames.append(s); 42}
   }
 
-  def slurp[A](db: Handle, a: AlmostQuery[Any]):List[Any] =
+  def slurp[A](db: Handle, a: AlmostQuery[A]):List[A] =
   {
     a(db).list().asScala.toList
   }
 
-  def stream[A](db: Handle, a: AlmostQuery[Any]):Stream[Any] =
+  def stream[A](db: Handle, a: AlmostQuery[A]):Stream[A] =
   {
     a(db).iterator().asScala.toStream
   }

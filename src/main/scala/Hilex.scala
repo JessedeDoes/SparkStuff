@@ -324,7 +324,7 @@ object hilexQueries
           where
            sense_id=:sense_id
         """
-       val a =  (db:Handle) => db.createQuery(q).bind("sense_id",sense.persistent_id).map(makeSynonymDefinition)
+       val a:AlmostQuery[SynonymDefinition] =  (db:Handle) => db.createQuery(q).bind("sense_id",sense.persistent_id).map(makeSynonymDefinition)
        val l:List[SynonymDefinition] = DatabaseUtilities.slurp(Hilex.diamantRuwDB, a)
        l
     }
