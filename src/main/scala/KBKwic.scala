@@ -6,21 +6,22 @@ object KBKwic
   import Tokenizer._
   import SRU._
   import QueryKB._
-  def window=8
+  def window=15
   
   case class KwicStaart(left:String, hit:String, right:String)
   {
     override def toString():String = (f"${left}%80s") + "\t"  + hit + "\t" + right
   }
 
+  def containsOneOf(haystack:String, needles: Set[String]):Boolean = needles.exists(n => haystack.toLowerCase.contains(n.toLowerCase()))  // map(n => haystack.toLowerCase.contains(n.toLowerCase()) ).reduce((a,b) => a || b)
   def concordance(query:TextQuery, text:String):List[Concordance] =
   {
     val tokens = tokenize(text)
     val terms = SRU.termsIn(query).map(_.toLowerCase)
     // println(tokens.toList)
-    val matchPositions = (0 to tokens.length-1).toList.filter(i => terms.contains(tokens(i).token.toLowerCase))
+    val matchPositions = (0 to tokens.length-1).toList.filter(i =>  containsOneOf(tokens(i).token, terms) )
 
-    //println(matchPositions)
+    // println(matchPositions)
 
     def sliceTokenProperties(a:Int,b:Int):Map[String, Array[String]] =
       {

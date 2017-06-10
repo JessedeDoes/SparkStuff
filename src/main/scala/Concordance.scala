@@ -1,4 +1,4 @@
-
+import scala.xml._
 
 
 case class Concordance(hitStart: Int, hitEnd: Int, tokenProperties:  Map[String,Array[String]], metadata: Map[String,String])
@@ -60,9 +60,17 @@ case class Concordance(hitStart: Int, hitEnd: Int, tokenProperties:  Map[String,
   }
   
   override def toString() = (f"${left}%80s") + " \u169b"  + hit + "\u169c " + right + " metadata: " + metadata
-  
-   
+
+  def toHTMLRow = <tr align="right"><td>{left}</td><td><b>{hit}</b></td><td>{right}</td></tr>
+  def toHTMLItem = <li>{left} <b>{hit}</b> {right}</li>
  }
+
+object Concordance
+{
+  def toHTMLTable(c: List[Concordance]):Node = <table>{c.map(_.toHTMLRow)}</table>
+  def toHTMLList(c: List[Concordance]):Node = <ul>{c.map(_.toHTMLItem)}</ul>
+  def toHTMLAsText(c: List[Concordance]):String = toHTMLTable(c).toString.replaceAll("\\s+", " ")
+}
 
 
 
