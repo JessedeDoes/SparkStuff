@@ -1,7 +1,7 @@
 
-trait Kwic
 
-case class Concordance(hitStart: Int, hitEnd: Int, tokenProperties:  Map[String,Array[String]], metadata: Map[String,String]) extends Kwic
+
+case class Concordance(hitStart: Int, hitEnd: Int, tokenProperties:  Map[String,Array[String]], metadata: Map[String,String])
 {
    val minEen:Int  = -1
   val defaultProperty = "word"
@@ -40,7 +40,7 @@ case class Concordance(hitStart: Int, hitEnd: Int, tokenProperties:  Map[String,
   
   def tag(implicit tagger:Tagger):Concordance = 
   {
-    val retokenized = this.retokenize(Tokenizer)
+    val retokenized = this // .retokenize(Tokenizer) // nee, dubbel tokenizeren is niet goed....
     val tagged = tagger.tag(retokenized("word").mkString(" "))
     val findMe = retokenized("word")(hitStart)
     val indexes = (0 to tagged("word").size -1).filter(tagged("word")(_) == findMe)
