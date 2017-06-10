@@ -157,7 +157,7 @@ object featureStuff
   	  val filtered = quotationVectors.filter(x => !heldOutIds.contains(x.concordance.meta("id")))
 
   	  val groupCenters = filtered.groupBy(x => x.concordance.meta("senseId")).mapValues(l => averageVector(l.map(_.vector)) match { case (v,n) =>
-				SenseGroup(l, l.map(_.concordance.meta("id")).toSet, v, n ) }
+				SenseGroup(l, l.map(_.concordance.meta("id")).toSet, v, n ) })
   	  
   	  def f(r:Concordance):Distribution = 
   	  {
