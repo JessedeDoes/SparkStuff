@@ -22,7 +22,7 @@ case class Concordance(hitStart: Int, hitEnd: Int, tokenProperties:  Map[String,
     val words = tokens.map(t => t.token)
     val newProperties = tokenProperties -- List("word","prepunctuation","postpunctuation") ++ List("word" -> words, "prepunctuation" -> prepunct, "postpunctuation" -> postpunct)
     val r = this.copy(tokenProperties=newProperties)
-    Console.err.println("retokenized:" + r)
+    //Console.err.println("retokenized:" + r)
     r
   }
   
@@ -46,11 +46,12 @@ case class Concordance(hitStart: Int, hitEnd: Int, tokenProperties:  Map[String,
       if (this.tokenProperties.contains("prepunctuation"))
         this
       else
-        this.retokenize(Tokenizer) // .retokenize(Tokenizer) // nee, dubbel tokenizeren is niet goed....
-    Console.err.println(retokenized)
+        this.retokenize(Tokenizer)
+    // .retokenize(Tokenizer) // nee, dubbel tokenizeren is niet goed....
+    //Console.err.println(retokenized)
     val tagged = tagger.tag(retokenized("word").mkString(" "))
     if (hitStart >= retokenized("word").length)
-      println(s"Miserie: $hitStart $retokenized ${retokenized("word").length}")
+      Console.err.println(s"Miserie: $hitStart $retokenized ${retokenized("word").length}")
 
     val findMe = retokenized("word")(hitStart)
     val indexes = (0 to tagged("word").size -1).filter(tagged("word")(_) == findMe)
