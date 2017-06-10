@@ -184,10 +184,10 @@ class DistributionalOnly extends wsd
 		c =>
 			{
 				val D:Distribution = cf(c)
-				println(c.meta("senseId") + ", " + D)
+				//println(c.meta("senseId") + ", " + D)
 
 				val oMax =  D.outcomes.asScala.maxBy(o => o.p)
-				println("oMax:" + oMax)
+				//println("oMax:" + oMax)
 				oMax.label
 			}
 	}
