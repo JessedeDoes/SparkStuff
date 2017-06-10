@@ -38,14 +38,14 @@ object  DictionaryWSD
       s => hilexQueries.getAttestationsBelow(s).map(a => attestationToConcordance(a,s.persistent_id))
     ).filter(_.hitStart > -1)
 
-    // val taggedConcordances = Concordance.tagBatches(babTagger, attestationsAsConcordances)
+    lazy val taggedConcordances = Concordance.tagBatches(babTagger, attestationsAsConcordances)
 
     attestationsAsConcordances.foreach(println)
     println(attestationsAsConcordances.size)
 
     // Hilex.pickleTo(attestationsAsConcordances, s"Data/${myLemma}.quotations.pickle")
 
-    tester.leaveOneOut(new DistributionalOnly, attestationsAsConcordances.toList)
+    tester.leaveOneOut(new Swsd, taggedConcordances.toList)
 
 
 
