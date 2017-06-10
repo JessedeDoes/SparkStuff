@@ -87,7 +87,7 @@ object featureStuff
   	
   	def vectorFeature(vectors:Vectors)(r:Concordance):Distribution =
   	{
-  	   val window=2
+  	   val window = 8
   	   val tokens = r.apply("word").toList.asJava
   	   val focus = r.hitStart
   	   val posFrom = Math.max(focus-window,0)
@@ -135,7 +135,7 @@ object featureStuff
   	}
 
 	  // dit werkt (nog??) niet zo erg....
-	
+
   	def centroidFeature(vectors:Vectors,training: List[Concordance], heldOutIds:Set[String]): Concordance => Distribution = 
   	{
   	  val window = 4
