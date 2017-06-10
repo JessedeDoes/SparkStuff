@@ -22,15 +22,17 @@ object KBKwic
 
     //println(matchPositions)
 
-    def slice(a:Int,b:Int):Map[String, Array[String]] =
+    def sliceTokenProperties(a:Int,b:Int):Map[String, Array[String]] =
       {
         val tokz = tokens.slice(a,b)
-        Map( "prepunctuation" -> tokz.map(_.leading), "word" -> tokz.map(_.token), "postpunctuation" -> tokz.map(_.trailing) )
+        Map( "prepunctuation" -> tokz.map(_.leading),
+             "word" -> tokz.map(_.token),
+             "postpunctuation" -> tokz.map(_.trailing) )
       }
 
     def startFor(p:Int) = Math.max(0,p-window)
     def endFor(p:Int) = Math.min(p+window+1,tokens.length)
-    def conc(p:Int)= Concordance(p-startFor(p), p-startFor(p)+1, slice(startFor(p), endFor(p)) , Map.empty)
+    def conc(p:Int)= Concordance(p-startFor(p), p-startFor(p)+1, sliceTokenProperties(startFor(p), endFor(p)) , Map.empty)
 
     matchPositions.map(conc)
   }
