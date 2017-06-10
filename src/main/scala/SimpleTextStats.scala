@@ -49,15 +49,15 @@ object SimpleTextStats
       {
         val fields:Array[String] = l.split("\\t")
         val text = fields(2)
-        // http://www.delpher.nl/nl/kranten/view?coll=ddd&identifier=MMSADB01:000012578:mpeg21:a0005&query=bunzing
+
         val id = fields(1).replaceAll(".*urn=","")
-        // println(id)
+
         val linkje = s"http://www.delpher.nl/nl/kranten/view?coll=ddd&identifier=$id&query=bunzing"
         val link = <a href={linkje}>{fields(1)}</a>
         val s = stats(text)
         val snippets = KBKwic.concordance(SingleTerm(fields(0)), text)
         if (snippets.isEmpty)
-          Console.err.println(s"Geen bunzing in $id:" + text)
+          Console.err.println(s"Geen ${fields(0)} in $id:" + text)
         val nf = fields.slice(0,1)  ++ List(link, Concordance.toHTMLList(snippets)) ++ fields.slice(3,fields.length) ++ List(s("N").toString, s("p").toString)
         <tr valign="top">{nf.map(x => <td>{x}</td>)}</tr>
       })}
