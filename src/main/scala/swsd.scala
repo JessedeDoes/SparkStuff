@@ -39,7 +39,7 @@ trait wsd
 object featureStuff
 {
     @volatile var vectorz = Vectors.readFromFile("/home/jesse/workspace/Diamant/Vectors/dbnl.vectors.bin")
-    
+    import word2vec.Distance.cosineSimilarity
     class MyFeature(n: String, f: Concordance=>String) extends Feature with Serializable
   	{
   	  this.name = n
@@ -109,10 +109,12 @@ object featureStuff
   	  word2vec.Util.normalize(r)
   	  (r,N)
   	}
-  	
-  	case class SenseGroup(memberIds: Set[String] , average: Array[Float], norm:Double)
+
+	  case class ConcordanceWithVector(concordance:Concordance, vector: Array[Float])
+
+  	case class SenseGroup(members: List[ConcordanceWithVector], memberIds: Set[String] , average: Array[Float], norm:Double)
   	{
-  	    def distance(v: Array[Float], id: String):Double =
+  	    def similarity(v: Array[Float], id: String):Double =
   	    { 
   	        // Console.err.println(s"SenseGroup: Situation = ${memberIds.contains(id)} Similarity between ${qavg.toList} and ${average.toList}")
   	        if (memberIds.contains(id))
@@ -120,13 +122,20 @@ object featureStuff
   	    	  	     val x1 =  average.map(norm * _)
   	    		       val x2 = x1.indices.map(i => x1(i).asInstanceOf[Float] - v(i)).toArray
   	    		       word2vec.Util.normalize(x2)
-  	    		       word2vec.Distance.cosineSimilarity(v,x2)
+  	    		       cosineSimilarity(v,x2)
   	    	     } else
-  	         word2vec.Distance.cosineSimilarity(v,average)
+  	         cosineSimilarity(v,average)
   	    }
+
+			  def maxSimilarity(v: Array[Float], id: String):Double =
+				{
+					val x = members.filter(x => !(x.concordance.meta("id") == id)).maxBy(x => word2vec.Distance.cosineSimilarity(v,x.vector))
+					cosineSimilarity(v,x.vector)
+				}
   	}
 
-	  // dit werkt (nog?) niet zo erg....
+	  // dit werkt (nog??) niet zo erg....
+	
   	def centroidFeature(vectors:Vectors,training: List[Concordance], heldOutIds:Set[String]): Concordance => Distribution = 
   	{
   	  val window = 4
@@ -140,14 +149,14 @@ object featureStuff
   	    word2vec.Util.getRankedAndDistanceWeightedAverageVector(vectors,  tokens, focus, posFrom, posTo) 
   	  }
   	  
-  	  val quotationVectors = training.map(r => (r.meta("id"), r.meta("senseId"), weightedAverage(r))) // we want to cache this
+  	  val quotationVectors = training.map(r => ConcordanceWithVector(r, weightedAverage(r))) // we want to cache this
   	  
-  	  val filtered = quotationVectors.filter(x => !heldOutIds.contains(x._1))
+  	  val filtered = quotationVectors.filter(x => !heldOutIds.contains(x.concordance.meta("id")))
 
  
-  	  val groupCenters = filtered.groupBy(_._2).mapValues(l => averageVector(l.map(_._3)) match { case (v,n) => SenseGroup(l.map(_._1).toSet, v, n ) })
-			/* Now, groupCenters maps sense id's to SenseGroups */
-  	  // println("Group centers:"  + groupCenters)
+  	  val groupCenters = filtered.groupBy(x => x.concordance.meta("senseId")).mapValues(l => averageVector(l.map(_.vector)) match { case (v,n) =>
+				SenseGroup(l, l.map(_.concordance.meta("id")).toSet, v, n ) })
+
   	  
   	  
   	  def f(r:Concordance):Distribution = 
@@ -155,7 +164,7 @@ object featureStuff
   	    val a = weightedAverage(r)
   	    val id = r.meta("id")
   	  
-  	    val distances = groupCenters.mapValues(x => x.distance(a,id))
+  	    val distances = groupCenters.mapValues(x => x.maxSimilarity(a,id))
   	    val N = distances.values.sum
   	    // Console.err.println("Distances:" + distances)
   	    val d = new Distribution
@@ -175,7 +184,10 @@ class DistributionalOnly extends wsd
 		c =>
 			{
 				val D:Distribution = cf(c)
+				println(c.meta("senseId") + ", " + D)
+
 				val oMax =  D.outcomes.asScala.maxBy(o => o.p)
+				println("oMax:" + oMax)
 				oMax.label
 			}
 	}

@@ -49,7 +49,7 @@ object tester
   val minExamplesInSense = 5
   val minAvgPerSense = 20.0
   
-  def leaveOneOut(wsd:Swsd, df: DataFrame):Unit = 
+  def leaveOneOut(wsd:wsd, df: DataFrame):Unit =
 	{
     Console.err.println("starting...")
     val ks = df.select("lempos").distinct.collect
@@ -73,7 +73,7 @@ object tester
       avgPerSense > minAvgPerSense
   }
     
-  def leaveOneOut(wsd:Swsd,instances:List[Concordance]):Unit = 
+  def leaveOneOut(wsd:wsd,instances:List[Concordance]):Unit =
 	{
    
     val grouped = instances.groupBy(_.meta("lempos"))
