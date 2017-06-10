@@ -60,7 +60,7 @@ object KBKwic
   def kwicResultsPar(t:TextQuery)
   {
       val s0 = matchingDocumentIdentifiers(t)
-      val split = splitStream(s0,20)
+      val split = splitStream(s0,100)
       split.par.foreach(
            x =>  
              for ((id,metadataRecord) <- x)
