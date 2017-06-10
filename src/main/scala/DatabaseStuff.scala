@@ -78,7 +78,8 @@ object DatabaseUtilities
     case class Woordje(lemma:String, pos:String, id:String)
     val exampleQuery =
       Select(
-        mapping = r => Woordje(r.getString("modern_lemma"), r.getString("lemma_part_of_speech"), r.getString("persistent_id")),
+        mapping = r =>
+          Woordje(r.getString("modern_lemma"), r.getString("lemma_part_of_speech"), r.getString("persistent_id")),
         from = "data.lemmata where lemma_part_of_speech ~ 'NOU'")
 
 
