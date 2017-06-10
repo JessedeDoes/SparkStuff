@@ -1,10 +1,10 @@
 import scala.xml._
 import java.io._
-object printMetadata
+object KBMetadata
 {
-  def getMetadata(x: Node):Map[String,String] =
+   def getMetadata(x: Node):Map[String,String] =
 	 {
-	   val m:Elem = (x \\ "recordData").head.asInstanceOf[Elem]
+	   val m:Elem = if (x.label == "recordData") x.asInstanceOf[Elem] else (x \\ "recordData").head.asInstanceOf[Elem]
 	   m.child.map(x => (x.label, x.text)).toMap
 	 }
 	 
@@ -18,6 +18,7 @@ object printMetadata
 	   
 	 def main(args:Array[String]):Unit = printAllMetadata(args(0))
 }
+
 object toTEI
 {
    import scala.util.matching._

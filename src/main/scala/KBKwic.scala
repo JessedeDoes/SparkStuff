@@ -8,40 +8,47 @@ object KBKwic
   import QueryKB._
   def window=8
   
-  case class Kwic(left:String, hit:String, right:String)
+  case class KwicStaart(left:String, hit:String, right:String)
   {
     override def toString():String = (f"${left}%80s") + "\t"  + hit + "\t" + right
   }
 
-  def concordance(query:TextQuery, text:String):List[Kwic] =
+  def concordance(query:TextQuery, text:String):List[Concordance] =
   {
     val tokens = tokenize(text)
     val terms = SRU.termsIn(query).map(_.toLowerCase)
     // println(tokens.toList)
     val matchPositions = (0 to tokens.length-1).toList.filter(i => terms.contains(tokens(i).token.toLowerCase))
+
     //println(matchPositions)
-    def slice = (a:Int,b:Int) => tokens.slice(Math.max(0,a),Math.min(b,tokens.length-1)).toList.map(
-      t => t.leading + t.token + t.trailing).mkString(" ")
-    def getMatch(p:Int) = Kwic(slice(p-window,p), tokens(p).token, slice(p+1,p+window+1))
-    matchPositions.map(getMatch)
+
+    def slice(a:Int,b:Int):Map[String, Array[String]] =
+      {
+        val tokz = tokens.slice(a,b)
+        Map( "prepunctuation" -> tokz.map(_.leading), "word" -> tokz.map(_.token), "postpunctuation" -> tokz.map(_.trailing) )
+      }
+
+    def startFor(p:Int) = Math.max(0,p-window)
+    def endFor(p:Int) = Math.min(p+window+1,tokens.length-1)
+    def conc(p:Int)= Concordance(p-startFor(p), p-startFor(p)+1, slice(startFor(p), endFor(p)) , Map.empty)
+
+    matchPositions.map(conc)
   }
 
-  def concordance(query:String,document:Node):List[Kwic] = concordance(SingleTerm(query), document)
+  def concordance(query:String,document:Node, meta:Node):List[Concordance] = concordance(SingleTerm(query), document, meta)
+
+  def concordance(query:TextQuery, document:Node, meta: Node):List[Concordance] = concordance(query, document.text).map(c => c.copy(metadata=KBMetadata.getMetadata(meta)))
 
   
-  def concordance(query:TextQuery, document:Node):List[Kwic] = concordance(query, document.text)
-
+  def concordanceFile(query:String, fileName:String):List[Concordance] = { val d = XML.load(fileName); concordance(query, d , d) }
   
-  def concordanceFile(query:String, fileName:String):List[Kwic] = concordance(query,XML.load(fileName))
-  
-  def concordancesDir(query:String, dirName:String):List[Kwic] =
+  def concordancesDir(query:String, dirName:String):List[Concordance] =
     new File(dirName).list().toList.par.flatMap(f => concordanceFile(query, dirName + "/" + f)).toList
   
 
-  
-  def concordanceURL(query:String, url:String):List[Kwic] = concordance(query,XML.load(url))
+  def concordanceURL(query:String, url:String, meta:Node):List[Concordance] = concordance(query,XML.load(url), meta)
 
-  def concordanceURL(query:TextQuery, url:String):List[Kwic] = concordance(query,XML.load(url))
+  def concordanceURL(query:TextQuery, url:String, meta:Node):List[Concordance] = concordance(query,XML.load(url), meta)
 
   def kwicResults(s:String) =
     
@@ -57,9 +64,13 @@ object KBKwic
       split.par.foreach(
            x =>  
              for ((id,metadataRecord) <- x)
-             { println(KBKwic.concordanceURL(t, id)) }
+             { println(KBKwic.concordanceURL(t, id, metadataRecord).map( c => c.tag(babTagger).vertical)) }
       )
   }
   
-  def main(args:Array[String]) = if (args.length >= 2) concordanceDir(args(0),args(1)) else kwicResultsPar(args(0))
+  def main(args:Array[String]) =
+    {
+      val arg0 = if (args.length == 0) "bunzing" else args(0)
+      if (args.length >= 2) concordanceDir(arg0,args(1)) else kwicResultsPar(arg0)
+    }
 }

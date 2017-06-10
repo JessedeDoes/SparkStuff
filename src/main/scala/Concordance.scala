@@ -1,6 +1,7 @@
 
+trait Kwic
 
-case class Concordance(hitStart: Int, hitEnd: Int, tokenProperties:  Map[String,Array[String]], metadata: Map[String,String])
+case class Concordance(hitStart: Int, hitEnd: Int, tokenProperties:  Map[String,Array[String]], metadata: Map[String,String]) extends Kwic
 {
    val minEen:Int  = -1
   val defaultProperty = "word"
@@ -19,7 +20,7 @@ case class Concordance(hitStart: Int, hitEnd: Int, tokenProperties:  Map[String,
     val prepunct = tokens.map(t => t.leading)
     val postpunct = tokens.map(t => t.trailing)
     val words = tokens.map(t => t.token)
-    val newProperties = tokenProperties -- List("words","prepunctuation","postpunctuation") ++ List("word" -> words, "prepunctuation" -> prepunct, "postpunctuation" -> postpunct)
+    val newProperties = tokenProperties -- List("word","prepunctuation","postpunctuation") ++ List("word" -> words, "prepunctuation" -> prepunct, "postpunctuation" -> postpunct)
     this.copy(tokenProperties=newProperties)
   }
   
@@ -51,7 +52,6 @@ case class Concordance(hitStart: Int, hitEnd: Int, tokenProperties:  Map[String,
     {
     val bestIndex = indexes.minBy(i => Math.abs(hitStart - i))
     val r = this.copy(hitStart=bestIndex,hitEnd=bestIndex+1,tokenProperties=tagged)
-    println(".")
     r
     }
   }
