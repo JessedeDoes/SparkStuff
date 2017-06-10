@@ -22,8 +22,9 @@ trait Tagger
    
    def tag(text:String):Map[String,Array[String]] =
    {
+     println("Text length: " + text.length)
      val d = taggedDocument(text)
-    
+
      val z = (d \\ "w").map(w => 
        List(
            ("word", getTextButNotIn(w,"interp")), 

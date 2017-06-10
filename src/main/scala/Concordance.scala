@@ -71,11 +71,19 @@ object Concordance
   def toHTMLList(c: List[Concordance]):Node = <ul>{c.map(_.toHTMLItem)}</ul>
   def toHTMLAsText(c: List[Concordance]):String = toHTMLTable(c).toString.replaceAll("\\s+", " ")
 
+  def tagBatches(tagger: Tagger, c: Seq[Concordance]):Seq[Concordance] =
+  {
+    val batchSize = 20
+    val portions = (0 to c.size by batchSize).map(i => c.slice(i, Math.min(i+batchSize, c.size)))
+    val taggedPortions = portions.par.flatMap(p => tagBatch(tagger,p)).toList
+    taggedPortions
+  }
   def tagBatch(tagger: Tagger, c: Seq[Concordance]):Seq[Concordance] =
   {
     val startMarker = "开始"
     val sentences = c.map(startMarker + " " + _("word").mkString(" "))
     val tagged:Map[String,Array[String]] = tagger.tag(sentences.mkString(" "))
+    // println(tagged("word").indices.map(i => tagged("word")(i) + ":" + tagged("lemma")(i)).mkString("\n"))
     val properties = tagged.keys.toList
     val startPositions = tagged("word").indices.filter(i => tagged("word")(i) == startMarker)
     val stukjes:Seq[Map[String, Array[String]]] = startPositions.indices.map(i =>
@@ -83,9 +91,10 @@ object Concordance
         val s = startPositions(i) + 1
         val e = if (i == startPositions.size-1) tagged("word").length else startPositions(i+1)
 
-        properties.map(p =>  p -> tagged("word").slice(s,e)    ).toMap
+        properties.map(p =>  p -> tagged(p).slice(s,e)    ).toMap
       }
     )
+
     def key(c:Concordance):String = c("word").mkString(" ")
     val cache = c.indices.map(i => key(c(i)) -> stukjes(i)).toMap
 

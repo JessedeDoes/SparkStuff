@@ -29,19 +29,21 @@ object  DictionaryWSD
 
     romans.foreach(println)
 
-    val r0 = romans(0)
+    val r0 = romans(1)
     val a0 = hilexQueries.getAttestationsBelow(r0).map(a => attestationToConcordance(a,r0.persistent_id))
 
-    Concordance.tagBatch(babTagger,a0).foreach(println)
+    Concordance.tagBatches(babTagger,a0).foreach(c => println(c.vertical))
 
     val attestationsAsConcordances  = romans.flatMap(
-      s => hilexQueries.getAttestationsBelow(s).map(a => attestationToTaggedConcordance(a,s.persistent_id))
+      s => hilexQueries.getAttestationsBelow(s).map(a => attestationToConcordance(a,s.persistent_id))
     ).filter(_.hitStart > -1)
+
+    val taggedConcordances = Concordance.tagBatches(babTagger, attestationsAsConcordances)
 
     attestationsAsConcordances.foreach(println)
     println(attestationsAsConcordances.size)
 
-    Hilex.pickleTo(attestationsAsConcordances, s"Data/${myLemma}.pickle")
+    Hilex.pickleTo(attestationsAsConcordances, s"Data/${myLemma}.quotations.pickle")
 
     //tester.leaveOneOut(new Swsd, attestationsAsConcordances)
 
