@@ -21,7 +21,9 @@ case class Concordance(hitStart: Int, hitEnd: Int, tokenProperties:  Map[String,
     val postpunct = tokens.map(t => t.trailing)
     val words = tokens.map(t => t.token)
     val newProperties = tokenProperties -- List("word","prepunctuation","postpunctuation") ++ List("word" -> words, "prepunctuation" -> prepunct, "postpunctuation" -> postpunct)
-    this.copy(tokenProperties=newProperties)
+    val r = this.copy(tokenProperties=newProperties)
+    Console.err.println("retokenized:" + r)
+    r
   }
   
   def vertical =
@@ -45,6 +47,7 @@ case class Concordance(hitStart: Int, hitEnd: Int, tokenProperties:  Map[String,
         this
       else
         this.retokenize(Tokenizer) // .retokenize(Tokenizer) // nee, dubbel tokenizeren is niet goed....
+    Console.err.println(retokenized)
     val tagged = tagger.tag(retokenized("word").mkString(" "))
     if (hitStart >= retokenized("word").length)
       println(s"Miserie: $hitStart $retokenized ${retokenized("word").length}")

@@ -32,7 +32,7 @@ object  DictionaryWSD
     val r0 = romans(1)
     val a0 = hilexQueries.getAttestationsBelow(r0).map(a => attestationToConcordance(a,r0.persistent_id))
 
-    Concordance.tagBatches(babTagger,a0).foreach(c => println(c.vertical))
+    // Concordance.tagBatches(babTagger,a0).foreach(c => println(c.vertical))
 
     val attestationsAsConcordances  = romans.flatMap(
       s => hilexQueries.getAttestationsBelow(s).map(a => attestationToConcordance(a,s.persistent_id))
