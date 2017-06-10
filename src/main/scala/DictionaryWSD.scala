@@ -38,7 +38,7 @@ object  DictionaryWSD
       s => hilexQueries.getAttestationsBelow(s).map(a => attestationToConcordance(a,s.persistent_id))
     ).filter(_.hitStart > -1)
 
-    lazy val taggedConcordances = Concordance.tagBatches(babTagger, attestationsAsConcordances)
+    lazy val taggedConcordances = attestationsAsConcordances.par.map(_.tag(babTagger)) // Concordance.tagBatches(babTagger, attestationsAsConcordances)
 
     attestationsAsConcordances.foreach(println)
     println(attestationsAsConcordances.size)
