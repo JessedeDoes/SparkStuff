@@ -76,6 +76,7 @@ object ResolveSynonyms
    def distanceByQuotation(s1: Sense, s2: Sense):Option[Double] =
       DbnlVectors.similarityByAverage(s1.definition + " " + s1.quotationText, s2.definition + " " + s2.quotationText)
 
+   val romanOrArabic = (s:Sense) => List("roman", "arabic").contains(s.sense_type)
 
    def main(args:Array[String]):Unit =
    {
@@ -84,7 +85,7 @@ object ResolveSynonyms
       val zinonyms = romansAndArabs.flatMap(s => s.synonymDefinitions)
       zinonyms.foreach(println)
       val possibleResolutions = zinonyms.map(
-         z => (z, hilexQueries.getLemmaWithPoS(z.synonym,"NOU").flatMap(e =>e.senses)  )) // of senses.filter(s => List("roman", "arabic").contains(s.sense_type))
+         z => (z, hilexQueries.getLemmaWithPoS(z.synonym,"NOU").flatMap(e =>e.senses.filter(romanOrArabic))  )) // of senses.filter(s => List("roman", "arabic").contains(s.sense_type))
 
       possibleResolutions.foreach({ case (z,l) => println(s"\n\n${z}"); l.foreach(println) } )
 
