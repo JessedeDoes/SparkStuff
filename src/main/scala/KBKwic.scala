@@ -37,7 +37,7 @@ object KBKwic
   def concordancesDir(query:String, dirName:String):List[Kwic] =
     new File(dirName).list().toList.par.flatMap(f => concordanceFile(query, dirName + "/" + f)).toList
   
-  def concordanceDir(query:String, dirName:String):Unit = concordancesDir(query,dirName).foreach(println)
+
   
   def concordanceURL(query:String, url:String):List[Kwic] = concordance(query,XML.load(url))
 
@@ -47,7 +47,9 @@ object KBKwic
     
     for ((id,metadataRecord) <- matchingDocumentIdentifiers(s))
       println(concordance(s, id))
-      
+
+  def concordanceDir(query:String, dirName:String):Unit = concordancesDir(query,dirName).foreach(println)
+
   def kwicResultsPar(t:TextQuery)
   {
       val s0 = matchingDocumentIdentifiers(t)
