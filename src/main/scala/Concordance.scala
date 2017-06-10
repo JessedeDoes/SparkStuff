@@ -70,6 +70,33 @@ object Concordance
   def toHTMLTable(c: List[Concordance]):Node = <table>{c.map(_.toHTMLRow)}</table>
   def toHTMLList(c: List[Concordance]):Node = <ul>{c.map(_.toHTMLItem)}</ul>
   def toHTMLAsText(c: List[Concordance]):String = toHTMLTable(c).toString.replaceAll("\\s+", " ")
+
+  def tagBatch(tagger: Tagger, c: Seq[Concordance]):Seq[Concordance] =
+  {
+    val startMarker = "开始"
+    val sentences = c.map(startMarker + " " + _("word").mkString(" "))
+    val tagged:Map[String,Array[String]] = tagger.tag(sentences.mkString(" "))
+    val properties = tagged.keys.toList
+    val startPositions = tagged("word").indices.filter(i => tagged("word")(i) == startMarker)
+    val stukjes:Seq[Map[String, Array[String]]] = startPositions.indices.map(i =>
+      {
+        val s = startPositions(i) + 1
+        val e = if (i == startPositions.size-1) tagged("word").length else startPositions(i+1)
+
+        properties.map(p =>  p -> tagged("word").slice(s,e)    ).toMap
+      }
+    )
+    def key(c:Concordance):String = c("word").mkString(" ")
+    val cache = c.indices.map(i => key(c(i)) -> stukjes(i)).toMap
+
+    object cachingTagger extends Tagger
+    {
+      override def urlFor(text: String): String = null
+
+      override def tag(text: String): Map[String, Array[String]] = cache(text)
+    }
+    return c.map(c => c.tag(cachingTagger))
+  }
 }
 
 

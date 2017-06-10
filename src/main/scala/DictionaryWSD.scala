@@ -25,7 +25,14 @@ object  DictionaryWSD
     println(zin)
     val senses = zin.senses
     val romans = senses.filter(s => s.parent_sense_id == null)
+
+
     romans.foreach(println)
+
+    val r0 = romans(0)
+    val a0 = hilexQueries.getAttestationsBelow(r0).map(a => attestationToConcordance(a,r0.persistent_id))
+
+    Concordance.tagBatch(babTagger,a0).foreach(println)
 
     val attestationsAsConcordances  = romans.flatMap(
       s => hilexQueries.getAttestationsBelow(s).map(a => attestationToTaggedConcordance(a,s.persistent_id))
@@ -33,8 +40,10 @@ object  DictionaryWSD
 
     attestationsAsConcordances.foreach(println)
     println(attestationsAsConcordances.size)
-    //pickleTo(attestationsAsConcordances,s"Data/${myLemma}.pickle")
-    tester.leaveOneOut(new Swsd, attestationsAsConcordances)
+
+    Hilex.pickleTo(attestationsAsConcordances, s"Data/${myLemma}.pickle")
+
+    //tester.leaveOneOut(new Swsd, attestationsAsConcordances)
 
 
 
