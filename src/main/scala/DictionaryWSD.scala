@@ -17,8 +17,40 @@ object  DictionaryWSD
     c.copy(metadata=c.metadata ++ List("senseId" ->  sense_id, "lempos" -> "zin:n", ("id", ConvertOldInstanceBase.uuid)))
   }
 
+  def allWords(paragraph: String):Concordance =
+  {
+    val swsd = new Swsd
+    val tagged = babTagger.tag(paragraph)
+    val c0 = Concordance(hitStart=0, hitEnd=1, tokenProperties=tagged, metadata = Map("id" -> ConvertOldInstanceBase.uuid ) )
+    val senseTags = (0 to tagged("word").length-1).map(i =>
+      {
+        val c = c0.copy(hitStart=i, hitEnd=i+1, metadata = Map("id" -> ConvertOldInstanceBase.uuid ))
+        val lemma = c("lemma")(c.hitStart)
+        val pos = c("pos")(c.hitStart)
+        println(s"$lemma -- $pos")
+        val lemmata = hilexQueries.getLemmaWithPoS(lemma, pos)
+        println(lemmata)
+        val senses = lemmata.flatMap(_.senses).filter(s => s.parent_sense_id == null)
+        val attestationsAsConcordances  = senses.flatMap(
+          s => hilexQueries.getAttestationsBelow(s).map(a => attestationToConcordance(a,s.persistent_id))
+        ).filter(_.hitStart > -1)
+        if (attestationsAsConcordances.size > 10)
+          {
+        lazy val taggedConcordances = attestationsAsConcordances.par.map(_.tag(babTagger))
+        val classifier = swsd.train(taggedConcordances.toList,Set.empty)
+        val senseTag = classifier(c)
+        senseTag} else "unknown"
+      }
+    )
+    val cTagged = c0.copy(tokenProperties=c0.tokenProperties + ("senseId" -> senseTags.toArray))
+    println(cTagged.vertical)
+    cTagged
+  }
+
   def main(args:Array[String]):Unit =
   {
+    allWords("ik heb geen zin in ezels")
+    return
     val myLemma = "M089253"
     val l = slurp(hilexQueries.lemmaQueryWhere(s"persistent_id='${myLemma}'"))
     val zin = l.head

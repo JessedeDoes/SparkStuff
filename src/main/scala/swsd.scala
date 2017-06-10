@@ -115,8 +115,7 @@ object featureStuff
   	case class SenseGroup(members: List[ConcordanceWithVector], memberIds: Set[String] , average: Array[Float], norm:Double)
   	{
   	    def similarity(v: Array[Float], id: String):Double =
-  	    { 
-  	        // Console.err.println(s"SenseGroup: Situation = ${memberIds.contains(id)} Similarity between ${qavg.toList} and ${average.toList}")
+  	    {
   	        if (memberIds.contains(id))
   	            {
   	    	  	     val x1 =  average.map(norm * _)
@@ -129,8 +128,12 @@ object featureStuff
 
 			  def maxSimilarity(v: Array[Float], id: String):Double =
 				{
-					val x = members.filter(x => !(x.concordance.meta("id") == id)).maxBy(x => word2vec.Distance.cosineSimilarity(v,x.vector))
-					cosineSimilarity(v,x.vector)
+					val l = members.filter(x => !(x.concordance.meta("id") == id))
+					if (l.isEmpty) 0.asInstanceOf[Double] else
+					{
+						val x = l.maxBy(x => word2vec.Distance.cosineSimilarity(v,x.vector))
+						cosineSimilarity(v,x.vector)
+					}
 				}
   	}
 
@@ -153,11 +156,8 @@ object featureStuff
   	  
   	  val filtered = quotationVectors.filter(x => !heldOutIds.contains(x.concordance.meta("id")))
 
- 
   	  val groupCenters = filtered.groupBy(x => x.concordance.meta("senseId")).mapValues(l => averageVector(l.map(_.vector)) match { case (v,n) =>
-				SenseGroup(l, l.map(_.concordance.meta("id")).toSet, v, n ) })
-
-  	  
+				SenseGroup(l, l.map(_.concordance.meta("id")).toSet, v, n ) }
   	  
   	  def f(r:Concordance):Distribution = 
   	  {
