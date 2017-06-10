@@ -42,6 +42,9 @@ case class Concordance(hitStart: Int, hitEnd: Int, tokenProperties:  Map[String,
   {
     val retokenized = this // .retokenize(Tokenizer) // nee, dubbel tokenizeren is niet goed....
     val tagged = tagger.tag(retokenized("word").mkString(" "))
+    if (hitStart >= retokenized("word").length)
+      println(s"Miserie: $hitStart $retokenized ${retokenized("word").length}")
+
     val findMe = retokenized("word")(hitStart)
     val indexes = (0 to tagged("word").size -1).filter(tagged("word")(_) == findMe)
     if (indexes.isEmpty)

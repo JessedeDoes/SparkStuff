@@ -29,7 +29,7 @@ object KBKwic
       }
 
     def startFor(p:Int) = Math.max(0,p-window)
-    def endFor(p:Int) = Math.min(p+window+1,tokens.length-1)
+    def endFor(p:Int) = Math.min(p+window+1,tokens.length)
     def conc(p:Int)= Concordance(p-startFor(p), p-startFor(p)+1, slice(startFor(p), endFor(p)) , Map.empty)
 
     matchPositions.map(conc)
@@ -60,11 +60,11 @@ object KBKwic
   def kwicResultsPar(t:TextQuery)
   {
       val s0 = matchingDocumentIdentifiers(t)
-      val split = splitStream(s0,5)
+      val split = splitStream(s0,20)
       split.par.foreach(
            x =>  
              for ((id,metadataRecord) <- x)
-             { println(KBKwic.concordanceURL(t, id, metadataRecord).map( c => c.tag(babTagger).vertical)) }
+             { println(KBKwic.concordanceURL(t, id, metadataRecord).map( c => c.tag(chnTagger).vertical)) }
       )
   }
   

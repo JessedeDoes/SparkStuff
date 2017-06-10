@@ -8,7 +8,7 @@ object  DictionaryWSD
   def attestationToTaggedConcordance(a: Attestation, sense_id: String):Concordance =
   {
     val c = a.toConcordance
-    c.copy(metadata=c.metadata ++ List("senseId" ->  sense_id, "lempos" -> "zin:n", ("id", ConvertOldInstanceBase.uuid))).tag(babTagger)
+    c.copy(metadata=c.metadata ++ List("senseId" ->  sense_id, "lempos" -> "zin:n", ("id", ConvertOldInstanceBase.uuid))).retokenize(Tokenizer).tag(babTagger)
   }
 
   def attestationToConcordance(a: Attestation, sense_id: String):Concordance =
