@@ -40,7 +40,11 @@ case class Concordance(hitStart: Int, hitEnd: Int, tokenProperties:  Map[String,
   
   def tag(implicit tagger:Tagger):Concordance = 
   {
-    val retokenized = this // .retokenize(Tokenizer) // nee, dubbel tokenizeren is niet goed....
+    val retokenized =
+      if (this.tokenProperties.contains("prepunctuation"))
+        this
+      else
+        this.retokenize(Tokenizer) // .retokenize(Tokenizer) // nee, dubbel tokenizeren is niet goed....
     val tagged = tagger.tag(retokenized("word").mkString(" "))
     if (hitStart >= retokenized("word").length)
       println(s"Miserie: $hitStart $retokenized ${retokenized("word").length}")
@@ -49,6 +53,7 @@ case class Concordance(hitStart: Int, hitEnd: Int, tokenProperties:  Map[String,
     val indexes = (0 to tagged("word").size -1).filter(tagged("word")(_) == findMe)
     if (indexes.isEmpty)
     {
+        Console.err.println(s"Tokenization misery after tagging: Unable to find $findMe in ${tagged("word").mkString(" ")}")
         this.copy(hitStart=minEen,hitEnd=minEen,tokenProperties=tagged)
     }
     else
