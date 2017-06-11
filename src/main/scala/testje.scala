@@ -138,7 +138,7 @@ case class TestResult(nItems: Int, nErrors: Int, confusion: Map[One, Int]) {
 
 
       if (senses.size < 2 || !enoughData(instances))
-        return trivialTest;
+        return trivialTest
 
       val lempos = instances.head.meta("lempos")
 
@@ -161,7 +161,7 @@ case class TestResult(nItems: Int, nErrors: Int, confusion: Map[One, Int]) {
       val mfsErrors = instances.size - senseDistrib.head._2
 
       Console.err.println(lempos + "  |senses|: " + senseDistrib.size + "  " + result.nErrors + " errors of " + result.nItems + " failures: " +
-        failures + " score: " + accuracy + " distribution: " + senseDistrib + "  mfs: " + mfsProportion);
+        failures + " score: " + accuracy + " distribution: " + senseDistrib + "  mfs: " + mfsProportion)
 
       Console.err.println("Accuracy: " + accuracy)
       result

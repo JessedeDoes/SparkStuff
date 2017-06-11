@@ -17,30 +17,37 @@ object  DictionaryWSD
     c.copy(metadata=c.metadata ++ List("senseId" ->  sense_id, "lempos" -> lempos, ("id", ConvertOldInstanceBase.uuid)))
   }
 
+  def getClassifierFor(lemmata: Seq[Lemma], lempos:String, fullWSD: Boolean) =
+  {
+    val senses = lemmata.flatMap(_.senses).filter(s => s.parent_sense_id == null)
+    senses.flatMap(
+      s => hilexQueries.getAttestationsBelow(s).map(a => attestationToConcordance(a, s.persistent_id, lempos))
+    ).filter(_.hitStart > -1)
+
+  }
   def allWords(paragraph: String):Concordance =
   {
     val swsd = new Swsd
     val tagged = babTagger.tag(paragraph)
-    val c0 = Concordance(hitStart=0, hitEnd=1, tokenProperties=tagged, metadata = Map("id" -> ConvertOldInstanceBase.uuid ) )
-    val senseTags = (0 to tagged("word").length-1).map(i =>
-      {
-        val c = c0.copy(hitStart=i, hitEnd=i+1, metadata = Map("id" -> ConvertOldInstanceBase.uuid ))
-        val lemma = c("lemma")(c.hitStart)
-        val pos = c("pos")(c.hitStart)
-        println(s"$lemma -- $pos")
-        val lemmata = hilexQueries.getLemmaWithPoS(lemma, pos)
-        println(lemmata)
-        val senses = lemmata.flatMap(_.senses).filter(s => s.parent_sense_id == null)
-        val attestationsAsConcordances  = senses.flatMap(
-          s => hilexQueries.getAttestationsBelow(s).map(a => attestationToConcordance(a,s.persistent_id, lemma + ":" + pos))
-        ).filter(_.hitStart > -1)
-        if (attestationsAsConcordances.size > 10)
-          {
+    val c0 = Concordance(hitStart = 0, hitEnd = 1, tokenProperties = tagged, metadata = Map("id" -> ConvertOldInstanceBase.uuid))
+    val senseTags = (0 to tagged("word").length - 1).map(i => {
+      val c = c0.copy(hitStart = i, hitEnd = i + 1, metadata = Map("id" -> ConvertOldInstanceBase.uuid))
+      val lemma = c("lemma")(c.hitStart)
+      val pos = c("pos")(c.hitStart)
+      println(s"$lemma -- $pos")
+      val lemmata = hilexQueries.getLemmaWithPoS(lemma, pos)
+      println(lemmata)
+      val senses = lemmata.flatMap(_.senses).filter(s => s.parent_sense_id == null)
+      val attestationsAsConcordances = senses.flatMap(
+        s => hilexQueries.getAttestationsBelow(s).map(a => attestationToConcordance(a, s.persistent_id, lemma + ":" + pos))
+      ).filter(_.hitStart > -1)
+      if (attestationsAsConcordances.size > 10) {
         lazy val taggedConcordances = attestationsAsConcordances.par.map(_.tag(babTagger))
-        val classifier = swsd.train(taggedConcordances.toList,Set.empty)
+        val classifier = swsd.train(taggedConcordances.toList, Set.empty)
         val senseTag = classifier(c)
-        senseTag} else "unknown"
-      }
+        senseTag
+      } else "unknown"
+    }
     )
     val cTagged = c0.copy(tokenProperties=c0.tokenProperties + ("senseId" -> senseTags.toArray))
     println(cTagged.vertical)
