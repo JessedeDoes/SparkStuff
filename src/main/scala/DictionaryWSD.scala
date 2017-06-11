@@ -10,6 +10,7 @@ object  DictionaryWSD
   val idEzel = "M016273"
 
   val fullWSD = true
+  val lemmaOnly = false
 
   def attestationToTaggedConcordance(a: Attestation, sense_id: String):Concordance =
   {
@@ -25,26 +26,45 @@ object  DictionaryWSD
     c.copy(metadata=c.metadata ++ List("senseId" ->  sense_id, "lempos" -> lempos, ("id", a.eg_id + "." + a.start_pos)))
   }
 
-  def getClassifierFor(lemmata: Seq[Lemma], lempos:String, fullWSD:Boolean):Concordance => String =
+  implicit val lemmaLevel = false
+
+  def getClassifierFor(lemmata: Seq[Lemma], lempos:String, fullWSD:Boolean)(implicit lemmaLevel:Boolean):Concordance => String =
   {
     val senses = lemmata.flatMap(_.senses).filter(s => s.parent_sense_id == null)
+    val sense2lemma:Map[String,String] = lemmata.flatMap(l => l.senses.map(s => (s.persistent_id -> l.persistent_id) )).toMap
+
     val attestationsAsConcordances = senses.flatMap(
       s => hilexQueries.getAttestationsBelow(s).map(a => attestationToConcordance(a, s.persistent_id, lempos))
     ).filter(_.hitStart > -1)
-    lazy val taggedConcordances = attestationsAsConcordances.par.map(_.tag(babTagger))
+
+    lazy val maybeFlatter =
+      if (lemmaLevel && lemmata.size > 1)
+        attestationsAsConcordances.map(c => c.copy(metadata = c.metadata - "senseId" + ("senseId" -> sense2lemma(c.meta("senseId")))))
+      else
+        attestationsAsConcordances
+
+    lazy val taggedConcordances = maybeFlatter.par.map(_.tag(babTagger))
     if (fullWSD)
       (new Swsd).train(taggedConcordances.toList, Set.empty)
     else
-      (new DistributionalOnly).train(attestationsAsConcordances.toList, Set.empty)
+      (new DistributionalOnly).train(maybeFlatter.toList, Set.empty)
   }
 
   def getClassifierForLemmaId(lemmaId: String, fullWSD:Boolean) =
   {
     val l:Lemma = hilexQueries.getLemmaByPersistentId(lemmaId)
-    getClassifierFor(List(l), l.modern_lemma + ":" + l.pos, fullWSD)
+    getClassifierFor(List(l), l.modern_lemma + ":" + l.pos, fullWSD)(false)
+  }
+
+  def getClassifierForLemPos(lemma: String, pos:String) =
+  {
+    val l = hilexQueries.getLemmaWithPoS(lemma,pos)
+    println("Possible lemmata:" + l)
+    getClassifierFor(l, lemma + ":" + pos, fullWSD)(true)
   }
 
   lazy val ezelaar = getClassifierForLemmaId(idEzel, false)
+  lazy val ballifier = getClassifierForLemPos("bal", "NOU")
 
   def allWords(paragraph: String):Concordance =
   {
