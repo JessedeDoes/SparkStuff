@@ -14,13 +14,7 @@ import impact.ee.tagger.features.ClusterFeature;
 import word2vec.Util
 import word2vec.Vectors
 
-import wsd.features.BoCLFeature;
-import wsd.features.BoWFeature;
-import wsd.features.ClusterAtFeature;
-import wsd.features.LemmaAtFeature;
-import wsd.features.PoSAtFeature;
-import wsd.features.WordAtFeature;
-import wsd.WSDInstance
+
 import scala.collection.JavaConverters._
 
 import org.apache.spark.{SparkConf, SparkContext}
@@ -80,7 +74,7 @@ case class TestResult(nItems: Int, nErrors: Int, confusion: Map[One, Int]) {
     val minAvgPerSense = 20.0
     val trivialTest = TestResult(0, 0, Map.empty)
 
-    def leaveOneOut(wsd: wsd, df: DataFrame): Unit = {
+    def leaveOneOut(wsd: WSD, df: DataFrame): Unit = {
       Console.err.println("starting...")
       val ks = df.select("lempos").distinct.collect
       Console.err.println("############### " + ks.length)
@@ -102,7 +96,7 @@ case class TestResult(nItems: Int, nErrors: Int, confusion: Map[One, Int]) {
       avgPerSense > minAvgPerSense
     }
 
-    def leaveOneOut(wsd: wsd, instances: List[Concordance]): TestResult = {
+    def leaveOneOut(wsd: WSD, instances: List[Concordance]): TestResult = {
       val groupedByLempos = instances.groupBy(_.meta("lempos"))
       val allResults = groupedByLempos.par.mapValues(l => leaveOneOutOneLempos(wsd, l))
       val totalResults = allResults.values.reduce((a, b) => a + b)
@@ -121,7 +115,7 @@ case class TestResult(nItems: Int, nErrors: Int, confusion: Map[One, Int]) {
     }
 
 
-    def leaveOneOutOneLempos(wsd: wsd, all_Instances: List[Concordance]): TestResult = {
+    def leaveOneOutOneLempos(wsd: WSD, all_Instances: List[Concordance]): TestResult = {
       val retrain = !wsd.isInstanceOf[DistributionalOnly]
       var classify: Concordance => String = null
 

@@ -31,9 +31,15 @@ import org.apache.spark.sql._
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.functions._
 
-trait wsd
+trait WSD
 {
-	def train(instances: List[Concordance], heldout: Set[String]): Concordance=>String
+	def train(instances: List[Concordance], heldout: Set[String]): Concordance=>String = ???
+
+}
+
+object wsdObject extends WSD
+{
+  def tag(in: Stream[Concordance], tagger: Concordance=>String):Stream[Concordance] = in.map(c => c.copy(metadata=c.metadata + ("senseId" -> tagger(c))))
 }
 
 object featureStuff
@@ -99,7 +105,7 @@ object featureStuff
   	   d
   	}
   	
-  	def vectorNorm(v: Array[Float]):Double = Math.sqrt(v.map(x => x*x).sum);
+  	def vectorNorm(v: Array[Float]):Double = Math.sqrt(v.map(x => x*x).sum)
   	
   	def averageVector(v: List[Array[Float]]):(Array[Float],Double) =
   	{
@@ -175,10 +181,10 @@ object featureStuff
   	}
 }
 
-class DistributionalOnly extends wsd
+class DistributionalOnly extends WSD
 {
 	import featureStuff._
-	def train(instances: List[Concordance], heldout: Set[String]): Concordance=>String =
+	override def train(instances: List[Concordance], heldout: Set[String]): Concordance=>String =
 	{
 		val cf = centroidFeature(vectorz, instances, heldout)
 		c =>
@@ -193,7 +199,7 @@ class DistributionalOnly extends wsd
 	}
 }
 
-class Swsd extends wsd with Serializable
+class Swsd extends WSD with Serializable
 {
     import featureStuff._
   
@@ -227,7 +233,7 @@ class Swsd extends wsd with Serializable
   	  features
   	}
   	
-   def train(instances: List[Concordance], heldout: Set[String]): Concordance=>String = 
+   override def train(instances: List[Concordance], heldout: Set[String]): Concordance=>String =
 	 {
      val df:DataFrame = null;
      val features = makeFeatures

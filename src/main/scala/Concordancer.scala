@@ -307,6 +307,15 @@ object Conc
 		for (s <- scored.sortWith({ case (a,b) => a._4 < b._4 } ))
 			println(s)
 	}
+
+	def wsdTest(searcher:Searcher) =
+	{
+		val concordancer = new Concordancer
+		val in = concordancer.concordancesWindowed(searcher, "[word='ezel']").map(c => c.copy(metadata=c.metadata + ("id" -> ConvertOldInstanceBase.uuid) ))
+		val cw = wsdObject.tag(in, DictionaryWSD.ezelaar)
+		cw.foreach(c => println(c.metadata.get("senseId") + "\t" + c))
+	}
+
 	val corpusEzel = "/media/jesse/Data/Diamant/CorpusEzel/"
 	val corpusWolf = "/media/jesse/Data/Diamant/CorpusWolf/"
 	val corpusZin = "/mnt/DiskStation/homes/jesse/work/Diamant/Data/CorpusZinIndex/"
@@ -316,6 +325,8 @@ object Conc
 
      val indexDirectory = if (TestSpark.atHome) corpusEzel else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
 		 val searcher = Searcher.open(new java.io.File(indexDirectory))
+
+		 wsdTest(searcher)
 
      val struct = searcher.getIndexStructure
      val allAvailableFieldNames = struct.getComplexFields.asScala.toList.map( f => struct.getComplexFieldDesc(f).getProperties.asScala.toList)
