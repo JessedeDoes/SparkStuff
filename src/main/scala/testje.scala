@@ -34,10 +34,21 @@ import org.apache.spark.sql.functions._
 import org.apache.log4j.Logger
 import org.apache.log4j.Level
 
-case class TestResult(nItems:Int, nErrors:Int, nMfsErrors:Int)
+case class One(truth:String, guess:String)
+
+case class TestResult(nItems:Int, nErrors:Int, nMfsErrors:Int, confusion: Map[One,Int])
 {
-  def +(other:TestResult):TestResult = TestResult(nItems + other.nItems, nErrors + other.nErrors, nMfsErrors + other.nMfsErrors)
+  def plus(a: Map[One,Int], b:Map[One,Int]) =
+  {
+    (a.keySet.intersect(b.keySet).map(x => ( (x, a(x) + b(x)))) ++
+    a.keySet.diff(b.keySet).map(x => (x,a(x))) ++
+    b.keySet.diff(a.keySet).map(x => (x,b(x)))).toMap
+  }
+
+  def +(other:TestResult):TestResult = TestResult(nItems + other.nItems, nErrors + other.nErrors, nMfsErrors + other.nMfsErrors,
+    plus(confusion,other.confusion) )
 }
+
 
 object tester
 {
@@ -48,7 +59,8 @@ object tester
 	val minWordsinExample = 8
   val minExamplesInSense = 5
   val minAvgPerSense = 20.0
-  
+  val trivialTest = TestResult(0,0,0,Map.empty)
+
   def leaveOneOut(wsd:wsd, df: DataFrame):Unit =
 	{
     Console.err.println("starting...")
@@ -90,12 +102,19 @@ object tester
 		instancesX.filter(r => { senseDistribMap( r.meta("senseId")) >= minExamplesInSense} ) 
   }
 
+
+
   def leaveOneOutOneLempos(wsd: wsd, all_Instances: List[Concordance]):Unit =
-	{  
+	{
+    val retrain = !wsd.isInstanceOf[DistributionalOnly]
+    var classify: Concordance => String = null
+
+
+
     var errors = 0
 		var total = 0
 		var failures = 0
-		val retrain = !wsd.isInstanceOf[DistributionalOnly]
+
 		
 		val instances = filterABit(all_Instances)
 		
@@ -114,7 +133,13 @@ object tester
     
 		System.err.println("starting work on: " + lempos + " " + senses)
 
-		var classify: Concordance => String = null
+    def handleInstance(t: TestResult, x: Concordance) =
+    {
+      if (retrain || classify == null)
+        classify = wsd.train(instances, Set(x.meta("id")))
+      val errors =  testResult(Set(x), classify)
+    }
+
 		for (w <- instances)
 		{
 		  System.err.println("Holding out for instance:" + w.meta("id") + " " + w);
@@ -170,6 +195,7 @@ object tester
   				} 
   				return errors;
   		}
+  def testResult
 }
 
 
