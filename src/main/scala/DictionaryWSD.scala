@@ -50,7 +50,7 @@ object  DictionaryWSD
   val idZin = "M089253"
   val idEzel = "M016273"
 
-  val fullWSD = false
+  val fullWSD = true
 
   def testWSD(lemmaId: String) =
   {
@@ -84,7 +84,7 @@ object  DictionaryWSD
   def main(args:Array[String]):Unit =
   {
     //allWords("ik heb geen zin in ezels")
-    testWSD(idZin)
+    testWSD(idEzel)
 
 
 

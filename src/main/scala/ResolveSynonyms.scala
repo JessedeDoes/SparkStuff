@@ -18,6 +18,8 @@ object ResolveSynonyms
          }
    }
 
+   val ezelMap = Map("M016273.bet.1" -> "beest", "M016273.bet.17" -> "persoon")
+   def flattenEzel = (s:Sense) => { val id = s.persistent_id; if (ezelMap.contains(id)) s.copy(persistent_id=ezelMap(id)) else s.copy(persistent_id="ding")}
    def distanceByDefinition(s1: Sense, s2: Sense):Option[Double] = DbnlVectors.similarityByAverage(s1.definition, s2.definition)
 
 
@@ -26,7 +28,7 @@ object ResolveSynonyms
 
    def distanceByDeepQuotation(s1: Sense, s2: Sense):Option[Double] =
     DbnlVectors.similarityByAverage(s1.definition + " " + s1.deepQuotationText, s2.definition + " " + s2.deepQuotationText)
-  
+
    def doLemma(lemmaId: String): Unit =
     {
       import hilexQueries._
@@ -52,6 +54,17 @@ object ResolveSynonyms
     }
    def main(args:Array[String]):Unit =
    {
-      doLemma(idToon)
+      doLemma(idEzel)
    }
 }
+
+/*
+
+
+Sense(Lemma(ezel,197759,M016273,NOU),M016273.bet.32,M016273,null,In de boeventaal. Lessenaar; winkellade. ,arabic)
+Sense(Lemma(ezel,197759,M016273,NOU),M016273.bet.34,M016273,null,Zijde van een dobbelsteen, waarop één oog voorkomt. In dit gebruik is ezel waarschijnlijk uit aas ontstaan. Verouderd. ,arabic)
+Sense(Lemma(ezel,197759,M016273,NOU),M016273.bet.33,M016273,null,In de boeventaal. Foulard, das ( Boeventaal ).,arabic)
+Sense(Lemma(ezel,197759,M016273,NOU),M016273.bet.21,M016273,null,Als benaming voor verschillende toestellen of voorwerpen dienende om iets te dragen of te steunen.,arabic)
+Sense(Lemma(ezel,197759,M016273,NOU),M016273.bet.17,M016273,null,In toepassing op personen. ,arabic)
+Sense(Lemma(ezel,197759,M016273,NOU),M016273.bet.1,M016273,null,Naam van enkele soorten van het geslacht der paarden, die zich vooral onderscheiden door een dikkeren kop, langere ooren en een staart die alleen aan de punt lange haren heeft. ,arabic)
+ */
