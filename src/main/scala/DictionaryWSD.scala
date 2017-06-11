@@ -9,7 +9,7 @@ object  DictionaryWSD
   val idZin = "M089253"
   val idEzel = "M016273"
 
-  val fullWSD = false
+  val fullWSD = true
 
   def attestationToTaggedConcordance(a: Attestation, sense_id: String):Concordance =
   {
@@ -44,7 +44,7 @@ object  DictionaryWSD
     getClassifierFor(List(l), l.modern_lemma + ":" + l.pos, fullWSD)
   }
 
-  lazy val ezelaar = getClassifierForLemmaId(idEzel, fullWSD)
+  lazy val ezelaar = getClassifierForLemmaId(idEzel, false)
 
   def allWords(paragraph: String):Concordance =
   {
@@ -114,7 +114,7 @@ object  DictionaryWSD
   def main(args:Array[String]):Unit =
   {
     //allWords("ik heb geen zin in ezels")
-    testWSD(idZin)
+    testWSD(idEzel)
 
 
 

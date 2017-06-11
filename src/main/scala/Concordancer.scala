@@ -312,18 +312,18 @@ object Conc
 	{
 		val concordancer = new Concordancer
 		val in = concordancer.concordancesWindowed(searcher, "[word='ezel']").map(c => c.copy(metadata=c.metadata + ("id" -> ConvertOldInstanceBase.uuid) ))
-		val cw = wsdObject.tag(in, DictionaryWSD.ezelaar)
+		val cw = wsdObject.tag(in, DictionaryWSD.ezelaar).map(DictionaryWSD.flattenEzel)
 		cw.foreach(c => println(c.metadata.get("senseId") + "\t" + c))
 	}
 
 	val corpusEzel = "/media/jesse/Data/Diamant/CorpusEzel/"
 	val corpusWolf = "/media/jesse/Data/Diamant/CorpusWolf/"
 	val corpusZin = "/mnt/DiskStation/homes/jesse/work/Diamant/Data/CorpusZinIndex/"
-
+  val corpusDBNL = "/media/jesse/Data/Diamant/DBNL/"
 	def main(args: Array[String]):Unit =
   {
 
-     val indexDirectory = if (TestSpark.atHome) corpusEzel else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
+     val indexDirectory = if (TestSpark.atHome) corpusDBNL else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
 		 val searcher = Searcher.open(new java.io.File(indexDirectory))
 
 		 wsdTest(searcher)
