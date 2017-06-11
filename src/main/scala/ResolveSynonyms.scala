@@ -18,9 +18,9 @@ object ResolveSynonyms
          }
    }
 
-   val ezelMap = Map("M016273.bet.1" -> "beest", "M016273.bet.17" -> "persoon")
-   def flattenEzel = (s:Sense) => { val id = s.persistent_id; if (ezelMap.contains(id)) s.copy(persistent_id=ezelMap(id)) else s.copy(persistent_id="ding")}
-   def distanceByDefinition(s1: Sense, s2: Sense):Option[Double] = DbnlVectors.similarityByAverage(s1.definition, s2.definition)
+
+
+  def distanceByDefinition(s1: Sense, s2: Sense):Option[Double] = DbnlVectors.similarityByAverage(s1.definition, s2.definition)
 
 
    def distanceByQuotation(s1: Sense, s2: Sense):Option[Double] =

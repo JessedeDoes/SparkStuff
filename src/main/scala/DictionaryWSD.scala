@@ -50,7 +50,11 @@ object  DictionaryWSD
   val idZin = "M089253"
   val idEzel = "M016273"
 
-  val fullWSD = true
+  val fullWSD = false
+
+  val ezelMap = Map("M016273.bet.1" -> "beest", "M016273.bet.17" -> "persoon")
+  def flattenEzel  (s:Sense):Sense = { val id = s.persistent_id; if (ezelMap.contains(id)) s.copy(persistent_id=ezelMap(id)) else s.copy(persistent_id="ding")}
+  def flattenEzel (c:Concordance):Concordance = { val id = c.meta("senseId"); val nid =  if (ezelMap.contains(id)) ezelMap(id) else "ding"; c.copy(metadata = c.metadata - "senseId" + ("senseId" -> nid)) }
 
   def testWSD(lemmaId: String) =
   {
@@ -75,6 +79,7 @@ object  DictionaryWSD
     println(attestationsAsConcordances.size)
 
     // Hilex.pickleTo(attestationsAsConcordances, s"Data/${myLemma}.quotations.pickle")
+
     if (fullWSD)
       tester.leaveOneOut(new Swsd, taggedConcordances.toList)
     else
