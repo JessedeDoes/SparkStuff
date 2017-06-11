@@ -89,7 +89,7 @@ object  DictionaryWSD
   def main(args:Array[String]):Unit =
   {
     //allWords("ik heb geen zin in ezels")
-    testWSD(idEzel)
+    testWSD(idZin)
 
 
 

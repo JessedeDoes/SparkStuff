@@ -84,7 +84,7 @@ object ConvertOldInstanceBase
      Row.fromSeq(i.targetPosition :: i.targetPosition+1 :: tokenValues ++List(i.senseId, lempos, uuid))
    }
    
-   def main(args: Array[String]) = 
+   def main(args: Array[String]):Unit =
    {
      /*
      lazy val sparkSession:SparkSession = SparkSession.builder
