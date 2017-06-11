@@ -47,15 +47,17 @@ object  DictionaryWSD
     cTagged
   }
 
-  def main(args:Array[String]):Unit =
+  val idZin = "M089253"
+  val idEzel = "M016273"
+
+
+  def testWSD(lemmaId: String) =
   {
-    allWords("ik heb geen zin in ezels")
-    return
-    val myLemma = "M089253"
-    val l = slurp(hilexQueries.lemmaQueryWhere(s"persistent_id='${myLemma}'"))
-    val zin = l.head
-    println(zin)
-    val senses = zin.senses
+
+    val l = slurp(hilexQueries.lemmaQueryWhere(s"persistent_id='${lemmaId}'"))
+    val theLemma = l.head
+    println(theLemma)
+    val senses = theLemma.senses
     val romans = senses.filter(s => s.parent_sense_id == null)
 
 
@@ -77,7 +79,14 @@ object  DictionaryWSD
 
     // Hilex.pickleTo(attestationsAsConcordances, s"Data/${myLemma}.quotations.pickle")
 
-    tester.leaveOneOut(new Swsd, taggedConcordances.toList)
+    tester.leaveOneOut(new DistributionalOnly, taggedConcordances.toList)
+  }
+
+  def main(args:Array[String]):Unit =
+  {
+    //allWords("ik heb geen zin in ezels")
+    testWSD(idEzel)
+
 
 
 

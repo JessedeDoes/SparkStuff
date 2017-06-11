@@ -314,7 +314,7 @@ object Conc
 	def main(args: Array[String]):Unit =
   {
 
-     val indexDirectory = if (TestSpark.atHome) corpusWolf else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
+     val indexDirectory = if (TestSpark.atHome) corpusEzel else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
 		 val searcher = Searcher.open(new java.io.File(indexDirectory))
 
      val struct = searcher.getIndexStructure
@@ -326,7 +326,7 @@ object Conc
      
      println("corpus Size: " + corpSize)
 		 val concordancer = new Concordancer
-		 val cw = concordancer.concordancesWindowed(searcher, "[word='paard']")
+		 val cw = concordancer.concordancesWindowed(searcher, "[word='ezel']")
 		 cw.foreach(println)
      println()
   }
