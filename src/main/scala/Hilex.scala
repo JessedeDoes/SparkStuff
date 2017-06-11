@@ -282,7 +282,7 @@ object hilexQueries
     {
       val q:AlmostQuery[Lemma] = db => db.createQuery(s"""
       select modern_lemma, lemma_id,persistent_id, lemma_part_of_speech from ${dataSchema}.lemmata
-        where modern_lemma=:lemma and lemma_part_of_speech ~ :pos""")
+        where lower(modern_lemma)=lower(:lemma) and lemma_part_of_speech ~ :pos""")
         .bind("lemma",lemma)
         .bind("pos",pos)
         .map(getLemma)
@@ -354,8 +354,8 @@ object hilexQueries
             and e.sense_id in """ + stringValues(ids)
       val a =  (db:Handle) => db.createQuery(q).map(makeAttestation)
       a
-    } 
-    
+    }
+    val romanOrArabic = (s:Sense) => List("roman", "arabic").contains(s.sense_type) || s.parent_sense_id == null
    // as in: concat(sql"select id from USERS where id in ", values(Seq(1,2))).as[Int]
 }
 

@@ -11,10 +11,10 @@ object  DictionaryWSD
     c.copy(metadata=c.metadata ++ List("senseId" ->  sense_id, "lempos" -> "zin:n", ("id", ConvertOldInstanceBase.uuid))).retokenize(Tokenizer).tag(babTagger)
   }
 
-  def attestationToConcordance(a: Attestation, sense_id: String):Concordance =
+  def attestationToConcordance(a: Attestation, sense_id: String, lempos: String):Concordance =
   {
     val c = a.toConcordance
-    c.copy(metadata=c.metadata ++ List("senseId" ->  sense_id, "lempos" -> "zin:n", ("id", ConvertOldInstanceBase.uuid)))
+    c.copy(metadata=c.metadata ++ List("senseId" ->  sense_id, "lempos" -> lempos, ("id", ConvertOldInstanceBase.uuid)))
   }
 
   def allWords(paragraph: String):Concordance =
@@ -32,7 +32,7 @@ object  DictionaryWSD
         println(lemmata)
         val senses = lemmata.flatMap(_.senses).filter(s => s.parent_sense_id == null)
         val attestationsAsConcordances  = senses.flatMap(
-          s => hilexQueries.getAttestationsBelow(s).map(a => attestationToConcordance(a,s.persistent_id))
+          s => hilexQueries.getAttestationsBelow(s).map(a => attestationToConcordance(a,s.persistent_id, lemma + ":" + pos))
         ).filter(_.hitStart > -1)
         if (attestationsAsConcordances.size > 10)
           {
@@ -63,13 +63,9 @@ object  DictionaryWSD
 
     romans.foreach(println)
 
-    val r0 = romans(1)
-    val a0 = hilexQueries.getAttestationsBelow(r0).map(a => attestationToConcordance(a,r0.persistent_id))
-
-    // Concordance.tagBatches(babTagger,a0).foreach(c => println(c.vertical))
 
     val attestationsAsConcordances  = romans.flatMap(
-      s => hilexQueries.getAttestationsBelow(s).map(a => attestationToConcordance(a,s.persistent_id))
+      s => hilexQueries.getAttestationsBelow(s).map(a => attestationToConcordance(a,s.persistent_id, theLemma.modern_lemma + ":" + theLemma.pos))
     ).filter(_.hitStart > -1)
 
     lazy val taggedConcordances = attestationsAsConcordances.par.map(_.tag(babTagger)) // Concordance.tagBatches(babTagger, attestationsAsConcordances)

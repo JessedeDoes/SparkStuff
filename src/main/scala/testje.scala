@@ -78,8 +78,8 @@ object tester
    
     val grouped = instances.groupBy(_.meta("lempos"))
     grouped.par.foreach( 
-        { 
-          case (lempos,group) => if (lempos.endsWith(":n")) leaveOneOutOneLempos(wsd,group)
+        {
+          case (lempos,group) => println("Maybe embark on:" + lempos); if (lempos.matches(".*(:n|:NOU)$")) leaveOneOutOneLempos(wsd,group)
         }) 
 	}
   
@@ -89,8 +89,6 @@ object tester
 		val senseDistribMap = senseDistribution(instancesX).toMap
 		instancesX.filter(r => { senseDistribMap( r.meta("senseId")) >= minExamplesInSense} ) 
   }
-
-
 
   def leaveOneOutOneLempos(wsd: wsd, all_Instances: List[Concordance]):Unit =
 	{  
