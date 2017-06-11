@@ -50,6 +50,7 @@ object  DictionaryWSD
   val idZin = "M089253"
   val idEzel = "M016273"
 
+  val fullWSD = false
 
   def testWSD(lemmaId: String) =
   {
@@ -74,14 +75,16 @@ object  DictionaryWSD
     println(attestationsAsConcordances.size)
 
     // Hilex.pickleTo(attestationsAsConcordances, s"Data/${myLemma}.quotations.pickle")
-
-    tester.leaveOneOut(new DistributionalOnly, taggedConcordances.toList)
+    if (fullWSD)
+      tester.leaveOneOut(new Swsd, taggedConcordances.toList)
+    else
+      tester.leaveOneOut(new DistributionalOnly, attestationsAsConcordances)
   }
 
   def main(args:Array[String]):Unit =
   {
     //allWords("ik heb geen zin in ezels")
-    testWSD(idEzel)
+    testWSD(idZin)
 
 
 

@@ -6,6 +6,8 @@ object ResolveSynonyms
    val idZin = "M089253"
    val idEzel = "M016273"
    val idGramschap = "M021496"
+   val idToon = "M069230"
+
    case class Scored[T](s1: T, score: Double)
 
    def withScore(f:(Sense,Sense)=>Option[Double]):(Sense,Sense)=>Scored[Sense] = {
@@ -22,8 +24,9 @@ object ResolveSynonyms
    def distanceByQuotation(s1: Sense, s2: Sense):Option[Double] =
       DbnlVectors.similarityByAverage(s1.definition + " " + s1.quotationText, s2.definition + " " + s2.quotationText)
 
-
-
+   def distanceByDeepQuotation(s1: Sense, s2: Sense):Option[Double] =
+    DbnlVectors.similarityByAverage(s1.definition + " " + s1.deepQuotationText, s2.definition + " " + s2.deepQuotationText)
+  
    def doLemma(lemmaId: String): Unit =
     {
       import hilexQueries._
@@ -40,7 +43,7 @@ object ResolveSynonyms
         possibleResolutions.map(
           {
             case (syn, l) =>
-              (syn, syn.sense, l.map(s => withScore(distanceByQuotation)(syn.sense, s)).sortBy(-1 * _.score))
+              (syn, syn.sense, l.map(s => withScore(distanceByDefinition)(syn.sense, s)).sortBy(-1 * _.score))
           }
         )
       withSimilarities.foreach(
@@ -49,6 +52,6 @@ object ResolveSynonyms
     }
    def main(args:Array[String]):Unit =
    {
-      doLemma(idZin)
+      doLemma(idToon)
    }
 }
