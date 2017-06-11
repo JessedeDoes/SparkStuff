@@ -151,7 +151,7 @@ case class TestResult(nItems: Int, nErrors: Int, confusion: Map[One, Int]) {
       }
 
       val result = instances.foldLeft(trivialTest)(foldingFunction)
-      println(result)
+      Console.err.println(result)
 
 
       val accuracy = (result.nItems - result.nErrors) / (result.nItems.asInstanceOf[Double])

@@ -245,8 +245,6 @@ class Swsd extends wsd with Serializable
 		   val id = w.meta("id")
 		   if (!heldout.contains(id))
 				 d.addInstance(w, w.meta("senseId"))
-			 else
-			   Console.err.println("Held out: " + id + " " + w)
 		 }
 		 classifier.train(d)
 		
