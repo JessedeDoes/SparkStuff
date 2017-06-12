@@ -64,6 +64,7 @@ object  DictionaryWSD
   }
 
   lazy val ezelaar = getClassifierForLemmaId(idEzel, false)
+  lazy val bezinner = getClassifierForLemmaId(idZin, false)
   lazy val ballifier = getClassifierForLemPos("bal", "NOU")
 
   def allWords(paragraph: String):Concordance =
@@ -96,11 +97,19 @@ object  DictionaryWSD
   }
 
 
-
   val ezelMap = Map("M016273.bet.1" -> "beest", "M016273.bet.17" -> "persoon")
+  val zinMap = Map(
+    "M089253.bet.8" -> "I Richting; weg; wijze",
+    "M089253.bet.16" -> "II Wensch; wil; streven; trek",
+    "M089253.bet.83" -> "III Geest",
+    "M089253.bet.256" -> "IV Hart, gemoed; gevoelens",
+    "M089253.bet.378" -> "V (Meton.) Mensch; levend wezen; personage.",
+    "M089253.bet.387" -> "VI Beteekenis; inhoud",
+    "M089253.bet.423" -> "VII Nut; waarde; bestaansgrond")
+
   def flattenEzel  (s:Sense):Sense = { val id = s.persistent_id; if (ezelMap.contains(id)) s.copy(persistent_id=ezelMap(id)) else s.copy(persistent_id="ding")}
   def flattenEzel (c:Concordance):Concordance = { val id = c.meta("senseId"); val nid =  if (ezelMap.contains(id)) ezelMap(id) else "ding"; c.copy(metadata = c.metadata - "senseId" + ("senseId" -> nid)) }
-
+  def flattenZin (c:Concordance):Concordance = { val id = c.meta("senseId"); val nid =  if (zinMap.contains(id)) zinMap(id) else "other"; c.copy(metadata = c.metadata - "senseId" + ("senseId" -> nid)) }
   def testWSD(lemmaId: String) =
   {
 

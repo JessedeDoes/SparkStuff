@@ -315,6 +315,13 @@ object Conc
 		val cw = wsdObject.tag(in, DictionaryWSD.ezelaar).map(DictionaryWSD.flattenEzel)
 		cw.foreach(c => println(c.metadata.get("senseId") + "\t" + c))
 	}
+	def wsdTestZin(searcher:Searcher) =
+	{
+		val concordancer = new Concordancer
+		val in = concordancer.concordancesWindowed(searcher, "[word='zin']").map(c => c.copy(metadata=c.metadata + ("id" -> ConvertOldInstanceBase.uuid) ))
+		val cw = wsdObject.tag(in, DictionaryWSD.bezinner).map(DictionaryWSD.flattenZin)
+		cw.foreach(c => println(c.metadata.get("senseId") + "\t" + c))
+	}
 
 	val corpusEzel = "/media/jesse/Data/Diamant/CorpusEzel/"
 	val corpusWolf = "/media/jesse/Data/Diamant/CorpusWolf/"
@@ -327,7 +334,7 @@ object Conc
      val indexDirectory = if (TestSpark.atHome) corpusDBNL else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
 		 val searcher = Searcher.open(new java.io.File(indexDirectory))
 
-		 wsdTest(searcher)
+		 wsdTestZin(searcher)
 
      val struct = searcher.getIndexStructure
      val allAvailableFieldNames = struct.getComplexFields.asScala.toList.map( f => struct.getComplexFieldDesc(f).getProperties.asScala.toList)
