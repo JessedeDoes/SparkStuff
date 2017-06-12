@@ -328,6 +328,21 @@ object Conc
 	val corpusZin = "/mnt/DiskStation/homes/jesse/work/Diamant/Data/CorpusZinIndex/"
   val corpusDBNL = "/media/jesse/Data/Diamant/DBNL/"
 
+	def testje(searcher:Searcher) =
+	{
+		val struct = searcher.getIndexStructure
+		val allAvailableFieldNames = struct.getComplexFields.asScala.toList.map( f => struct.getComplexFieldDesc(f).getProperties.asScala.toList)
+
+		println(allAvailableFieldNames)
+
+		val corpSize =  corpusSize(searcher)
+
+		println("corpus Size: " + corpSize)
+		val concordancer = new Concordancer
+		val cw = concordancer.concordancesWindowed(searcher, "[word='ezel']")
+		cw.foreach(println)
+		println()
+	}
 	def main(args: Array[String]):Unit =
   {
 
@@ -336,18 +351,7 @@ object Conc
 
 		 wsdTestZin(searcher)
 
-     val struct = searcher.getIndexStructure
-     val allAvailableFieldNames = struct.getComplexFields.asScala.toList.map( f => struct.getComplexFieldDesc(f).getProperties.asScala.toList)
-     
-     println(allAvailableFieldNames)
-		 
-     val corpSize =  corpusSize(searcher)
-     
-     println("corpus Size: " + corpSize)
-		 val concordancer = new Concordancer
-		 val cw = concordancer.concordancesWindowed(searcher, "[word='ezel']")
-		 cw.foreach(println)
-     println()
+
   }
 }
 
