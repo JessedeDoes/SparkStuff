@@ -65,7 +65,7 @@ object KBKwic
         { println(KBKwic.concordanceURL(t, id, metadataRecord) .map( c => c.tag(chnTagger).vertical)) }
     )
   }
-  
+
   def kwicResultsPar(t:TextQuery)
   {
       val s0 = matchingDocumentIdentifiers(t)
@@ -80,6 +80,6 @@ object KBKwic
   def main(args:Array[String]) =
     {
       val arg0 = if (args.length == 0) "bunzing" else args(0)
-      if (args.length >= 2) concordanceDir(arg0,args(1)) else kwicResultsPar(arg0)
+      if (args.length >= 2) concordanceDir(arg0,args(1)) else kwicResultsTagged(arg0)
     }
 }
