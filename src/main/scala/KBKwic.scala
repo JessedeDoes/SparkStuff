@@ -55,6 +55,17 @@ object KBKwic
 
   def concordanceDir(query:String, dirName:String):Unit = concordancesDir(query,dirName).foreach(println)
 
+  def kwicResultsTagged(t:TextQuery)
+  {
+    val s0 = matchingDocumentIdentifiers(t)
+    val split = splitStream(s0,100)
+    split.par.foreach(
+      x =>
+        for ((id,metadataRecord) <- x)
+        { println(KBKwic.concordanceURL(t, id, metadataRecord) .map( c => c.tag(chnTagger).vertical)) }
+    )
+  }
+  
   def kwicResultsPar(t:TextQuery)
   {
       val s0 = matchingDocumentIdentifiers(t)
