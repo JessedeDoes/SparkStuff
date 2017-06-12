@@ -120,7 +120,7 @@ object testSRU
       val t0 = Phrase("goed", "gedachte")
       val t00 = Phrase("ernstig", "probleem")
       
-      val t1 = expandQuery(expandRestricted)(t0)
+      val t1 = expandQuery(expandRestricted)(t00)
       println(t1)
       println(termsIn(t1))
       println(t1.toQueryString())

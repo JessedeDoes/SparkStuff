@@ -62,7 +62,7 @@ object KBKwic
       split.par.foreach(
            x =>  
              for ((id,metadataRecord) <- x)
-             { println(KBKwic.concordanceURL(t, id, metadataRecord).map( c => c.tag(chnTagger).vertical)) }
+             { println(KBKwic.concordanceURL(t, id, metadataRecord) /* .map( c => c.tag(chnTagger).vertical) */) }
       )
   }
   

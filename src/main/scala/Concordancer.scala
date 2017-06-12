@@ -320,6 +320,7 @@ object Conc
 	val corpusWolf = "/media/jesse/Data/Diamant/CorpusWolf/"
 	val corpusZin = "/mnt/DiskStation/homes/jesse/work/Diamant/Data/CorpusZinIndex/"
   val corpusDBNL = "/media/jesse/Data/Diamant/DBNL/"
+
 	def main(args: Array[String]):Unit =
   {
 
