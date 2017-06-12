@@ -64,7 +64,7 @@ object  DictionaryWSD
   }
 
   lazy val ezelaar = getClassifierForLemmaId(idEzel, false)
-  lazy val bezinner = getClassifierForLemmaId(idZin, false)
+  lazy val bezinner = getClassifierForLemmaId(idZin, true)
   lazy val ballifier = getClassifierForLemPos("bal", "NOU")
 
   def allWords(paragraph: String):Concordance =
