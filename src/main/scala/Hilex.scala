@@ -357,7 +357,34 @@ object hilexQueries {
     val a = (db: Handle) => db.createQuery(q).map(makeAttestation)
     a
   }
+  case class ServletRow(lempos: String, senseId: String, example:String, properties: String)
 
+  val QueryForServlet = Select(r =>1,
+    from=
+      """
+        |select distinct
+        |           l.modern_lemma + ":" + l.lemma_part_of_speech,
+        |           quote, start_pos,
+        |           end_pos,
+        |           d.eg_id,
+        |           d.author,
+        |           d.title,
+        |           d.year_from,
+        |           d.year_to,
+        |           d.dictionary
+        |      from
+        |            ${senseSchema}.senses s,
+        |            ${dataSchema}.token_attestations t,
+        |            ${dataSchema}.lemmata l,
+        |            ${senseSchema}.eg_sense e,
+        |            ${senseSchema}.documents d
+        |      where
+        |            d.eg_id = e.eg_id
+        |            and e.sense_id=s.sense_id
+        |            and s.lemma_id=l.persistent_id
+        |            and t.document_id=d.document_id
+      """.stripMargin
+  )
   val romanOrArabic = (s: Sense) => List("roman", "arabic").contains(s.sense_type) || s.parent_sense_id == null
   // as in: concat(sql"select id from USERS where id in ", values(Seq(1,2))).as[Int]
 }
