@@ -21,7 +21,7 @@ import org.apache.spark.sql.types._
 import org.apache.spark.sql.functions._
 import java.sql.{Connection, DriverManager, ResultSet}
 
-import Conc.lemmaJoin
+
 import Concordancer.{corpusSize, luceneTermFreq}
 
 import scala.collection.JavaConverters._
