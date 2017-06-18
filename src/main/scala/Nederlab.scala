@@ -33,7 +33,19 @@ object Nederlab
     { 
        case StructType(l) => l.exists( { case StructField(f, _, _, _) => true; case _ => false } 
     )}
-  
+
+	def createConcordance(hit: Hit): Concordance =
+	{
+		val tokenFields = hit.knownPrefixes.asScala.toList
+		val tokenValues  =
+			tokenFields.map(
+				s => (
+					(s -> hit.tokens.asScala.flatMap(
+						(t:Token) => t.tokenProperties.asScala.filter(_.prefix==s).map(_.value)
+					).toArray))).toMap
+		Concordance(hit.startPosition, hit.endPosition, tokenValues, hit.document.getMetadata.asScala.toMap)
+	}
+
   def createRow(hit:Hit, schema:StructType): (Row,StructType) = 
 		{
         val tokenFields = hit.knownPrefixes.asScala.toList
