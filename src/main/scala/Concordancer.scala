@@ -22,16 +22,31 @@ import org.apache.spark.sql.functions._
 import java.sql.{Connection, DriverManager, ResultSet}
 
 import Conc.lemmaJoin
+import Concordancer.{corpusSize, luceneTermFreq}
 
 import scala.collection.JavaConverters._
 import com.esotericsoftware.minlog._
 
+object Concordancer
+{
+  def singleWordQuery(s: String): String = s"[lemma='${s}']"
 
+  def termFrequency(searcher: Searcher, w: String) = Concordancer(searcher).frequency(searcher, singleWordQuery(w), null)
+
+  def luceneTermFreq(searcher: Searcher, w: String) = searcher.getIndexReader.totalTermFreq(new Term("contents%lemma@s", w)).asInstanceOf[Int]
+
+  def corpusSize(searcher: Searcher): Long = {
+    //searcher.getIndexSearcher.collectionStatistics(searcher.getIndexStructure.).sumTotalTermFreq
+    searcher.getIndexStructure.getTokenCount
+  }
+}
 case class Concordancer(searcher: Searcher)
 {
 
   //val searcher = s
   implicit val s:Searcher  = searcher
+
+
 
   def parseLuceneQuery(s: String, m: String): Query = {
     val a: Analyzer = new StandardAnalyzer();
@@ -91,7 +106,7 @@ case class Concordancer(searcher: Searcher)
     fields.map(s => s -> getFieldValue(doc, s)).toMap
 
 
-  def concordances(searcher: Searcher, corpusQlQuery: String): Stream[Concordance] = {
+  def concordances(corpusQlQuery: String): Stream[Concordance] = {
     val hits = filteredSearch(searcher, corpusQlQuery, null)
 
     println(s"hits created for ${corpusQlQuery}!")
@@ -152,6 +167,17 @@ case class Concordancer(searcher: Searcher)
     new Concordance(kwic.getHitStart, kwic.getHitEnd, tokenProperties, meta)
   }
 
+  def collocations(c0: Stream[Concordance]): List[(String, Int, Int, Double)] = {
+    val f = Filter("pos", "AA.*")
+    val f1 = c0.count((x => true))
+    val corpSize = corpusSize(searcher)
+    val contextFrequencies = Collocation.contextFrequencies(c0, f)
+    val enhanced = contextFrequencies
+      .filter({ case (t, f) => f > 0.005 * f1 && t.matches("^[a-z]+$") })
+      .map({ case (t, f) => (t, f, luceneTermFreq(searcher, t)) })
+
+    enhanced.map({ case (t, f, f2) => (t, f, f2, Collocation.salience(f, f1, f2, corpSize.asInstanceOf[Int])) })
+  }
 
 }
 
@@ -166,7 +192,7 @@ object withSpark {
 
   def testBlacklabQuery(searcher: Searcher): DataFrame = {
     val c = new Concordancer(searcher)
-    val concs = c.concordances(searcher, "[pos='AA.*'][lemma='gezindheid']")
+    val concs = c.concordances("[pos='AA.*'][lemma='gezindheid']")
     val df = ConcordanceDataFrame.collectConcordances(concs, sparkSession)
 
     for {conc <-
@@ -217,46 +243,27 @@ def createRow(kwic: Kwic, meta: Map[String, String]): Row = {
 }
 
 object Conc {
-
+  import Concordancer._
   def lemmaJoin(concordances: DataFrame, lemmaSet: DataFrame): DataFrame = {
     val joinedDF = concordances.join(lemmaSet, concordances("lemma") === lemmaSet("modern_lemma"), "inner")
     joinedDF
   }
 
 
-  def singleWordQuery(s: String): String = s"[lemma='${s}']"
 
-  def termFrequency(searcher: Searcher, w: String) = Concordancer(searcher).frequency(searcher, singleWordQuery(w), null)
 
-  def luceneTermFreq(searcher: Searcher, w: String) = searcher.getIndexReader.totalTermFreq(new Term("contents%lemma@s", w)).asInstanceOf[Int]
 
-  def corpusSize(searcher: Searcher): Long = {
-    //searcher.getIndexSearcher.collectionStatistics(searcher.getIndexStructure.).sumTotalTermFreq
-    searcher.getIndexStructure.getTokenCount
-  }
-
-  def collocations(searcher: Searcher, c0: Stream[Concordance]): List[(String, Int, Int, Double)] = {
-    val f = Filter("pos", "AA.*")
-    val f1 = c0.count((x => true))
-    val corpSize = corpusSize(searcher)
-    val contextFrequencies = Collocation.contextFrequencies(c0, f)
-    val enhanced = contextFrequencies
-      .filter({ case (t, f) => f > 0.005 * f1 && t.matches("^[a-z]+$") })
-      .map({ case (t, f) => (t, f, luceneTermFreq(searcher, t)) })
-
-    enhanced.map({ case (t, f, f2) => (t, f, f2, Collocation.salience(f, f1, f2, corpSize.asInstanceOf[Int])) })
-  }
 
   def collocationExample(searcher: Searcher) = {
     val concordancer = Concordancer(searcher)
     val q0 = "[lemma='zin' & word='(?c)zin' & pos='N.*']"
-    val c0 = concordancer.concordances(searcher, q0) // dit is veel te langzaam zoals ik het doe. Hoe komt dat?
-    val f1 = c0.count((x => true))
+    val c0 = concordancer.concordances(q0) // dit is veel te langzaam zoals ik het doe. Hoe komt dat?
 
+    val f1 = c0.count((x => true))
     println(s"Hits for ${q0} : ${f1}")
 
 
-    val scored = collocations(searcher, c0)
+    val scored = concordancer.collocations(c0)
 
     for (s <- scored.sortWith({ case (a, b) => a._4 < b._4 }))
       println(s)
