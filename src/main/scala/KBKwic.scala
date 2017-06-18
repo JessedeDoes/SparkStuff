@@ -76,6 +76,15 @@ object KBKwic
              { println(KBKwic.concordanceURL(t, id, metadataRecord) /* .map( c => c.tag(chnTagger).vertical) */) }
       )
   }
+
+  def kwicResultsParx(t:TextQuery):Stream[Concordance] =
+  {
+    val s0 = matchingDocumentIdentifiers(t)
+    val split = splitStream(s0,100)
+    split.par.flatMap(x =>
+      (for ( (id,metadataRecord) <- x; c  <- KBKwic.concordanceURL(t, id, metadataRecord)) yield c).toStream
+    ).toStream
+  }
   
   def main(args:Array[String]) =
     {
