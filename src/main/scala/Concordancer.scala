@@ -1,31 +1,27 @@
-import nl.inl.blacklab.search.{Kwic,Hit,Hits,HitsWindow, Searcher,Span}
+import nl.inl.blacklab.search.{Hit, Hits, HitsWindow, Kwic, Searcher, Span}
 import nl.inl.blacklab.search.grouping._
 import nl.inl.blacklab.queryParser.corpusql.CorpusQueryLanguageParser
-
-import org.apache.lucene.search.{Query,QueryWrapperFilter}
+import org.apache.lucene.search.{Query, QueryWrapperFilter}
 import org.apache.lucene.document.Document
-import org.apache.lucene.search.spans.SpanQuery;
+import org.apache.lucene.search.spans.SpanQuery
 import org.apache.lucene.index.Term
 import nl.inl.util.LuceneUtil
 import org.apache.lucene.analysis.Analyzer
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.queryparser.classic.ParseException
-
-import org.apache.lucene.search.spans.SpanQuery;
+import org.apache.lucene.search.spans.SpanQuery
 import nl.inl.blacklab.search.TermFrequencyList
 
-
-import scala.collection.immutable.{Map,HashMap}
-
-import org.apache.spark.{SparkConf,SparkContext}
-
+import scala.collection.immutable.{HashMap, Map}
+import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.SparkContext._
 import org.apache.spark.rdd.JdbcRDD
 import org.apache.spark.sql._
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.functions._
+import java.sql.{Connection, DriverManager, ResultSet}
 
-import java.sql.{DriverManager,Connection,ResultSet}
+import Conc.lemmaJoin
 
 import scala.collection.JavaConverters._
 import com.esotericsoftware.minlog._
@@ -103,27 +99,7 @@ class Concordancer {
 	
 	
 
-	def collectConcordances(searcher: Searcher, corpusQlQuery: String, session: SparkSession):  DataFrame = 
-		{
-				val hits = filteredSearch(searcher, corpusQlQuery, null)
-				
-				println("hits created!");
-	      hits.settings.setContextSize(4); 
-	      hits.settings.setMaxHitsToRetrieve(100000) 
-	      
-	      val metaFields = searcher.getIndexStructure.getMetadataFields.asScala.toList.sorted
-	      
-			
-				val schema = createSchema(hits, metaFields)
-				
-				val iterator:Iterator[Row] = for { h <- hits.iterator().asScala;   kwic = hits.getKwic(h) }
-				yield 
-				{
-				   val meta = getMetadata(searcher.document(h.doc), metaFields)
-				   createRow(kwic, meta)
-				}
-				createDataFrame(iterator,session,schema)
-		}
+
 	
 		def concordances(searcher: Searcher, corpusQlQuery: String):  Stream[Concordance] = 
 		{
@@ -146,6 +122,7 @@ class Concordancer {
 				iterator.toStream
 		}
 		val portion = 10
+
 		def concordancesWindowed(searcher: Searcher, corpusQlQuery: String):  Stream[Concordance] =
 		{
 			val hits = filteredSearch(searcher, corpusQlQuery, null)
@@ -175,12 +152,12 @@ class Concordancer {
 			).takeWhile(_ != null)
 		}
 
-	def createSchema(hits:Hits, metaFields: List[String]):StructType = 
+	def createSchema(hits:Hits, metaFields: List[String]):StructType =
 		{
 	    val kwic = hits.getKwic(hits.get(0))
-	   
+
 			val fields = kwic.getProperties.asScala.toList
-			
+
 			val tokenFields = fields.map(StructField(_, new ArrayType(StringType,false), nullable = true))
 			val metaFieldz = metaFields.map(StructField(_, StringType, nullable = true))
 			val extraFields = List("hitStart","hitEnd").map(StructField(_, IntegerType, nullable=false))
@@ -190,12 +167,7 @@ class Concordancer {
 			schema
 		}
 
-	def createDataFrame(rows: Iterator[Row], spark: SparkSession, schema: StructType):DataFrame= 
-		{
-				val rowz = spark.sparkContext.parallelize(rows.toList, 1)
 
-						spark.createDataFrame(rowz, schema)
-		} 
 
 	def createRow(kwic:Kwic, meta:Map[String,String]): Row = 
 		{
@@ -222,29 +194,47 @@ class Concordancer {
 	
 }
 
+object withSpark
+{
+	lazy val sparkSession:SparkSession = SparkSession.builder
+		.master("local")
+		.appName("My App")
+		.getOrCreate()
+
+	//val sc0 = new SparkContext(conf)
+	lazy val sc:SparkContext = sparkSession.sparkContext
+
+	def testBlacklabQuery(searcher: Searcher):DataFrame =
+	{
+		val c = new Concordancer
+		val concs = c.concordances(searcher, "[pos='AA.*'][lemma='gezindheid']")
+		val df = ConcordanceDataFrame.collectConcordances(concs, sparkSession)
+
+		for { conc <-
+					df.filter("pos[hitStart-1]='ADV()' and pos[hitEnd]='ADV()'").sort(desc("date")).selectExpr("date", "word", "lemma[hitStart] as lemma")   }
+		{
+			// println(conc.getAs[String]("date") + " <"  + conc.getAs[String]("lemma") + "> " + conc.getAs[Array[_]]("word"))
+		}
+		df
+	}
+
+	def testjeMetSpark(args: Array[String]) =
+	{
+		//Log.set(Log.LEVEL_ERROR)
+
+		val indexDirectory = if (TestSpark.atHome) "/mnt/DiskStation/homes/jesse/work/Diamant/Data/CorpusZinIndex/" else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
+		val searcher = Searcher.open(new java.io.File(indexDirectory))
+		println("searcher open...")
+		val concordances = testBlacklabQuery(searcher).selectExpr("date", "word", "lemma[hitStart] as lemma", "pos[hitStart] as pos")
+		val lemmata = TestSpark.lemmataDataFrame(sc).filter("not (lemma_gigpos rlike 'AA')")
+		val joined = lemmaJoin(concordances, lemmata)
+		for (x <- joined)
+			println(x)
+	}
+}
 
 object Conc
 {
-	lazy val sparkSession:SparkSession = SparkSession.builder
-			    .master("local")
-			    .appName("My App")
-			    .getOrCreate()
-
-			//val sc0 = new SparkContext(conf)
-	lazy val sc:SparkContext = sparkSession.sparkContext
-	
-	
-	def testBlacklabQuery(searcher: Searcher):DataFrame =
-	{
-	  	val c = new Concordancer
-	  	val df = c.collectConcordances(searcher, "[pos='AA.*'][lemma='gezindheid']", sparkSession)
-	  	for { conc <- 
-				  df.filter("pos[hitStart-1]='ADV()' and pos[hitEnd]='ADV()'").sort(desc("date")).selectExpr("date", "word", "lemma[hitStart] as lemma")   } 
-		  {
-		      // println(conc.getAs[String]("date") + " <"  + conc.getAs[String]("lemma") + "> " + conc.getAs[Array[_]]("word"))
-		  }
-		  df
-	}
 	
 	def lemmaJoin(concordances:DataFrame, lemmaSet:DataFrame): DataFrame =
 	{
@@ -252,19 +242,7 @@ object Conc
 	  joinedDF
 	}
 	
-	def testjeMetSpark(args: Array[String]) = 
-	{
-	  //Log.set(Log.LEVEL_ERROR)
-	
-	  val indexDirectory = if (TestSpark.atHome) "/mnt/DiskStation/homes/jesse/work/Diamant/Data/CorpusZinIndex/" else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
-		val searcher = Searcher.open(new java.io.File(indexDirectory))
-				println("searcher open...")
-		val concordances = testBlacklabQuery(searcher).selectExpr("date", "word", "lemma[hitStart] as lemma", "pos[hitStart] as pos") 
-		val lemmata = TestSpark.lemmataDataFrame(sc).filter("not (lemma_gigpos rlike 'AA')")
-		val joined = lemmaJoin(concordances, lemmata)
-		for (x <- joined)
-		  println(x)
-	}
+
 	
 	def singleWordQuery(s:String):String = s"[lemma='${s}']"
 	def termFrequency(searcher:Searcher, w:String) = (new Concordancer).frequency(searcher, singleWordQuery(w), null)
@@ -288,8 +266,6 @@ object Conc
               
        enhanced.map( { case (t,f,f2) => (t,f,f2,Collocation.salience(f, f1, f2, corpSize.asInstanceOf[Int]))} )
 	}
-
-
 
 	def collocationExample(searcher: Searcher) =
 	{
@@ -350,7 +326,6 @@ object Conc
 		 val searcher = Searcher.open(new java.io.File(indexDirectory))
 
 		 wsdTestZin(searcher)
-
 
   }
 }

@@ -48,10 +48,8 @@ object KBKwic
 
   def concordanceURL(query:TextQuery, url:String, meta:Node):List[Concordance] = concordance(query,XML.load(url), meta)
 
-  def kwicResults(s:String) =
-    
-    for ((id,metadataRecord) <- matchingDocumentIdentifiers(s))
-      println(concordance(s, id))
+  def kwicResults(s:String):Stream[Concordance] =
+    matchingDocumentIdentifiers(s).flatMap( { case (id, metadataRecord) => concordance(s, id).toStream } )
 
   def concordanceDir(query:String, dirName:String):Unit = concordancesDir(query,dirName).foreach(println)
 
