@@ -28,7 +28,8 @@ import com.esotericsoftware.minlog._
 
 
 
-class Concordancer {
+class Concordancer
+{
 
 	//val searcher = s
 
