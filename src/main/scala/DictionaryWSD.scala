@@ -107,9 +107,18 @@ object  DictionaryWSD
     "M089253.bet.387" -> "VI Beteekenis; inhoud",
     "M089253.bet.423" -> "VII Nut; waarde; bestaansgrond")
 
-  def flattenEzel  (s:Sense):Sense = { val id = s.persistent_id; if (ezelMap.contains(id)) s.copy(persistent_id=ezelMap(id)) else s.copy(persistent_id="ding")}
-  def flattenEzel (c:Concordance):Concordance = { val id = c.meta("senseId"); val nid =  if (ezelMap.contains(id)) ezelMap(id) else "ding"; c.copy(metadata = c.metadata - "senseId" + ("senseId" -> nid)) }
-  def flattenZin (c:Concordance):Concordance = { val id = c.meta("senseId"); val nid =  if (zinMap.contains(id)) zinMap(id) else "other"; c.copy(metadata = c.metadata - "senseId" + ("senseId" -> nid)) }
+  def flattenEzel(s: Sense): Sense = {
+    val id = s.persistent_id; if (ezelMap.contains(id)) s.copy(persistent_id = ezelMap(id)) else s.copy(persistent_id = "ding")
+  }
+
+  def flattenEzel(c: Concordance): Concordance = {
+    val id = c.meta("senseId"); val nid = if (ezelMap.contains(id)) ezelMap(id) else "ding"; c.copy(metadata = c.metadata - "senseId" + ("senseId" -> nid))
+  }
+
+  def flattenZin(c: Concordance): Concordance = {
+    val id = c.meta("senseId"); val nid = if (zinMap.contains(id)) zinMap(id) else "other"; c.copy(metadata = c.metadata - "senseId" + ("senseId" -> nid))
+  }
+  
   def testWSD(lemmaId: String) =
   {
 
