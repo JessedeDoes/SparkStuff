@@ -27,9 +27,11 @@ import scala.collection.JavaConverters._
 import com.esotericsoftware.minlog._
 
 
-class Concordancer {
+case class Concordancer(searcher: Searcher)
+{
 
   //val searcher = s
+  implicit val s:Searcher  = searcher
 
   def parseLuceneQuery(s: String, m: String): Query = {
     val a: Analyzer = new StandardAnalyzer();
@@ -139,30 +141,6 @@ class Concordancer {
     ).takeWhile(_ != null)
   }
 
-  def createSchema(hits: Hits, metaFields: List[String]): StructType = {
-    val kwic = hits.getKwic(hits.get(0))
-
-    val fields = kwic.getProperties.asScala.toList
-
-    val tokenFields = fields.map(StructField(_, new ArrayType(StringType, false), nullable = true))
-    val metaFieldz = metaFields.map(StructField(_, StringType, nullable = true))
-    val extraFields = List("hitStart", "hitEnd").map(StructField(_, IntegerType, nullable = false))
-
-    val schema = StructType(extraFields ++ tokenFields ++ metaFieldz)
-    println("Schema:" + schema)
-    schema
-  }
-
-
-  def createRow(kwic: Kwic, meta: Map[String, String]): Row = {
-    val tokenValues = kwic.getProperties.asScala.toList.map(
-      s => (kwic.getLeft(s).asScala.toList ++ kwic.getMatch(s).asScala.toList
-        ++ kwic.getRight(s).asScala.toList).toArray);
-
-    val metaKeys = meta.keys.toList.sorted
-    val metaValues = metaKeys.map(s => meta(s))
-    Row.fromSeq(kwic.getHitStart :: kwic.getHitEnd :: tokenValues ++ metaValues)
-  }
 
   def createConcordance(kwic: Kwic, meta: Map[String, String]): Concordance = {
     val tokenProperties = kwic.getProperties.asScala.toList.map(
@@ -187,7 +165,7 @@ object withSpark {
   lazy val sc: SparkContext = sparkSession.sparkContext
 
   def testBlacklabQuery(searcher: Searcher): DataFrame = {
-    val c = new Concordancer
+    val c = new Concordancer(searcher)
     val concs = c.concordances(searcher, "[pos='AA.*'][lemma='gezindheid']")
     val df = ConcordanceDataFrame.collectConcordances(concs, sparkSession)
 
@@ -210,6 +188,32 @@ object withSpark {
     for (x <- joined)
       println(x)
   }
+  /*
+def createSchema(hits: Hits, metaFields: List[String]): StructType = {
+  val kwic = hits.getKwic(hits.get(0))
+
+  val fields = kwic.getProperties.asScala.toList
+
+  val tokenFields = fields.map(StructField(_, new ArrayType(StringType, false), nullable = true))
+  val metaFieldz = metaFields.map(StructField(_, StringType, nullable = true))
+  val extraFields = List("hitStart", "hitEnd").map(StructField(_, IntegerType, nullable = false))
+
+  val schema = StructType(extraFields ++ tokenFields ++ metaFieldz)
+  println("Schema:" + schema)
+  schema
+}
+
+
+def createRow(kwic: Kwic, meta: Map[String, String]): Row = {
+  val tokenValues = kwic.getProperties.asScala.toList.map(
+    s => (kwic.getLeft(s).asScala.toList ++ kwic.getMatch(s).asScala.toList
+      ++ kwic.getRight(s).asScala.toList).toArray);
+
+  val metaKeys = meta.keys.toList.sorted
+  val metaValues = metaKeys.map(s => meta(s))
+  Row.fromSeq(kwic.getHitStart :: kwic.getHitEnd :: tokenValues ++ metaValues)
+}
+*/
 }
 
 object Conc {
@@ -222,7 +226,7 @@ object Conc {
 
   def singleWordQuery(s: String): String = s"[lemma='${s}']"
 
-  def termFrequency(searcher: Searcher, w: String) = (new Concordancer).frequency(searcher, singleWordQuery(w), null)
+  def termFrequency(searcher: Searcher, w: String) = Concordancer(searcher).frequency(searcher, singleWordQuery(w), null)
 
   def luceneTermFreq(searcher: Searcher, w: String) = searcher.getIndexReader.totalTermFreq(new Term("contents%lemma@s", w)).asInstanceOf[Int]
 
@@ -244,7 +248,7 @@ object Conc {
   }
 
   def collocationExample(searcher: Searcher) = {
-    val concordancer = new Concordancer
+    val concordancer = Concordancer(searcher)
     val q0 = "[lemma='zin' & word='(?c)zin' & pos='N.*']"
     val c0 = concordancer.concordances(searcher, q0) // dit is veel te langzaam zoals ik het doe. Hoe komt dat?
     val f1 = c0.count((x => true))
@@ -259,14 +263,14 @@ object Conc {
   }
 
   def wsdTest(searcher: Searcher) = {
-    val concordancer = new Concordancer
+    val concordancer = Concordancer(searcher)
     val in = concordancer.concordancesWindowed(searcher, "[word='ezel']").map(c => c.copy(metadata = c.metadata + ("id" -> ConvertOldInstanceBase.uuid)))
     val cw = wsdObject.tag(in, DictionaryWSD.ezelaar).map(DictionaryWSD.flattenEzel)
     cw.foreach(c => println(c.metadata.get("senseId") + "\t" + c))
   }
 
   def wsdTestZin(searcher: Searcher) = {
-    val concordancer = new Concordancer
+    val concordancer = Concordancer(searcher)
     val in = concordancer.concordancesWindowed(searcher, "[word='zin']").map(c => c.copy(metadata = c.metadata + ("id" -> ConvertOldInstanceBase.uuid)))
     val cw = wsdObject.tag(in, DictionaryWSD.bezinner).map(DictionaryWSD.flattenZin)
     cw.foreach(c => println(c.metadata.get("senseId") + "\t" + c))
@@ -286,7 +290,7 @@ object Conc {
     val corpSize = corpusSize(searcher)
 
     println("corpus Size: " + corpSize)
-    val concordancer = new Concordancer
+    val concordancer = Concordancer(searcher)
     val cw = concordancer.concordancesWindowed(searcher, "[word='ezel']")
     cw.foreach(println)
     println()
