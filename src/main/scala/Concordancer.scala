@@ -21,7 +21,7 @@ import org.apache.spark.sql.types._
 import org.apache.spark.sql.functions._
 import java.sql.{Connection, DriverManager, ResultSet}
 
-
+import Conc.{corpusDBNL, wsdTestZin}
 import Concordancer.{corpusSize, luceneTermFreq}
 
 import scala.collection.JavaConverters._
@@ -197,10 +197,10 @@ object withSpark {
     joinedDF
   }
 
-  def testjeMetSparkJoin(args: Array[String]) = {
+  def testjeMetSparkJoin() = {
     //Log.set(Log.LEVEL_ERROR)
 
-    val indexDirectory = if (TestSpark.atHome) "/mnt/DiskStation/homes/jesse/work/Diamant/Data/CorpusZinIndex/" else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
+    val indexDirectory = if (TestSpark.atHome) "/media/jesse/Data/Diamant/CorpusEzel/" else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
     val searcher = Searcher.open(new java.io.File(indexDirectory))
     println("searcher open...")
     val concordances = testBlacklabQuery(searcher).selectExpr("date", "word", "lemma[hitStart] as lemma", "pos[hitStart] as pos")
@@ -208,6 +208,11 @@ object withSpark {
     val joined = lemmaJoin(concordances, lemmata)
     for (x <- joined)
       println(x)
+  }
+
+  def main(args: Array[String]): Unit = {
+
+   testjeMetSparkJoin()
   }
   /*
 def createSchema(hits: Hits, metaFields: List[String]): StructType = {
@@ -239,10 +244,6 @@ def createRow(kwic: Kwic, meta: Map[String, String]): Row = {
 
 object Conc {
   import Concordancer._
-
-
-
-
 
 
 

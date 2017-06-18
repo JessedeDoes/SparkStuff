@@ -118,7 +118,7 @@ object  DictionaryWSD
   def flattenZin(c: Concordance): Concordance = {
     val id = c.meta("senseId"); val nid = if (zinMap.contains(id)) zinMap(id) else "other"; c.copy(metadata = c.metadata - "senseId" + ("senseId" -> nid))
   }
-  
+
   def testWSD(lemmaId: String) =
   {
 

@@ -11,6 +11,7 @@ import java.sql.ResultSet
 import org.apache.spark.rdd.JdbcRDD
 import org.apache.spark.sql._
 import org.apache.spark.sql.types._
+import collection.JavaConverters._
 
 object  ConcordanceDataFrame
 {
@@ -33,19 +34,22 @@ object  ConcordanceDataFrame
   {
     val tp = c.tokenProperties.keySet.toList.sorted
     val mp = c.metadata.keySet.toList.sorted
-    Row.fromSeq(c.hitStart :: c.hitEnd :: tp.map(s => c(s)) :: mp.map(s => c.meta(s)))
+    println(s"Converting: $c")
+    println(c("word"))
+    Row.fromSeq(c.hitStart :: c.hitEnd :: tp.map(s => c(s) :: mp.map(s => c.meta(s))))
   }
 
   def createDataFrame(rows: Iterator[Row], spark: SparkSession, schema: StructType):DataFrame=
   {
     val rowz = spark.sparkContext.parallelize(rows.toList, 1)
-
+    rowz.foreach(println)
+    println(s"rows created: ${rowz.count()}!!!")
     spark.createDataFrame(rowz, schema)
   }
 
   def collectConcordances(concordances: Stream[Concordance], session: SparkSession):  DataFrame =
   {
-
+    println(concordances.head)
     val schema = createSchema(concordances.head)
 
     val iterator:Iterator[Row] = concordances.map(createRow).iterator
