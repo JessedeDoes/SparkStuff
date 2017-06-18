@@ -36,7 +36,9 @@ object  ConcordanceDataFrame
     val mp = c.metadata.keySet.toList.sorted
     println(s"Converting: $c")
     println(c("word"))
-    Row.fromSeq(c.hitStart :: c.hitEnd :: tp.map(s => c(s) :: mp.map(s => c.meta(s))))
+    val r = Row.fromSeq(c.hitStart :: c.hitEnd ::  tp.map(s => c(s)) ++ mp.map(s => c.meta(s)))
+    println(s"${r(8).getClass} : ${r(8)}")
+    r
   }
 
   def createDataFrame(rows: Iterator[Row], spark: SparkSession, schema: StructType):DataFrame=
