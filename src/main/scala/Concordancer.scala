@@ -29,25 +29,6 @@ import com.esotericsoftware.minlog._
 
 object Concordancer
 {
-  def singleWordQuery(s: String): String = s"[lemma='${s}']"
-
-  def termFrequency(searcher: Searcher, w: String) = Concordancer(searcher).frequency(searcher, singleWordQuery(w), null)
-
-  def luceneTermFreq(searcher: Searcher, w: String) = searcher.getIndexReader.totalTermFreq(new Term("contents%lemma@s", w)).asInstanceOf[Int]
-
-  def corpusSize(searcher: Searcher): Long = {
-    //searcher.getIndexSearcher.collectionStatistics(searcher.getIndexStructure.).sumTotalTermFreq
-    searcher.getIndexStructure.getTokenCount
-  }
-}
-case class Concordancer(searcher: Searcher)
-{
-
-  //val searcher = s
-  implicit val s:Searcher  = searcher
-
-
-
   def parseLuceneQuery(s: String, m: String): Query = {
     val a: Analyzer = new StandardAnalyzer();
     try
@@ -59,9 +40,17 @@ case class Concordancer(searcher: Searcher)
     }
     null
   }
+  def singleWordQuery(s: String): String = s"[lemma='${s}']"
 
-  @throws[ParseException]
-  @throws[nl.inl.blacklab.queryParser.corpusql.ParseException]
+  def termFrequency(searcher: Searcher, w: String) = Concordancer.frequency(searcher, singleWordQuery(w), null)
+
+  def luceneTermFreq(searcher: Searcher, w: String) = searcher.getIndexReader.totalTermFreq(new Term("contents%lemma@s", w)).asInstanceOf[Int]
+
+  def corpusSize(searcher: Searcher): Long = {
+    //searcher.getIndexSearcher.collectionStatistics(searcher.getIndexStructure.).sumTotalTermFreq
+    searcher.getIndexStructure.getTokenCount
+  }
+
   def filteredSearch(searcher: Searcher, corpusQlQuery: String, filterQueryString: String): Hits = {
     val hits = searcher.find(createSpanQuery(searcher, corpusQlQuery, filterQueryString)) // dit is niet optimaal...
     hits
@@ -87,8 +76,10 @@ case class Concordancer(searcher: Searcher)
     hits.settings.setMaxHitsToRetrieve(Int.MaxValue)
     hits.size
   }
+}
 
-  // type Concordance = List[(String,List[String])]
+case class Concordancer(searcher: Searcher)
+{
 
   def getMetadata(fields: List[HitPropertyDocumentStoredField], i: Int): Map[String, String] =
     fields.map(f => f.getName -> f.get(i).toString()).toMap
@@ -107,7 +98,7 @@ case class Concordancer(searcher: Searcher)
 
 
   def concordances(corpusQlQuery: String): Stream[Concordance] = {
-    val hits = filteredSearch(searcher, corpusQlQuery, null)
+    val hits = Concordancer.filteredSearch(searcher, corpusQlQuery, null)
 
     println(s"hits created for ${corpusQlQuery}!")
     hits.settings.setContextSize(50)
@@ -127,8 +118,8 @@ case class Concordancer(searcher: Searcher)
 
   val portion = 10
 
-  def concordancesWindowed(searcher: Searcher, corpusQlQuery: String): Stream[Concordance] = {
-    val hits = filteredSearch(searcher, corpusQlQuery, null)
+  def concordancesWindowed(corpusQlQuery: String): Stream[Concordance] = {
+    val hits = Concordancer.filteredSearch(searcher, corpusQlQuery, null)
 
     println(s"hits created for ${corpusQlQuery}!")
     hits.settings.setContextSize(10)
@@ -201,8 +192,12 @@ object withSpark {
     }
     df
   }
+  def lemmaJoin(concordances: DataFrame, lemmaSet: DataFrame): DataFrame = {
+    val joinedDF = concordances.join(lemmaSet, concordances("lemma") === lemmaSet("modern_lemma"), "inner")
+    joinedDF
+  }
 
-  def testjeMetSpark(args: Array[String]) = {
+  def testjeMetSparkJoin(args: Array[String]) = {
     //Log.set(Log.LEVEL_ERROR)
 
     val indexDirectory = if (TestSpark.atHome) "/mnt/DiskStation/homes/jesse/work/Diamant/Data/CorpusZinIndex/" else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
@@ -244,10 +239,7 @@ def createRow(kwic: Kwic, meta: Map[String, String]): Row = {
 
 object Conc {
   import Concordancer._
-  def lemmaJoin(concordances: DataFrame, lemmaSet: DataFrame): DataFrame = {
-    val joinedDF = concordances.join(lemmaSet, concordances("lemma") === lemmaSet("modern_lemma"), "inner")
-    joinedDF
-  }
+
 
 
 
@@ -271,14 +263,14 @@ object Conc {
 
   def wsdTest(searcher: Searcher) = {
     val concordancer = Concordancer(searcher)
-    val in = concordancer.concordancesWindowed(searcher, "[word='ezel']").map(c => c.copy(metadata = c.metadata + ("id" -> ConvertOldInstanceBase.uuid)))
+    val in = concordancer.concordancesWindowed("[word='ezel']").map(c => c.copy(metadata = c.metadata + ("id" -> ConvertOldInstanceBase.uuid)))
     val cw = wsdObject.tag(in, DictionaryWSD.ezelaar).map(DictionaryWSD.flattenEzel)
     cw.foreach(c => println(c.metadata.get("senseId") + "\t" + c))
   }
 
   def wsdTestZin(searcher: Searcher) = {
     val concordancer = Concordancer(searcher)
-    val in = concordancer.concordancesWindowed(searcher, "[word='zin']").map(c => c.copy(metadata = c.metadata + ("id" -> ConvertOldInstanceBase.uuid)))
+    val in = concordancer.concordancesWindowed("[word='zin']").map(c => c.copy(metadata = c.metadata + ("id" -> ConvertOldInstanceBase.uuid)))
     val cw = wsdObject.tag(in, DictionaryWSD.bezinner).map(DictionaryWSD.flattenZin)
     cw.foreach(c => println(c.metadata.get("senseId") + "\t" + c))
   }
@@ -298,7 +290,7 @@ object Conc {
 
     println("corpus Size: " + corpSize)
     val concordancer = Concordancer(searcher)
-    val cw = concordancer.concordancesWindowed(searcher, "[word='ezel']")
+    val cw = concordancer.concordancesWindowed("[word='ezel']")
     cw.foreach(println)
     println()
   }
