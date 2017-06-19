@@ -130,7 +130,7 @@ case class Concordancer(searcher: Searcher)
     val z = Stream.from(0).map(x => portion * x) // wat gebeurt er als hits op zijn??
     z.flatMap(k => {
       try {
-        Console.out.println(s"at ${k}")
+        // Console.out.println(s"at ${k}")
 
         val hw = hits.window(k, portion);
         val iterator: Iterator[Concordance] =
@@ -140,9 +140,7 @@ case class Concordancer(searcher: Searcher)
               createConcordance(kwic, meta)
             }
         iterator.toStream
-      } catch {
-        case ex: Exception => List(null).toStream
-      }
+      } catch { case ex: Exception => List(null).toStream }
     }
     ).takeWhile(_ != null)
   }
