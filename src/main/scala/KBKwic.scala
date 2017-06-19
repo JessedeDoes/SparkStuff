@@ -49,7 +49,7 @@ object KBKwic
   def concordanceURL(query:TextQuery, url:String, meta:Node):List[Concordance] = concordance(query,XML.load(url), meta)
 
   def kwicResults(s:String):Stream[Concordance] =
-    matchingDocumentIdentifiers(s).flatMap( { case (id, metadataRecord) => concordance(s, id).toStream } )
+    matchingDocumentIdentifiers(s).flatMap( { case (id, metadataRecord) => concordanceURL(s, id, metadataRecord).toStream } )
 
   def concordanceDir(query:String, dirName:String):Unit = concordancesDir(query,dirName).foreach(println)
 
@@ -84,9 +84,9 @@ object KBKwic
     ).toStream
   }
   
-  def main(args:Array[String]) =
+  def main(args:Array[String]):Unit =
     {
       val arg0 = if (args.length == 0) "bunzing" else args(0)
-      if (args.length >= 2) concordanceDir(arg0,args(1)) else kwicResultsTagged(arg0)
+      if (args.length >= 2) concordanceDir(arg0,args(1)) else kwicResults(arg0).foreach(println)
     }
 }
