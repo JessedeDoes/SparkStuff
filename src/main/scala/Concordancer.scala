@@ -115,8 +115,26 @@ case class Concordancer(searcher: Searcher)
         }
     iterator.toStream
   }
-
   val portion = 10
+
+  def whyIsItSlowAndHowToSpeedup(corpusQlQuery: String) =
+  {
+    val hits = Concordancer.filteredSearch(searcher, corpusQlQuery, null)
+
+    println(s"hits created for ${corpusQlQuery}!")
+    hits.settings.setContextSize(6)
+    hits.settings.setMaxHitsToRetrieve(Int.MaxValue)
+    val hw = hits.window(0,portion)
+    val hwi = hw.iterator().asScala
+    while (hwi.hasNext) {
+
+      val h = hwi.next()
+      //hits.window(0,portion).getK
+      val kwic = hw.getKwic(h) // ok dit lijkt de boosdoener te zijn; moet dus anders... beter getKwic op hw ? Jawel; dat werkt
+      println(kwic)
+    }
+  }
+
 
   def concordancesWindowed(corpusQlQuery: String): Stream[Concordance] = {
     val hits = Concordancer.filteredSearch(searcher, corpusQlQuery, null)
@@ -134,7 +152,7 @@ case class Concordancer(searcher: Searcher)
 
         val hw = hits.window(k, portion);
         val iterator: Iterator[Concordance] =
-          for {h <- hw.iterator().asScala; kwic = hits.getKwic(h)}
+          for {h <- hw.iterator().asScala; kwic = hw.getKwic(h)}
             yield {
               val meta = getMetadata(searcher.document(h.doc), metaFields)
               createConcordance(kwic, meta)
@@ -294,12 +312,22 @@ object Conc {
     println()
   }
 
+  def testIsThisQuicker() =
+  {
+    val s = Searcher.open(new java.io.File("/media/jesse/Data/Diamant/CorpusEzel/"))
+    val c = Concordancer(s)
+    testje(s)
+    //c.whyIsItSlowAndHowToSpeedup("[pos='ADP.*']")
+  }
+
   def main(args: Array[String]): Unit = {
 
     val indexDirectory = if (TestSpark.atHome) corpusDBNL else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
-    val searcher = Searcher.open(new java.io.File(indexDirectory))
+    testIsThisQuicker()
 
-    wsdTestZin(searcher)
+    //val searcher = Searcher.open(new java.io.File(indexDirectory))
+
+    //wsdTestZin(searcher)
 
   }
 }
