@@ -176,7 +176,7 @@ case class Concordancer(searcher: Searcher)
 
   def collocations(c0: Stream[Concordance]): List[(String, Int, Int, Double)] = {
     val f = Filter("pos", "AA.*")
-    val f1 = c0.count((x => true))
+    val f1 = c0.count(x => true)
     val corpSize = corpusSize(searcher)
     val contextFrequencies = Collocation.contextFrequencies(c0, f)
     val enhanced = contextFrequencies
