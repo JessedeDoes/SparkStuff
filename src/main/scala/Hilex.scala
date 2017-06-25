@@ -143,6 +143,25 @@ object hilexQueries {
     db => db.createQuery(q).map(makeWordform)
   }
 
+  def getWordformGroups(lemmata: List[Lemma]): AlmostQuery[Wordform] = {
+    val ids = lemmata.map(_.lemma_id)
+    val lemmaMap = lemmata.map(l => (l.lemma_id, l)).toMap
+    implicit val makeWordform = GetResult[Wordform](
+      r => Wordform(lemmaMap(r.getInt("lemma_id")),
+        r.getInt("analyzed_wordform_id"),
+        r.getString("wordform"))
+    )
+    val q =
+      s"""
+        select
+          lemma_id, analyzed_wordform_id, wordform
+        from
+            ${dataSchema}.analyzed_wordforms a,
+            ${dataSchema}.wordforms w
+        where a.wordform_id=w.wordform_id and lemma_id in """ + intValues(ids)
+
+    db => db.createQuery(q).map(makeWordform)
+  }
   def getSenses(lemmata: List[Lemma]): AlmostQuery[Sense] = {
     val ids = lemmata.map(_.persistent_id)
     val lemmaMap = lemmata.map(l => (l.persistent_id, l)).toMap
