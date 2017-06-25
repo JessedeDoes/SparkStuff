@@ -3,7 +3,7 @@ import scala.xml._
 
 case class Concordance(hitStart: Int, hitEnd: Int, tokenProperties:  Map[String,Array[String]], metadata: Map[String,String])
 {
-   val minEen:Int  = -1
+  val minEen:Int  = -1
   val defaultProperty = "word"
   
   lazy val words = tokenProperties(defaultProperty)

@@ -51,19 +51,26 @@ class RDF
   
   def constructQuery(service: String, queryString: String):Stream[Statement] = 
   {
-    val query = QueryFactory.create(queryString) 
-
-
+    val query = QueryFactory.create(queryString)
     try  
     {
     	val qexec = new QueryEngineHTTP(service, query)
     			val i =	qexec.execConstructTriples()
     			val i1 = i.asScala.map(x => convertTriple(x)).toStream
     			i1	
-    }
-		 catch {case ex: Exception => ex.printStackTrace(); Stream.Empty}
+    } catch {case ex: Exception => ex.printStackTrace(); Stream.Empty}
   }
-		  
+
+	def selectQuery(service: String, queryString: String):Stream[Map[String,String]] =
+	{
+		val q = QueryFactory.create(queryString)
+
+		val qexec = new QueryEngineHTTP(service, q)
+		val results = qexec.execSelect.asScala.toStream.map(soln => soln.varNames().asScala.map(n => n -> soln.get(n).toString).toMap)
+
+		results
+	}
+
   def query(service: String, queryString: String) = 
 	{
 		val query = QueryFactory.create(queryString)
@@ -116,5 +123,35 @@ where
   ?a <http://www.ivdnt.org/diamant#text> ?t .
   ?t <http://www.ivdnt.org/diamant#quotationText> ?q
 } limit 10000"""
-    def main(args:Array[String]) = { val r = (new RDF); r.query(r.diamantURI, att) }
+
+	 val AAmetNietTrivialeInflectie =
+  """
+     PREFIX diamant:      <http://www.inl.nl/diamant/>
+ | 	 PREFIX lemon:  <http://lemon-model.net/lemon#>
+ |   PREFIX lexinfo: <http://www.lexinfo.net/ontology/2.0/lexinfo#>
+ |   PREFIX pwn: <http://wordnet-rdf.princeton.edu/ontology#>
+ |
+ |    select
+ |
+ |     ?metE ?zonderE
+ |
+ |
+ |    {
+ |		  ?e a lemon:LexicalEntry .
+ |      ?e lemon:lexicalForm ?f .
+ |      ?e lemon:canonicalForm ?lf .
+ |      ?f lemon:writtenRep ?metE .
+ |      ?lf lemon:writtenRep ?zonderE .
+ |
+ |      ?f pwn:part_of_speech ?p .
+ |  		FILTER regex(?p, "AA.*pos*.*infl=e.*") .
+ |      FILTER regex(?metE, ".*e$") .
+ |      FILTER regex(?zonderE, ".*[^e]$")
+ |    }
+  """.stripMargin
+    def main(args:Array[String]) =
+		{
+			val r = (new RDF);
+			r.selectQuery(r.diamantURI, AAmetNietTrivialeInflectie).zipWithIndex.foreach(println)
+		}
 }
