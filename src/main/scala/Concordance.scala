@@ -1,7 +1,8 @@
 import scala.xml._
 
+case class Capture(name:String, captureStart:Int, captureEnd: Int)
 
-case class Concordance(hitStart: Int, hitEnd: Int, tokenProperties:  Map[String,Array[String]], metadata: Map[String,String])
+case class Concordance(hitStart: Int, hitEnd: Int, tokenProperties:  Map[String,Array[String]], metadata: Map[String,String], captures:Option[List[Capture]] = None)
 {
   val minEen:Int  = -1
   val defaultProperty = "word"
