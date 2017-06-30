@@ -320,11 +320,19 @@ object Conc {
     //c.whyIsItSlowAndHowToSpeedup("[pos='ADP.*']")
   }
 
+  def fcsTest() =
+  {
+    val s = Searcher.open(new java.io.File("/datalokaal/Corpus/BlacklabServerIndices/zeebrieven/"))
+    val c = Concordancer(s)
+    val h = c.concordancesWindowed("[lemma='zee']")
+    h.foreach(c => println(FCS.toXML(c)))
+  }
+
   def main(args: Array[String]): Unit = {
 
     val indexDirectory = if (TestSpark.atHome) corpusDBNL else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
-    testIsThisQuicker()
-
+    // testIsThisQuicker()
+    fcsTest()
     //val searcher = Searcher.open(new java.io.File(indexDirectory))
 
     //wsdTestZin(searcher)
