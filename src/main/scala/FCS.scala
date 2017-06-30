@@ -21,7 +21,7 @@ object FCS
             if (i >= c.hitStart && i < c.hitEnd)
             <Span highlight="bold" ref={"s" + i}>{w}</Span>
              else
-            <Span ref={"s" + i}>{w}</Span>} )}
+            <Span ref={"s" + i}>{w}</Span>} )}adetu
           </Layer>}
       )
         }
