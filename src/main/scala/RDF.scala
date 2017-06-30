@@ -146,8 +146,9 @@ where
  |      ?f pwn:part_of_speech ?p .
  |  		FILTER regex(?p, "AA.*pos*.*infl=e.*") .
  |      FILTER regex(?metE, ".*e$") .
+ |      FILTER regex(?metE, ".*e$") .
  |      FILTER regex(?zonderE, ".*[^e]$")
- |    }
+ |    } limit 18000
   """.stripMargin
     def main(args:Array[String]) =
 		{
