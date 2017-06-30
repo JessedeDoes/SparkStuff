@@ -322,7 +322,7 @@ object Conc {
 
   def fcsTest() =
   {
-    val s = Searcher.open(new java.io.File("/datalokaal/Corpus/BlacklabServerIndices/zeebrieven/"))
+    val s = Searcher.open(new java.io.File("/datalokaal/Corpus/BlacklabServerIndices/DBNL/"))
     val c = Concordancer(s)
     val h = c.concordancesWindowed("[lemma='zee']")
     h.foreach(c => println(FCS.toXML(c)))

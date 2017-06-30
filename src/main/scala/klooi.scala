@@ -21,13 +21,18 @@ object klooi
     lengths.takeWhile(_._2 != Stream.empty).map( { case (l,s) => (l+s.head.length, s.head) } )
   }
 
-  def withOffsets(s:Seq[String]) =
+  def withOffsets(s:Seq[String]):Seq[(String,Int,Int)] =
   {
     lengths(s).map( { case (i,w) => (w,i-w.length,i)})
   }
-  
+
+  def withOffsetsAndIndexDiscountedForExtraBlank(sentence:Seq[String]) =
+  {
+    withOffsets(sentence).zipWithIndex.map( { case ((w,s,e),i) => ((w,s+i,e+i),i)})
+  }
+
   def main(args:Array[String]):Unit =
   {
-    withOffsets(s).zipWithIndex.foreach(println)
+    withOffsetsAndIndexDiscountedForExtraBlank(s).foreach(println)
   }
 }
