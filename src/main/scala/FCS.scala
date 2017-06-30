@@ -8,8 +8,8 @@ object FCS
   {
     <Advanced>
       <Segments>
-        {c("word").zipWithIndex.map(
-         { case (w,i) => <Segment id={"s" + i}>{c("punct")(i) + w}</Segment>}
+        {klooi.withOffsets(c("word")).zipWithIndex.map(
+         { case ((w,s,e),i) => <Segment start={s.toString} end={e.toString} id={"s" + i}>{w}</Segment>}
         )
         }
       </Segments>

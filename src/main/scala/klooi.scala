@@ -1,18 +1,18 @@
 object klooi
 {
-  val s = List("doe","mij","danmaar","worst").toStream
+  val s = List("doe","mij","danmaar","worst")
   
-  def lengths(s:Stream[String]) =
+  def lengths(s:Seq[String]) =
   {
    
-    def nextLength(s:Stream[String]) = (s.head.length,s.tail)
+    def nextLength(s:Seq[String]) = (s.head.length,s.tail)
     
-    lazy val lengths:Stream[(Int,Stream[String])] = (0 ,s)  #:: 
+    lazy val lengths:Stream[(Int,Seq[String])] = (0 ,s)  #::
        lengths.map( 
            { 
              case (l,ss) => 
-               if (ss == Stream.empty)
-                 (l,Stream.empty)
+               if (ss == Seq.empty)
+                 (l,Seq.empty)
                else
                {
                  val (ls,ns) = nextLength(ss); (l+ls, ns) 
@@ -20,10 +20,14 @@ object klooi
            }) 
     lengths.takeWhile(_._2 != Stream.empty).map( { case (l,s) => (l+s.head.length, s.head) } )
   }
-         
-  
-  def main(args:Array[String]) =
+
+  def withOffsets(s:Seq[String]) =
   {
-    lengths(s).zipWithIndex.foreach(println)
+    lengths(s).map( { case (i,w) => (w,i-w.length,i)})
+  }
+  
+  def main(args:Array[String]):Unit =
+  {
+    withOffsets(s).zipWithIndex.foreach(println)
   }
 }
