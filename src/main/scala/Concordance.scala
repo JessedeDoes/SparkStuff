@@ -110,7 +110,7 @@ object Concordance
       {s.map(_.toXML)}
     </Snippets>
   }
-  
+
   def tagBatches(tagger: Tagger, c: Seq[Concordance]):Seq[Concordance] =
   {
     val batchSize = 20
