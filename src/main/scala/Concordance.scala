@@ -68,7 +68,21 @@ case class Concordance(hitStart: Int, hitEnd: Int, tokenProperties:  Map[String,
     r
     }
   }
-  
+
+  def toXML():Elem =
+  {
+    <Concordance>
+      <hitStart>{hitStart}</hitStart>
+      <hitEnd>{hitEnd}</hitEnd>
+      <tokens>
+        {tokenProperties.map( {case (k,v) => <layer type={k}>{v.zipWithIndex.map( {case (s,i) => <token n={i.toString}>{s}</token>})}</layer>})}
+      </tokens>
+      <metadata>
+        {metadata.map( {case (k,v) => <property><key>{k}</key><value>{v}</value></property>} )}
+      </metadata>
+    </Concordance>
+  }
+
   override def toString() = (f"${left}%80s") + " \u169b"  + hit + "\u169c " + right + " metadata: " + metadata
 
   def toHTMLRow = <tr align="right"><td>{left}</td><td><b>{hit}</b></td><td>{right}</td></tr>
@@ -81,6 +95,15 @@ object Concordance
   def toHTMLList(c: List[Concordance]):Node = <ul>{c.map(_.toHTMLItem)}</ul>
   def toHTMLAsText(c: List[Concordance]):String = toHTMLTable(c).toString.replaceAll("\\s+", " ")
 
+  def fromXML(e: Elem):Concordance =
+  {
+    val meta = (e \ "metadata" \ "property").map(p => ((p \ "key").text, (p \ "value").text)).toMap
+    val hitStart = (e \ "hitStart").head.text.toInt
+    val hitEnd = (e \ "hitEnd").head.text.toInt
+    val tokenProperties = (e \ "tokens" \ "layer").map(l => ((l \ "@type").text, (l \ "token").map(t => t.text).toArray)).toMap
+    Concordance(hitStart, hitEnd, tokenProperties, meta)
+  }
+
   def tagBatches(tagger: Tagger, c: Seq[Concordance]):Seq[Concordance] =
   {
     val batchSize = 20
@@ -88,6 +111,7 @@ object Concordance
     val taggedPortions = portions.par.flatMap(p => tagBatch(tagger,p)).toList
     taggedPortions
   }
+
   def tagBatch(tagger: Tagger, c: Seq[Concordance]):Seq[Concordance] =
   {
     val startMarker = "开始"

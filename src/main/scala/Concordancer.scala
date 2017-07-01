@@ -325,7 +325,7 @@ object Conc {
     val s = Searcher.open(new java.io.File("/media/jesse/Data/Diamant/DBNL/"))
     val c = Concordancer(s)
     val h = c.concordancesWindowed("[lemma='zee']")
-    h.foreach(println)
+    h.foreach(c => println(Concordance.fromXML(c.toXML).tokenProperties.mapValues(x => x.toList) == c.tokenProperties.mapValues(x => x.toList)))
     //h.foreach(c => println(FCS.toXML(c)))
   }
 
