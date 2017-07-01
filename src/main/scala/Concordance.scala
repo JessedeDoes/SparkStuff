@@ -69,7 +69,7 @@ case class Concordance(hitStart: Int, hitEnd: Int, tokenProperties:  Map[String,
     }
   }
 
-  def toXML():Elem =
+  def toXML:Elem =
   {
     <Concordance>
       <hitStart>{hitStart}</hitStart>
@@ -104,6 +104,13 @@ object Concordance
     Concordance(hitStart, hitEnd, tokenProperties, meta)
   }
 
+  def toXML(s: Seq[Concordance]):Elem =
+  {
+    <Snippets>
+      {s.map(_.toXML)}
+    </Snippets>
+  }
+  
   def tagBatches(tagger: Tagger, c: Seq[Concordance]):Seq[Concordance] =
   {
     val batchSize = 20
