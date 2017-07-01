@@ -322,10 +322,11 @@ object Conc {
 
   def fcsTest() =
   {
-    val s = Searcher.open(new java.io.File("/datalokaal/Corpus/BlacklabServerIndices/DBNL/"))
+    val s = Searcher.open(new java.io.File("/media/jesse/Data/Diamant/DBNL/"))
     val c = Concordancer(s)
     val h = c.concordancesWindowed("[lemma='zee']")
-    h.foreach(c => println(FCS.toXML(c)))
+    h.foreach(println)
+    //h.foreach(c => println(FCS.toXML(c)))
   }
 
   def main(args: Array[String]): Unit = {
