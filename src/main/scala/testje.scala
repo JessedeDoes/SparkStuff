@@ -176,6 +176,18 @@ case class TestResult(nItems: Int, nErrors: Int, confusion: Map[One, Int]) {
       // instances.foldLeft(0)( (a,w) => a +  (if (classify(w) == w.meta("senseId")) 0 else 1))
       instances.foldLeft(trivialTest)({ case (t, w) => t + testOne(classify, w) })
     }
+
+    def shadow(c: Concordance): Unit =
+    {
+      val newTokenProperties = c.tokenProperties.mapValues(a => a.patch(c.hitStart, List("UNK"), 1))
+      val newMetadata = c.metadata + ("senseId" -> c.tokenProperties("lemma")(hitStart))
+      c.copy(tokenProperties = newTokenProperties, metadata=newMetadata)
+    }
+
+    def anonTest(instances: List[Concordance]) =
+    {
+      val shadowed = instances.map(c => shadow(c))
+    }
   }
 
 
