@@ -196,7 +196,10 @@ case class TestResult(nItems: Int, nErrors: Int, confusion: Map[One, Int]) {
     {
       val shadowed = instances.map(c => shadow(c))
       val test = balancedTestSet(shadowed,200)
-      val training = shadowed.diff(test)
+      val testIds = test.map(x => x.meta("id")).toSet
+      val training = shadowed.filter(c => !testIds.contains(c.meta("id")))
+
+      Console.err.println(s"All: ${shadowed.size}  Test:${test.size} Training:${training.size}")
       val wsd = new Swsd
       val c = wsd.train(training, Set.empty)
       val t = tester.testResult(test.toSet, c)

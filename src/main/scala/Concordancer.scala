@@ -333,8 +333,8 @@ object Conc {
   {
     val s = Searcher.open(new java.io.File("/media/jesse/Data/Diamant/CorpusBunzingLynx/"))
     val c = Concordancer(s)
-    val h = c.concordances("[lemma='bunzing|lynx']").filter(x => x("word")(x.hitStart).matches("^[LB].*"))
-    Console.err.println("Lowercase: " + h.size)
+    val h = c.concordances("[lemma='bunzing|lynx']") // .filter(x => x("word")(x.hitStart).matches("^[lb].*"))
+    Console.err.println("Total size: " + h.size)
     tester.anonTest(h.toList)
   }
 
