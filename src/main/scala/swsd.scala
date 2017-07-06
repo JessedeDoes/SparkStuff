@@ -134,10 +134,10 @@ object featureStuff
 
 			  def maxSimilarity(v: Array[Float], id: String):Double =
 				{
-					val l = members.filter(x => !(x.concordance.meta("id") == id))
-					if (l.isEmpty) 0.asInstanceOf[Double] else
+					//val l = members.filter(x => !(x.concordance.meta("id") == id))
+					if (members.isEmpty) 0.asInstanceOf[Double] else
 					{
-						val x = l.par.maxBy(x => if (x.concordance.meta("id") == id) 0 else word2vec.Distance.cosineSimilarity(v,x.vector))
+						val x = members.par.maxBy(x => if (x.concordance.meta("id") == id) 0 else word2vec.Distance.cosineSimilarity(v,x.vector))
 						cosineSimilarity(v,x.vector)
 					}
 				}
