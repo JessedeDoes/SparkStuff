@@ -97,7 +97,7 @@ case class Concordancer(searcher: Searcher)
     fields.map(s => s -> getFieldValue(doc, s)).toMap
 
 
-  def concordances(corpusQlQuery: String): Stream[Concordance] = {
+  def concordancesStupid(corpusQlQuery: String): Stream[Concordance] = {
     val hits = Concordancer.filteredSearch(searcher, corpusQlQuery, null)
 
     println(s"hits created for ${corpusQlQuery}!")
@@ -136,7 +136,7 @@ case class Concordancer(searcher: Searcher)
   }
 
 
-  def concordancesWindowed(corpusQlQuery: String): Stream[Concordance] = {
+  def concordances(corpusQlQuery: String): Stream[Concordance] = {
     val hits = Concordancer.filteredSearch(searcher, corpusQlQuery, null)
 
     println(s"hits created for ${corpusQlQuery}!")
@@ -280,14 +280,14 @@ object Conc {
 
   def wsdTest(searcher: Searcher) = {
     val concordancer = Concordancer(searcher)
-    val in = concordancer.concordancesWindowed("[word='ezel']").map(c => c.copy(metadata = c.metadata + ("id" -> ConvertOldInstanceBase.uuid)))
+    val in = concordancer.concordances("[word='ezel']").map(c => c.copy(metadata = c.metadata + ("id" -> ConvertOldInstanceBase.uuid)))
     val cw = wsdObject.tag(in, DictionaryWSD.ezelaar).map(DictionaryWSD.flattenEzel)
     cw.foreach(c => println(c.metadata.get("senseId") + "\t" + c))
   }
 
   def wsdTestZin(searcher: Searcher) = {
     val concordancer = Concordancer(searcher)
-    val in = concordancer.concordancesWindowed("[word='zin']").map(c => c.copy(metadata = c.metadata + ("id" -> ConvertOldInstanceBase.uuid)))
+    val in = concordancer.concordances("[word='zin']").map(c => c.copy(metadata = c.metadata + ("id" -> ConvertOldInstanceBase.uuid)))
     val cw = wsdObject.tag(in, DictionaryWSD.bezinner).map(DictionaryWSD.flattenZin)
     cw.foreach(c => println(c.metadata.get("senseId") + "\t" + c))
   }
@@ -307,7 +307,7 @@ object Conc {
 
     println("corpus Size: " + corpSize)
     val concordancer = Concordancer(searcher)
-    val cw = concordancer.concordancesWindowed("[word='ezel']")
+    val cw = concordancer.concordances("[word='ezel']")
     cw.foreach(println)
     println()
   }
@@ -324,7 +324,7 @@ object Conc {
   {
     val s = Searcher.open(new java.io.File("/media/jesse/Data/Diamant/DBNL/"))
     val c = Concordancer(s)
-    val h = c.concordancesWindowed("[lemma='zee']")
+    val h = c.concordances("[lemma='zee']")
     h.foreach(c => println(Concordance.fromXML(c.toXML).tokenProperties.mapValues(x => x.toList) == c.tokenProperties.mapValues(x => x.toList)))
     //h.foreach(c => println(FCS.toXML(c)))
   }
@@ -333,7 +333,7 @@ object Conc {
   {
     val s = Searcher.open(new java.io.File("/media/jesse/Data/Diamant/CorpusBunzingLynx/"))
     val c = Concordancer(s)
-    val h = c.concordancesWindowed("[lemma='bunzing|lynx']")
+    val h = c.concordances("[lemma='bunzing|lynx']")
     tester.anonTest(h.toList)
   }
 
