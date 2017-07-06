@@ -184,12 +184,19 @@ case class TestResult(nItems: Int, nErrors: Int, confusion: Map[One, Int]) {
       c.copy(tokenProperties = newTokenProperties, metadata=newMetadata)
     }
 
+    def balancedTestSet(l: List[Concordance], size: Int):List[Concordance] =
+    {
+      val l1 = l.groupBy(x => x.meta("senseId")).mapValues(x => scala.util.Random.shuffle(x).take(size))
+      val l2 = l1.keySet.flatMap(x => l1(x)).toList
+      l2
+      //val l = f
+    }
+
     def anonTest(instances: List[Concordance]) =
     {
       val shadowed = instances.map(c => shadow(c))
-      val shuffled = scala.util.Random.shuffle(shadowed)
-      val test = shuffled.take(1000)
-      val training = shuffled.drop(1000)
+      val test = balancedTestSet(shadowed,200)
+      val training = shadowed.diff(test)
       val wsd = new Swsd
       val c = wsd.train(training, Set.empty)
       val t = tester.testResult(test.toSet, c)
