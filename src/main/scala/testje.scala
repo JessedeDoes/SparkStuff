@@ -177,16 +177,23 @@ case class TestResult(nItems: Int, nErrors: Int, confusion: Map[One, Int]) {
       instances.foldLeft(trivialTest)({ case (t, w) => t + testOne(classify, w) })
     }
 
-    def shadow(c: Concordance): Unit =
+    def shadow(c: Concordance): Concordance =
     {
       val newTokenProperties = c.tokenProperties.mapValues(a => a.patch(c.hitStart, List("UNK"), 1))
-      val newMetadata = c.metadata + ("senseId" -> c.tokenProperties("lemma")(hitStart))
+      val newMetadata = c.metadata + ("senseId" -> c.tokenProperties("lemma")(c.hitStart))
       c.copy(tokenProperties = newTokenProperties, metadata=newMetadata)
     }
 
     def anonTest(instances: List[Concordance]) =
     {
       val shadowed = instances.map(c => shadow(c))
+      val shuffled = scala.util.Random.shuffle(shadowed)
+      val test = shuffled.take(1000)
+      val training = shuffled.drop(1000).take(1000)
+      val wsd = new Swsd
+      val c = wsd.train(training, Set.empty)
+      val t = tester.testResult(test.toSet, c)
+      println(t)
     }
   }
 

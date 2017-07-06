@@ -329,11 +329,20 @@ object Conc {
     //h.foreach(c => println(FCS.toXML(c)))
   }
 
+  def bulyTest() =
+  {
+    val s = Searcher.open(new java.io.File("/media/jesse/Data/Diamant/CorpusBunzingLynx/"))
+    val c = Concordancer(s)
+    val h = c.concordancesWindowed("[lemma='bunzing|lynx']")
+    tester.anonTest(h.toList)
+  }
+
   def main(args: Array[String]): Unit = {
 
     val indexDirectory = if (TestSpark.atHome) corpusDBNL else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
     // testIsThisQuicker()
-    fcsTest()
+    bulyTest()
+    //fcsTest()
     //val searcher = Searcher.open(new java.io.File(indexDirectory))
 
     //wsdTestZin(searcher)
