@@ -13,7 +13,7 @@ object Nederlab
   {
     val schema = null
     val client = new NederlabClient
-
+    client.contextSize = 20
 		client.getHits(cql).iterator().asScala.toStream.map(createConcordance)
   }
   
@@ -34,13 +34,13 @@ object Nederlab
 						(t:Token) => t.tokenProperties.asScala.filter(_.prefix==s).map(_.value)
 					).toArray))).toMap
 		val mapped = tokenValues - "t" + ("word" -> tokenValues("t"))
-		Concordance(hit.startPosition, hit.endPosition, mapped, hit.document.getMetadata.asScala.toMap)
+		Concordance(hit.startPosition, hit.endPosition+1, mapped, hit.document.getMetadata.asScala.toMap)
 	}
 
 
   
   def main(args:Array[String])
   {
-    concordances(  """[t_lc="ezel" | tc_lc="ezels"]""" ).foreach(println)
+    concordances(  """[t_lc="de"][t_lc="ezel" | t_lc="ezels"]""" ).foreach(println)
   }
 }
