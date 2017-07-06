@@ -236,7 +236,7 @@ class Swsd extends WSD with Serializable
    override def train(instances: List[Concordance], heldout: Set[String]): Concordance=>String =
 	 {
 
-		 
+
      val features = makeFeatures
      if (addCentroids) features.addStochasticFeature(new MyStochasticFeature("centerDistances", centroidFeature(vectorz,instances,heldout) ))
 		 val classifier = new LibSVMClassifier
@@ -249,6 +249,7 @@ class Swsd extends WSD with Serializable
 
 		 for (w <- instances)
 		 {
+			 println(w)
 		   val id = w.meta("id")
 		   if (!heldout.contains(id))
 				 d.addInstance(w, w.meta("senseId"))
