@@ -180,7 +180,7 @@ case class TestResult(nItems: Int, nErrors: Int, confusion: Map[One, Int]) {
     def shadow(c: Concordance): Concordance =
     {
       val newTokenProperties = c.tokenProperties.mapValues(a => a.patch(c.hitStart, List("UNK"), 1))
-      val newMetadata = c.metadata + ("senseId" -> c.tokenProperties("lemma")(c.hitStart))
+      val newMetadata = c.metadata + ("senseId" -> c.tokenProperties("lemma")(c.hitStart).toLowerCase()) + ("id" -> ConvertOldInstanceBase.uuid)
       c.copy(tokenProperties = newTokenProperties, metadata=newMetadata)
     }
 
@@ -189,7 +189,7 @@ case class TestResult(nItems: Int, nErrors: Int, confusion: Map[One, Int]) {
       val shadowed = instances.map(c => shadow(c))
       val shuffled = scala.util.Random.shuffle(shadowed)
       val test = shuffled.take(1000)
-      val training = shuffled.drop(1000).take(1000)
+      val training = shuffled.drop(1000)
       val wsd = new Swsd
       val c = wsd.train(training, Set.empty)
       val t = tester.testResult(test.toSet, c)
