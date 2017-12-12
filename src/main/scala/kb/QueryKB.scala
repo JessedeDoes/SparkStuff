@@ -10,7 +10,7 @@ import java.io.{File, PrintWriter}
 
 import scala.xml._
 
-
+import lexiconservice._
 
     
 object Store

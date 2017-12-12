@@ -2,7 +2,7 @@ package concordance
 
 import tokenizer.Tokenizer
 import scala.xml._
-
+import tagger._
 case class Concordance(hitStart: Int, hitEnd: Int, tokenProperties:  Map[String,Array[String]], metadata: Map[String,String], captures:Option[List[Capture]] = None)
 {
   val minEen:Int  = -1

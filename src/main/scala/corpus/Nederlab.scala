@@ -1,13 +1,10 @@
-import nederlab._
-import scala.collection.JavaConverters._
-import org.apache.spark.{SparkConf,SparkContext}
+package corpus
 
-import org.apache.spark.SparkContext._
-import org.apache.spark.rdd.JdbcRDD
-import org.apache.spark.sql._
-import org.apache.spark.sql.types._
-import org.apache.spark.sql.functions._
 import concordance.Concordance
+import nederlab._
+import org.apache.spark.sql.types._
+
+import scala.collection.JavaConverters._
 
 object Nederlab
 {

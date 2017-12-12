@@ -1,5 +1,6 @@
 package tokenizer
 
+import scala.io.Source
 object entities extends EntityReplacer
 {
   implicit val entityFile = "src/main/resources/wntchars.tab"

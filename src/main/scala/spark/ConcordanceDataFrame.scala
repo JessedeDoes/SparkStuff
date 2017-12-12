@@ -1,19 +1,12 @@
+package spark
+
 /**
   * Created by jesse on 6/18/17.
   */
 
-import org.apache.spark.SparkConf
-import org.apache.spark.SparkContext
-import org.apache.spark.SparkContext._
-import java.sql.DriverManager
-import java.sql.Connection
-import java.sql.ResultSet
-import org.apache.spark.rdd.JdbcRDD
+import concordance.Concordance
 import org.apache.spark.sql._
 import org.apache.spark.sql.types._
-import collection.JavaConverters._
-
-import concordance.Concordance
 
 object  ConcordanceDataFrame
 {

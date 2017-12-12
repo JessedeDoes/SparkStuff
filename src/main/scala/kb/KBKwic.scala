@@ -7,6 +7,10 @@ import tokenizer.Tokenizer
 
 import scala.xml._
 
+import QueryKB.{matchingDocumentIdentifiers,splitStream}
+import SRU._
+import tagger._
+
 object KBKwic
 {
   import Tokenizer._

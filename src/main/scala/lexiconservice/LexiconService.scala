@@ -1,5 +1,7 @@
 package lexiconservice
 
+import scala.xml._
+
 case class LexiconService(serviceURL: String, database: String)
 {
   def getWordforms(lemma: String):List[String] =

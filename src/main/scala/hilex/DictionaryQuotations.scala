@@ -1,3 +1,5 @@
+package hilex
+
 import scala.xml._
 
 

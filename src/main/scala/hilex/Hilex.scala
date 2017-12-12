@@ -12,6 +12,7 @@ import database._
 import database.DatabaseUtilities._
 import spark.TestSpark
 
+import tagger._
 object Hilex {
 
   case class Configuration(name: String, server: String, database: String, user: String, password: String)
@@ -71,6 +72,9 @@ object Hilex {
   def slurp[A](a: AlmostQuery[A]): List[A] = DatabaseUtilities.slurp(hilexDB, a)
 
   import java.io._
+  import scala.pickling.pickler
+  import scala.pickling.Defaults._
+  import scala.pickling.json._
 
   def pickleTo(l: List[Concordance], fileName: String): Unit = {
 

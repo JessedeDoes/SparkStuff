@@ -1,0 +1,3 @@
+package rdf
+
+trait Statement

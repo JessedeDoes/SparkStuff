@@ -3,6 +3,7 @@ package hilex
 import concordance.Concordance
 import tokenizer.TokenizerWithOffsets
 
+import tokenizer.entities
 case class Attestation(wordform: Wordform, quote: String, start_pos: Int, end_pos: Int, eg_id: String, document: DocumentMetadata) {
   lazy val senses = ???
 
