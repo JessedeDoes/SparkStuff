@@ -1,3 +1,5 @@
+import hilex.hilexQueries
+import kb.{KBKwic, SingleTerm, testSRU}
 
 object Cells {
   val s = nl.inl.blacklab.search.Searcher.open(new java.io.File("/media/jesse/Data/Diamant/CorpusEzel/"))
@@ -16,7 +18,7 @@ object Cells {
 
   /* ... new cell ... */
 
-  import KBKwic._
+  import kb.KBKwic._
 
   /* ... new cell ... */
 

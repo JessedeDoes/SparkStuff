@@ -117,7 +117,7 @@ where
   ?E <http://lemon-model.net/lemon#lexicalForm> ?f .
   ?f <http://www.ivdnt.org/diamant#attestation> ?a .
   ?f <http://lemon-model.net/lemon#writtenRep> ?wf .
-  ?a a <http://www.ivdnt.org/diamant#Attestation> . 
+  ?a a <http://www.ivdnt.org/diamant#hilex.Attestation> .
   ?a <http://www.ivdnt.org/diamant#beginIndex> ?b .
   ?a <http://www.ivdnt.org/diamant#endIndex> ?e .
   ?a <http://www.ivdnt.org/diamant#text> ?t .

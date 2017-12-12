@@ -26,6 +26,10 @@ import Concordancer.{corpusSize, luceneTermFreq}
 
 import scala.collection.JavaConverters._
 import com.esotericsoftware.minlog._
+import wsd.{ConvertOldInstanceBase, tester, wsdObject}
+import concordance.{Collocation, Concordance, Filter}
+import diamant.DictionaryWSD
+import spark.TestSpark
 
 object Concordancer
 {

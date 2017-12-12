@@ -26,17 +26,17 @@ import scala.reflect._
 import scala.pickling.Defaults._
 import scala.pickling.json._
 
-case class Lemma(modern_lemma: String, lemma_id:Int, persistent_id:String, pos:String) 
+case class hilex.Lemma(modern_lemma: String, lemma_id:Int, persistent_id:String, pos:String)
 {
    lazy val wordforms = Hilex.slurp(queries.getWordforms(List(this)))(Hilex.hilexDB)
    lazy val senses = Hilex.slurp(queries.getSenses(List(this)))(Hilex.hilexDB)
 }
 
-case class SynonymDefinition(sense_id: String, synonym: String)
+case class hilex.SynonymDefinition(sense_id: String, synonym: String)
 
-case class Wordform(lemma: Lemma, analyzed_wordform_id:Int, wordform: String)
+case class hilex.Wordform(lemma: hilex.Lemma, analyzed_wordform_id:Int, wordform: String)
 
-case class Attestation(wordform: Wordform, quote:String, start_pos: Int, end_pos: Int, eg_id: String, document:DocumentMetadata)
+case class hilex.Attestation(wordform: hilex.Wordform, quote:String, start_pos: Int, end_pos: Int, eg_id: String, document:hilex.DocumentMetadata)
 {
    lazy val senses = ???
    import TokenizerWithOffsets._
@@ -60,9 +60,9 @@ case class Attestation(wordform: Wordform, quote:String, start_pos: Int, end_pos
    }
 }
 
-case class DocumentMetadata(persistent_id: String, properties:Map[String,String])
+case class hilex.DocumentMetadata(persistent_id: String, properties:Map[String,String])
 
-case class Sense(lemma: Lemma, persistent_id: String, lemma_id:String, parent_sense_id: String, definition: String)
+case class hilex.Sense(lemma: hilex.Lemma, persistent_id: String, lemma_id:String, parent_sense_id: String, definition: String)
 {
   lazy val attestations = Hilex.slurp(queries.getAttestationsForSense(List(this)))(Hilex.hilexDB)
   lazy val parentSense = Hilex.slurp(queries.getParentSenses(List(this)))(Hilex.hilexDB)
@@ -104,26 +104,26 @@ object queries
     
     val lemmaQueryExample = 
     {
-      implicit val getLemma = GetResult[Lemma](r => Lemma(r.nextString, r.nextInt, r.nextString,r.nextString))
+      implicit val getLemma = GetResult[hilex.Lemma](r => hilex.Lemma(r.nextString, r.nextInt, r.nextString,r.nextString))
       sql"""
       select modern_lemma, lemma_id,persistent_id, lemma_part_of_speech from data.lemmata 
-        where lemma_part_of_speech ~ ${pos}""".as[Lemma]
+        where lemma_part_of_speech ~ ${pos}""".as[hilex.Lemma]
     }
     
     def lemmaQueryWhere(where:String) = 
     {
-      implicit val getLemma = GetResult[Lemma](r => Lemma(r.nextString, r.nextInt, r.nextString,r.nextString))
+      implicit val getLemma = GetResult[hilex.Lemma](r => hilex.Lemma(r.nextString, r.nextInt, r.nextString,r.nextString))
       sql"""
       select modern_lemma, lemma_id,persistent_id, lemma_part_of_speech from #${dataSchema}.lemmata 
-        where #${where}""".as[Lemma]
+        where #${where}""".as[hilex.Lemma]
     }
     
-    def getWordforms(lemmata: List[Lemma]) = 
+    def getWordforms(lemmata: List[hilex.Lemma]) =
     {
       val ids = lemmata.map(_.lemma_id)
       val lemmaMap = lemmata.map(l => (l.lemma_id,l)).toMap
-      implicit val makeWordform = GetResult[Wordform](
-          r => Wordform(lemmaMap(r.nextInt), r.nextInt, r.nextString)
+      implicit val makeWordform = GetResult[hilex.Wordform](
+          r => hilex.Wordform(lemmaMap(r.nextInt), r.nextInt, r.nextString)
       )
       concat(sql"""
         select 
@@ -131,29 +131,29 @@ object queries
         from 
             #${dataSchema}.analyzed_wordforms a, 
             #${dataSchema}.wordforms w 
-        where a.wordform_id=w.wordform_id and lemma_id in """, values(ids)).as[Wordform]
+        where a.wordform_id=w.wordform_id and lemma_id in """, values(ids)).as[hilex.Wordform]
     }
      
-     def getSenses(lemmata: List[Lemma]) = 
+     def getSenses(lemmata: List[hilex.Lemma]) =
      {
       val ids = lemmata.map(_.persistent_id)
       val lemmaMap = lemmata.map(l => (l.persistent_id,l)).toMap
       println(lemmaMap.toList)
-      implicit val makeSense = GetResult[Sense](
-          r => Sense(lemmaMap(r.nextString), r.nextString, r.nextString, r.nextString, r.nextString)
+      implicit val makeSense = GetResult[hilex.Sense](
+          r => hilex.Sense(lemmaMap(r.nextString), r.nextString, r.nextString, r.nextString, r.nextString)
       )
       concat(sql"""
           select lemma_id, persistent_id, lemma_id, parent_sense_id , definition
            from #${senseSchema}.senses 
-           where lemma_id in """, values(ids)).as[Sense]
+           where lemma_id in """, values(ids)).as[hilex.Sense]
      }
      
-     def getSubSenses(senses: List[Sense]) = 
+     def getSubSenses(senses: List[hilex.Sense]) =
      {
       val ids = senses.map(_.persistent_id)
     
-      implicit val makeSense = GetResult[Sense](
-          r => Sense(
+      implicit val makeSense = GetResult[hilex.Sense](
+          r => hilex.Sense(
               getLemmaByPersistentId(r.nextString), 
               r.nextString, 
               r.nextString, 
@@ -168,26 +168,26 @@ object queries
            where parent_sense_id in """, values(ids))
            
       
-       z.as[Sense]
+       z.as[hilex.Sense]
      }
     
-     def getParentSenses(senses: List[Sense]) = 
+     def getParentSenses(senses: List[hilex.Sense]) =
      {
       val ids = senses.map(_.parent_sense_id)
    
-      implicit val makeSense = GetResult[Sense](
-          r => Sense(getLemma(r.nextInt), r.nextString, r.nextString, r.nextString, r.nextString)
+      implicit val makeSense = GetResult[hilex.Sense](
+          r => hilex.Sense(getLemma(r.nextInt), r.nextString, r.nextString, r.nextString, r.nextString)
       )
       concat(sql"""
           select lemma_id, persistent_id, lemma_id, parent_sense_id , definition
            from #${senseSchema}.senses 
-           where persistent_id in """, values(ids)).as[Sense]
+           where persistent_id in """, values(ids)).as[hilex.Sense]
      }
      
-     def getAttestationsBelow(s: Sense):List[Attestation] =
+     def getAttestationsBelow(s: hilex.Sense):List[hilex.Attestation] =
        s.attestations ++  s.subSenses.flatMap(s => getAttestationsBelow(s))
      
-      def getDocument(r:PositionedResult):DocumentMetadata =
+      def getDocument(r:PositionedResult):hilex.DocumentMetadata =
       {
          val items =
           List(
@@ -197,21 +197,21 @@ object queries
               ("year_to", r.nextInt.toString),
               ("dictionary", r.nextString)
            ).toMap
-           DocumentMetadata("bla", items)
+           hilex.DocumentMetadata("bla", items)
       }
       
-      def getAttestation(r:PositionedResult):Attestation = 
+      def getAttestation(r:PositionedResult):hilex.Attestation =
       {
-         val a =  Attestation(getWordform(r.nextInt),r.nextString, r.nextInt, r.nextInt, r.nextString,getDocument(r))
+         val a =  hilex.Attestation(getWordform(r.nextInt),r.nextString, r.nextInt, r.nextInt, r.nextString,getDocument(r))
          a.copy(document=a.document.copy(persistent_id=a.eg_id))
       }
       
-    def getAttestations(wordforms: List[Wordform]) =
+    def getAttestations(wordforms: List[hilex.Wordform]) =
     {
       val ids = wordforms.map(_.analyzed_wordform_id)
       val wordformMap = wordforms.map(l => (l.analyzed_wordform_id,l)).toMap
     
-      implicit val makeAttestation =   GetResult[Attestation](
+      implicit val makeAttestation =   GetResult[hilex.Attestation](
             r => getAttestation(r))
   
      concat(sql"""
@@ -231,10 +231,10 @@ object queries
       where
              d.document_id=t.document_id
             and a.analyzed_wordform_id=t.analyzed_wordform_id 
-            and t.analyzed_wordform_id in """, values(ids)).as[Attestation]
+            and t.analyzed_wordform_id in """, values(ids)).as[hilex.Attestation]
     } 
     
-    def getLemma(lemma_id: Int):Lemma =
+    def getLemma(lemma_id: Int):hilex.Lemma =
     {
         val l = Hilex.slurp(queries.lemmaQueryWhere(s"lemma_id='${lemma_id}'" ))(Hilex.hilexDB)
         if (l.isEmpty)
@@ -243,7 +243,7 @@ object queries
          l.head
     }
     
-    def getLemmaByPersistentId(lemma_id: String):Lemma =
+    def getLemmaByPersistentId(lemma_id: String):hilex.Lemma =
     {
         val l = Hilex.slurp(queries.lemmaQueryWhere(s"persistent_id='${lemma_id}'" ))(Hilex.hilexDB)
         if (l.isEmpty)
@@ -252,10 +252,10 @@ object queries
          l.head
     }
     
-    implicit def getWordform(analyzed_wordform_id: Int):Wordform = 
+    implicit def getWordform(analyzed_wordform_id: Int):hilex.Wordform =
     {
-      implicit val makeWordform = GetResult[Wordform](
-          r => Wordform(getLemma(r.nextInt), r.nextInt, r.nextString)
+      implicit val makeWordform = GetResult[hilex.Wordform](
+          r => hilex.Wordform(getLemma(r.nextInt), r.nextInt, r.nextString)
       )
       val a = sql"""
         select 
@@ -264,9 +264,9 @@ object queries
             #${dataSchema}.analyzed_wordforms a, #${dataSchema}.wordforms w 
         where 
         a.wordform_id=w.wordform_id and analyzed_wordform_id=${analyzed_wordform_id} """
-        .as[Wordform]
+        .as[hilex.Wordform]
       
-       val l:List[Wordform] = Hilex.slurp(a)(Hilex.hilexDB)
+       val l:List[hilex.Wordform] = Hilex.slurp(a)(Hilex.hilexDB)
        if (l.isEmpty)
          null
        else
@@ -274,10 +274,10 @@ object queries
        //if (l.
     }
     
-    def getSynonymDefinitions(sense: Sense) =
+    def getSynonymDefinitions(sense: hilex.Sense) =
     {
       
-       implicit val makeSynonymDefinition = GetResult[SynonymDefinition](r => SynonymDefinition(r.nextString, r.nextString))
+       implicit val makeSynonymDefinition = GetResult[hilex.SynonymDefinition](r => hilex.SynonymDefinition(r.nextString, r.nextString))
        val q = sql""" 
          select
             persistent_id, syn
@@ -285,16 +285,16 @@ object queries
            wnt.modsyn
           where
            sense_id=${sense.persistent_id}
-        """.as[SynonymDefinition]
-       val l:List[SynonymDefinition] = Hilex.slurp(q)(Hilex.hilexDB)
+        """.as[hilex.SynonymDefinition]
+       val l:List[hilex.SynonymDefinition] = Hilex.slurp(q)(Hilex.hilexDB)
        l
     }
     
-    def getAttestationsForSense(senses: List[Sense]) =
+    def getAttestationsForSense(senses: List[hilex.Sense]) =
     {
       val ids = senses.map(_.persistent_id)
       val senseMap = senses.map(l => (l.persistent_id,l)).toMap
-      implicit val makeAttestation =   GetResult[Attestation]( r => getAttestation(r))
+      implicit val makeAttestation =   GetResult[hilex.Attestation]( r => getAttestation(r))
   
      concat(sql"""
       select 
@@ -312,7 +312,7 @@ object queries
       where
             d.eg_id = e.eg_id
             and t.document_id=d.document_id
-            and e.sense_id in """, values(ids)).as[Attestation]
+            and e.sense_id in """, values(ids)).as[hilex.Attestation]
     } 
     
    // as in: concat(sql"select id from USERS where id in ", values(Seq(1,2))).as[Int]
@@ -375,7 +375,7 @@ object Hilex
     pw.close
   }
   
-  def findSomeLemmata:List[Lemma] =
+  def findSomeLemmata:List[hilex.Lemma] =
   {
      slurp(queries.lemmaQueryWhere("modern_lemma ~ '^zin$'"))(Hilex.hilexDB)
   }
@@ -399,7 +399,7 @@ object Hilex
     attestationsAsConcordances.foreach(println)
     println(attestationsAsConcordances.size)
     pickleTo(attestationsAsConcordances,s"Data/${myLemma}.pickle")
-    tester.leaveOneOut(new Swsd, attestationsAsConcordances)
+    tester.leaveOneOut(new wsd.Swsd, attestationsAsConcordances)
     
    
   

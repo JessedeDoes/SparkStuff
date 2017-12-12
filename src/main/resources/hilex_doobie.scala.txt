@@ -4,9 +4,9 @@ import scalaz.effect.IO
 //import scala.reflect.runtime.universe.TypeTag
 //import org.postgresql.util.PGobject
 
-case class Lemma(modern_lemma: String, lemma_id:Int, pos:String) 
-case class Wordform(lemma: Lemma, analyzed_wordform_id:Int, wordform: String)
-case class Attestation(wordform: Wordform, quote:String, hitStart: Int, hitEnd: Int)
+case class hilex.Lemma(modern_lemma: String, lemma_id:Int, pos:String)
+case class hilex.Wordform(lemma: hilex.Lemma, analyzed_wordform_id:Int, wordform: String)
+case class hilex.Attestation(wordform: hilex.Wordform, quote:String, hitStart: Int, hitEnd: Int)
 
 object queries
 {
@@ -33,12 +33,12 @@ where
     
    /*
    def lemmaQuery(where: String) =
-     sql""" select modern_lemma, l.lemma_id,lemma_part_of_speech ${where}""".query[Lemma]
+     sql""" select modern_lemma, l.lemma_id,lemma_part_of_speech ${where}""".query[hilex.Lemma]
      * 
      */
     
     /*
-  def wordformsForLemmata(lemmata: NonEmptyList[Lemma]) =
+  def wordformsForLemmata(lemmata: NonEmptyList[hilex.Lemma]) =
    {
       val lemmaIds = lemmata.map(_.lemma_id)
       implicit val idParam = Param.many(lemmaIds)
@@ -49,7 +49,7 @@ where
      l.lemma_id=a.lemma_id
      AND w.wordform_id=a.wordform_id
      AND lemma_id in (${lemmaIds: lemmaIds.type}) 
-""".query[Wordform].list
+""".query[hilex.Wordform].list
    } 
    * 
    */
@@ -80,13 +80,13 @@ object Hilex
 
 
     val program2 = sql"""select modern_lemma, lemma_id,lemma_part_of_speech
-        from data.lemmata where lemma_part_of_speech ~  'CON'""".query[Lemma].list
+        from data.lemmata where lemma_part_of_speech ~  'CON'""".query[hilex.Lemma].list
     val task2 = program2.transact(xa)
     println(task2.unsafePerformIO)
   //def find(n: String): ConnectionIO[Option[Country]] =
   //sql"select code, name, population from country where name = $n".query[Country].option
 
-  // And then
+  // kb.And then
   //find("France").transact(xa).unsafePerformIO
   }
  
@@ -94,7 +94,7 @@ object Hilex
   
   def test2 = 
   {
-    val program2 = queries.wfQuery.query[Wordform].list
+    val program2 = queries.wfQuery.query[hilex.Wordform].list
     val task2 = program2.transact(xa)
     println(task2.unsafePerformIO)
   }
@@ -108,7 +108,7 @@ object Hilex
     where population > ${range.min}
     and   population < ${range.max}
     and   code in (${codes : codes.type})
-  """.query[Lemma] 
+  """.query[hilex.Lemma]
      }
      * */
     

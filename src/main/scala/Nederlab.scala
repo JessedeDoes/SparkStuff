@@ -7,6 +7,8 @@ import org.apache.spark.rdd.JdbcRDD
 import org.apache.spark.sql._
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.functions._
+import concordance.Concordance
+
 object Nederlab
 {
   def concordances(cql: String):Stream[Concordance] =

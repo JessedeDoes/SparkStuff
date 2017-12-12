@@ -13,6 +13,8 @@ import org.apache.spark.sql._
 import org.apache.spark.sql.types._
 import collection.JavaConverters._
 
+import concordance.Concordance
+
 object  ConcordanceDataFrame
 {
   def createSchema(fields:List[String], metaFields: List[String]):StructType =
