@@ -56,26 +56,8 @@ case class Concordancer(searcher: Searcher)
         }
     iterator.toStream
   }
+
   val portion = 10
-
-  def whyIsItSlowAndHowToSpeedup(corpusQlQuery: String) =
-  {
-    val hits = Concordancer.filteredSearch(searcher, corpusQlQuery, null)
-
-    println(s"hits created for ${corpusQlQuery}!")
-    hits.settings.setContextSize(6)
-    hits.settings.setMaxHitsToRetrieve(Int.MaxValue)
-    val hw = hits.window(0,portion)
-    val hwi = hw.iterator().asScala
-    while (hwi.hasNext) {
-
-      val h = hwi.next()
-      //hits.window(0,portion).getK
-      val kwic = hw.getKwic(h) // ok dit lijkt de boosdoener te zijn; moet dus anders... beter getKwic op hw ? Jawel; dat werkt
-      println(kwic)
-    }
-  }
-
 
   def concordances(corpusQlQuery: String): Stream[Concordance] = {
     val hits = Concordancer.filteredSearch(searcher, corpusQlQuery, null)

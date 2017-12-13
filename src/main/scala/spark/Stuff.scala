@@ -35,7 +35,7 @@ object withSpark {
   def testjeMetSparkJoin() = {
     //Log.set(Log.LEVEL_ERROR)
 
-    val indexDirectory = if (TestSpark.atHome) "/media/jesse/Data/Diamant/CorpusEzel/" else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
+    val indexDirectory = if (configuration.Configuration.atHome) "/media/jesse/Data/Diamant/CorpusEzel/" else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
     val searcher = Searcher.open(new java.io.File(indexDirectory))
     println("searcher open...")
     val concordances = testBlacklabQuery(searcher).selectExpr("date", "word", "lemma[hitStart] as lemma", "pos[hitStart] as pos")

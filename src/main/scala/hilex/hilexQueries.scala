@@ -21,7 +21,7 @@ object hilexQueries {
 
   val pos = "ADP"
 
-  val dataSchema = if (TestSpark.atHome) "data" else "gigant_hilex_data"
+  val dataSchema = if (configuration.Configuration.atHome) "data" else "gigant_hilex_data"
   val senseSchema = "wnt_ids"
 
   def lemmaQueryExample(): AlmostQuery[Lemma] = {

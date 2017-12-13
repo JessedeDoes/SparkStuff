@@ -63,7 +63,7 @@ object Hilex {
   lazy val diamantRuwDB: Handle = makeHandle(diamantAtHome)
 
 
-  implicit lazy val hilexDB: Handle = if (TestSpark.atHome) makeHandle(hilexAtHome) else makeHandle(hilexAtWork)
+  implicit lazy val hilexDB: Handle = if (configuration.Configuration.atHome) makeHandle(hilexAtHome) else makeHandle(hilexAtWork)
 
 
   def stream[A](a: AlmostQuery[A]): Stream[A] = DatabaseUtilities.stream(hilexDB, a)

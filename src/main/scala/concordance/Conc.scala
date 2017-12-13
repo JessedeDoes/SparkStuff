@@ -90,7 +90,7 @@ object Conc {
 
   def main(args: Array[String]): Unit = {
 
-    val indexDirectory = if (TestSpark.atHome) corpusDBNL else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
+    val indexDirectory = if (configuration.Configuration.atHome) corpusDBNL else "/datalokaal/Corpus/BlacklabServerIndices/StatenGeneraal/"
     // testIsThisQuicker()
     bulyTest()
     //fcsTest()

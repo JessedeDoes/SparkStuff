@@ -13,7 +13,7 @@ import org.apache.spark.sql._
 object TestSpark 
 {
 	//val conf = new SparkConf().setMaster("local").setAppName("My App")
-  val atHome = true
+
   
 	lazy val sparkSession = SparkSession.builder.
       master("local")
@@ -60,7 +60,7 @@ object TestSpark
 	def dataFrameFromQuery(sc: SparkContext, query: String):DataFrame = 
 		{
 				val sqlContext = new org.apache.spark.sql.SQLContext(sc)
-				val url = if (atHome) "jdbc:postgresql://localhost/gig_pro_dev?user=postgres&password=inl"
+				val url = if (configuration.Configuration.atHome) "jdbc:postgresql://localhost/gig_pro_dev?user=postgres&password=inl"
 				    else "jdbc:postgresql://svowdb06/gig_pro?user=fannee&password=Cric0topus"
 				  
 				val df = sqlContext.load("jdbc", Map(
