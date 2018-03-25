@@ -1,7 +1,7 @@
 git add src
 git add JustWSD
-git commit -am "."
 git add Jupyter
+git commit -am "."
 git push github master
 
 

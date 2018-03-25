@@ -1,0 +1,9 @@
+classpath.addPath("/path/to/file.jar")
+
+(werkt niet)
+
+interp.load.cp
+
+
+
+
