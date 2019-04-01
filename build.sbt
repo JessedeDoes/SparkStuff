@@ -26,9 +26,9 @@ resolvers += "Local Maven Repository" at "file://"+Path.userHome.absolutePath+"/
 resolvers += "my private repository at xs4all" at "http://dedoes.home.xs4all.nl/maven"
 // resolvers += "mavenrepo" at "https://mvnrepository.com"
 
-libraryDependencies += "org.ivdnt.wordvectors"  % "WordVectors" % "0.0.1-SNAPSHOT"
+libraryDependencies += "org.ivdnt.wordvectors"  % "WordVectors" % "0.2.0"
 libraryDependencies += "org.ivdnt.wsd" % "JustWSD" % "0.0.1-SNAPSHOT" 
-libraryDependencies += "org.ivdnt.tagging" % "DutchTagger" % "0.0.1-SNAPSHOT"
+libraryDependencies += "org.ivdnt.tagging" % "DutchTagger" % "0.3.0"
 libraryDependencies += "org.ivdnt.clariah" % "QueryNederlab" % "0.0.1-SNAPSHOT"
 libraryDependencies += "org.scala-lang.modules" %% "scala-pickling" % "0.10.1"
 

@@ -36,12 +36,12 @@
     <dependency>
       <groupId>org.ivdnt.wordvectors</groupId>
       <artifactId>WordVectors</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
+      <version>0.2.0</version>
     </dependency>
     <dependency>
       <groupId>org.ivdnt.tagging</groupId>
       <artifactId>DutchTagger</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
+      <version>0.3.0</version>
     </dependency>
   </dependencies>
 </project>
